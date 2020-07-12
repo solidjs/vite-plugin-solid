@@ -13,11 +13,11 @@ A simple integration to run [solid-js](https://github.com/ryansolid/solid) with 
 #  Quickstart
 
 ```bash
-npx degit amoutonbrady/vite-plugin-solid/playground my-solid-project
-cd my-solid-project
-npm install
-npm run dev # starts dev-server with hot-module-reloading
-npm run build # builds to /dist
+$ npx degit amoutonbrady/vite-plugin-solid/playground my-solid-project
+$ cd my-solid-project
+$ npm install
+$ npm run dev # starts dev-server with hot-module-reloading
+$ npm run build # builds to /dist
 ```
 
 # Usage
@@ -27,9 +27,12 @@ npm run build # builds to /dist
 Install vite and vite-plugin-solid as dev dependencies
 
 ```bash
-$ npm install -D vite @amoutonbrady/vite-plugin-solid # with npm
-$ pnpm add -D vite @amoutonbrady/vite-plugin-solid # with pnpm
-$ yarn add -D vite @amoutonbrady/vite-plugin-solid # with yarn
+# with npm
+$ npm install -D vite @amoutonbrady/vite-plugin-solid
+# with pnpm
+$ pnpm add -D vite @amoutonbrady/vite-plugin-solid
+# with yarn
+$ yarn add -D vite @amoutonbrady/vite-plugin-solid
 ```
 
 Add it as plugin to `vite.config.ts`
@@ -98,12 +101,10 @@ Just use regular `vite` or `vite build` commands
 
 ```json
 {
-  ...,
   "scripts": {
     "dev": "vite",
     "build": "vite build"
   }
-  ...,
 }
 ```
 

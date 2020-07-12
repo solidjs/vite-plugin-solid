@@ -12,7 +12,8 @@
   ],
   "types": "lib/plugin.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc -p .",
+    "prepublishOnly": "pnpm build"
   },
   "repository": {
     "type": "git",

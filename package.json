@@ -3,8 +3,12 @@
   "version": "0.0.1",
   "description": "solid-js integration plugin for vite",
   "main": "lib/plugin.js",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
-    "lib/*"
+    "lib/"
   ],
   "types": "lib",
   "scripts": {

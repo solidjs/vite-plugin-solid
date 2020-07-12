@@ -8,9 +8,9 @@
     "access": "public"
   },
   "files": [
-    "lib/"
+    "lib"
   ],
-  "types": "lib",
+  "types": "lib/plugin.d.ts",
   "scripts": {
     "build": "tsc"
   },

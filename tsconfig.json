@@ -4,7 +4,7 @@
     "esModuleInterop": true,
     "declaration": true,
     "target": "ES2019",
-    "module": "ESNext",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "declarationDir": "lib",
     "forceConsistentCasingInFileNames": true,

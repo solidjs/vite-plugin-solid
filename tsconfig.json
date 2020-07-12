@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "target": "ES2019",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "declarationDir": "lib",
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "newLine": "lf",
+    "outDir": "lib"
+  },
+  "include": ["src"]
+}

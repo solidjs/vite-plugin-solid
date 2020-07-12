@@ -10,12 +10,14 @@ A simple integration to run [solid-js](https://github.com/ryansolid/solid) with 
 - Support typescript (`.js .ts .jsx .tsx`) out of the box
 - Support code splitting out of the box
 
-#  Quickstart
+# Quickstart
+
+You can use the [vite-template-solid](https://github.com/amoutonbrady/vite-template-solid) starter templates similar to CRA:
 
 ```bash
-$ npx degit amoutonbrady/vite-plugin-solid/playground my-solid-project
-$ cd my-solid-project
-$ npm install
+$ npx degit amoutonbrady/vite-template-solid/js#main my-project
+$ cd my-project
+$ npm install # or pnpm install or yarn install
 $ npm run dev # starts dev-server with hot-module-reloading
 $ npm run build # builds to /dist
 ```
@@ -40,7 +42,7 @@ Add it as plugin to `vite.config.ts`
 ```ts
 // vite.config.ts
 import { UserConfig } from "vite";
-import { solidPlugin } from '@amoutonbrady/vite-plugin-solid';
+import { solidPlugin } from "@amoutonbrady/vite-plugin-solid";
 
 const config: UserConfig = {
   root: "src",
@@ -59,7 +61,7 @@ Or `vite.config.js`
 
 ```js
 // vite.config.js
-import { solidPlugin } from '@amoutonbrady/vite-plugin-solid';
+import { solidPlugin } from "@amoutonbrady/vite-plugin-solid";
 
 /**
  *  @type {import('vite').UserConfig}
@@ -84,7 +86,7 @@ const rootEl = document.getElementById("app");
 const dispose = render(() => App, rootEl);
 
 // HMR stuff, this will be automatically removed during build
-// /!\ You need to add "vite" in the "compilerOptions.types" of your tsconfig.json 
+// /!\ You need to add "vite" in the "compilerOptions.types" of your tsconfig.json
 // if you want to avoid type errors here
 if (import.meta.hot) {
   import.meta.hot.accept();
@@ -113,11 +115,11 @@ Just use regular `vite` or `vite build` commands
 You can pass options to the plugin via `vite.config.(js|ts)`
 
 ```js
-import { solidPlugin } from '@amoutonbrady/vite-plugin-solid';
+import { solidPlugin } from "@amoutonbrady/vite-plugin-solid";
 
 const options = {
   babel: {
-   presets: ['@babel/preset-env'],
+    presets: ["@babel/preset-env"],
   },
 };
 

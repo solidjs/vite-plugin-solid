@@ -1,16 +1,14 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "declaration": true,
     "target": "ES2019",
-    "module": "CommonJS",
     "moduleResolution": "node",
-    "declarationDir": "lib",
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "newLine": "lf",
-    "outDir": "lib"
+    "declaration": true,
+    "noUnusedLocals": true,
+    "esModuleInterop": true,
+    "outDir": "lib",
+    "module": "commonjs",
+    "lib": ["ESNext"],
+    "sourceMap": true
   },
-  "include": ["src"]
+  "include": ["./src"]
 }

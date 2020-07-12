@@ -9,8 +9,8 @@ export function solidPlugin(options?: SolidPluginOptions): Plugin {
   // Merging plugins & presets if user add some more
   const babelPlugins = [...(plugins || [])];
   const babelPresets = [
-    "babel-preset-solid",
-    "@babel/preset-typescript",
+    require("babel-preset-solid"),
+    require("@babel/preset-typescript"),
     ...(presets || []),
   ];
 

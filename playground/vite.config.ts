@@ -1,5 +1,5 @@
 import { UserConfig } from "vite";
-import { solidPlugin } from "../lib/plugin";
+const { solidPlugin } = require("../lib/plugin"); // This should work witrh import {} from '..'
 
 const config: UserConfig = {
   root: "src",

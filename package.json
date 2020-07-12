@@ -1,6 +1,6 @@
 {
   "name": "@amoutonbrady/vite-plugin-solid",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "solid-js integration plugin for vite",
   "main": "lib/plugin.js",
   "private": false,

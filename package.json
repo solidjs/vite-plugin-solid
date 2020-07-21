@@ -1,6 +1,6 @@
 {
   "name": "@amoutonbrady/vite-plugin-solid",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "solid-js integration plugin for vite",
   "main": "lib/plugin.js",
   "private": false,
@@ -37,15 +37,15 @@
     "vite": "^1.0.0-beta.11 || ^1.0.0"
   },
   "dependencies": {
-    "@babel/core": "^7.10.4",
+    "@babel/core": "^7.10.5",
     "@babel/preset-typescript": "^7.10.4",
-    "@rollup/plugin-babel": "^5.0.4",
-    "babel-preset-solid": "^0.18.12",
-    "solid-js": "^0.18.12",
-    "vite": "^1.0.0-beta.11"
+    "@rollup/plugin-babel": "^5.1.0",
+    "babel-preset-solid": "^0.18.14",
+    "solid-js": "^0.18.14",
+    "vite": "^1.0.0-rc.3"
   },
   "devDependencies": {
     "@types/babel__core": "^7.1.9",
-    "typescript": "^4.0.0-dev.20200712"
+    "typescript": "^4.0.0-dev.20200721"
   }
 }

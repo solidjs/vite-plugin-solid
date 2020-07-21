@@ -1,5 +1,8 @@
 import { Plugin } from "vite";
-import { babel as babelRollup } from "@rollup/plugin-babel";
+import {
+  babel as babelRollup,
+  RollupBabelInputPluginOptions,
+} from "@rollup/plugin-babel";
 import { transformFileAsync, TransformOptions } from "@babel/core";
 
 export function solidPlugin(options?: SolidPluginOptions): Plugin {
@@ -25,7 +28,7 @@ export function solidPlugin(options?: SolidPluginOptions): Plugin {
           babelHelpers: "bundled",
           extensions: [".js", ".ts", ".jsx", ".tsx"],
           ...(babelOptions || babel),
-        }),
+        } as RollupBabelInputPluginOptions),
       ],
     },
     configureServer: ({ resolver, app }) => {

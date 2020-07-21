@@ -1,51 +1,51 @@
 {
-  "name": "@amoutonbrady/vite-plugin-solid",
-  "version": "0.0.4",
-  "description": "solid-js integration plugin for vite",
-  "main": "lib/plugin.js",
-  "private": false,
-  "publishConfig": {
-    "access": "public"
-  },
-  "files": [
-    "lib"
-  ],
-  "types": "lib/plugin.d.ts",
-  "scripts": {
-    "build": "tsc -p .",
-    "prepublishOnly": "pnpm build"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/amoutonbrady/vite-plugin-solid.git"
-  },
-  "keywords": [
-    "vite",
-    "vite plugin",
-    "vitejs",
-    "vitejs plugin",
-    "solid"
-  ],
-  "author": "Alexandre Mouton-Brady <amoutonbrady@gmail.com>",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/amoutonbrady/vite-plugin-solid/issues"
-  },
-  "homepage": "https://github.com/amoutonbrady/vite-plugin-solid#readme",
-  "peerDependencies": {
-    "solid-js": "^0.18.12 || ^1.0.0",
-    "vite": "^1.0.0-beta.11 || ^1.0.0"
-  },
-  "dependencies": {
-    "@babel/core": "^7.10.5",
-    "@babel/preset-typescript": "^7.10.4",
-    "@rollup/plugin-babel": "^5.1.0",
-    "babel-preset-solid": "^0.18.14",
-    "solid-js": "^0.18.14",
-    "vite": "^1.0.0-rc.3"
-  },
-  "devDependencies": {
-    "@types/babel__core": "^7.1.9",
-    "typescript": "^4.0.0-dev.20200721"
-  }
+	"name": "@amoutonbrady/vite-plugin-solid",
+	"version": "0.0.4",
+	"description": "solid-js integration plugin for vite",
+	"main": "lib/plugin.js",
+	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"lib"
+	],
+	"types": "lib/plugin.d.ts",
+	"scripts": {
+		"build": "tsc -p .",
+		"prepublishOnly": "pnpm build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/amoutonbrady/vite-plugin-solid.git"
+	},
+	"keywords": [
+		"vite",
+		"vite plugin",
+		"vitejs",
+		"vitejs plugin",
+		"solid"
+	],
+	"author": "Alexandre Mouton-Brady <amoutonbrady@gmail.com>",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/amoutonbrady/vite-plugin-solid/issues"
+	},
+	"homepage": "https://github.com/amoutonbrady/vite-plugin-solid#readme",
+	"peerDependencies": {
+		"solid-js": "^0.18.12 || ^1.0.0",
+		"vite": "^1.0.0-beta.11 || ^1.0.0"
+	},
+	"dependencies": {
+		"@babel/core": "^7.10.5",
+		"@babel/preset-typescript": "^7.10.4",
+		"@rollup/plugin-babel": "^5.1.0",
+		"babel-preset-solid": "^0.18.14",
+		"solid-js": "^0.18.14",
+		"vite": "^1.0.0-rc.3"
+	},
+	"devDependencies": {
+		"@types/babel__core": "^7.1.9",
+		"typescript": "^4.0.0-dev.20200721"
+	}
 }

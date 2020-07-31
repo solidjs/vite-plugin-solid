@@ -4,6 +4,7 @@ import {
   RollupBabelInputPluginOptions,
 } from "@rollup/plugin-babel";
 import { transformFileAsync, TransformOptions } from "@babel/core";
+import dd from "dedent";
 
 export function solidPlugin(options?: SolidPluginOptions): Plugin {
   const babel = options?.babel ?? {};
@@ -52,7 +53,7 @@ export function solidPlugin(options?: SolidPluginOptions): Plugin {
           // If the transformation is successful, return it as as js content
           if (result) {
             ctx.type = "js";
-            ctx.body = result.code;
+            ctx.body = addHMR(result.code);
             ctx.map = result.map;
             return;
           }
@@ -62,7 +63,25 @@ export function solidPlugin(options?: SolidPluginOptions): Plugin {
         await next();
       });
     },
+    enableRollupPluginVue: false,
   };
+}
+
+function addHMR(code: string) {
+  if (!code.includes(`const dispose`)) return code;
+  if (!code.includes(`const rootEl`)) return code;
+
+  return dd`
+    ${code}
+
+    if (import.meta.hot) {
+      import.meta.hot.accept();
+      import.meta.hot.dispose(() => {
+        dispose();
+        rootEl.textContent = "";
+      });
+    }
+  `;
 }
 
 export default solidPlugin;

@@ -37,9 +37,9 @@
     "vite": "^1.0.0-beta.11 || ^1.0.0"
   },
   "dependencies": {
-    "@babel/core": "^7.11.0",
+    "@babel/core": "^7.11.1",
     "@babel/preset-typescript": "^7.10.4",
-    "@rollup/plugin-babel": "^5.1.0",
+    "@rollup/plugin-babel": "^5.2.0",
     "babel-preset-solid": "^0.18.14",
     "dedent": "^0.7.0",
     "solid-js": "^0.18.14",

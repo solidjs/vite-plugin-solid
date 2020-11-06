@@ -82,8 +82,11 @@ export default config;
 Finally you have to add a bit of code to your entry point to activate HMR. This might be handled automatically at some point by the plugin but for now it's manual.
 
 ```ts
-const rootEl = document.getElementById("app");
-const dispose = render(() => App, rootEl);
+// Those two variables are mandatory if you want automatic HMR
+export const rootEl = document.getElementById("app");
+export const dispose = render(() => App, rootEl);
+
+// The plugin will automatically inject the following snippet :
 
 // HMR stuff, this will be automatically removed during build
 // /!\ You need to add "vite" in the "compilerOptions.types" of your tsconfig.json
@@ -135,17 +138,11 @@ export default config;
 
 For now the only options is to add extra babel config.
 
-## Example
-
-You can checkout the [playground](/playground)
-
-More example will come to full proof the plugin
-
 # Limitations
 
 This is an early version, some things may not work as expected. Please report findings.
 
-- HMR is manual and doesn't hold state on reload
+- ~~HMR is manual and doesn't hold state on reload~~
 - ESBuild has to be deactivated because of its JSX management which slow downs a bit the reload
 - Vite is primarly build for Vue and therefore includes it when installing it
 

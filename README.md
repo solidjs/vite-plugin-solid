@@ -82,9 +82,8 @@ export default config;
 Finally you have to add a bit of code to your entry point to activate HMR. This might be handled automatically at some point by the plugin but for now it's manual.
 
 ```ts
-// Those two variables are mandatory if you want automatic HMR
-export const rootEl = document.getElementById("app");
-export const dispose = render(() => App, rootEl);
+// This variable is mandatory if you want automatic HMR
+export const dispose = render(() => App, rootElement);
 
 // The plugin will automatically inject the following snippet :
 
@@ -93,10 +92,7 @@ export const dispose = render(() => App, rootEl);
 // if you want to avoid type errors here
 if (import.meta.hot) {
   import.meta.hot.accept();
-  import.meta.hot.dispose(() => {
-    dispose();
-    rootEl.textContent = "";
-  });
+  import.meta.hot.dispose(dispose);
 }
 ```
 

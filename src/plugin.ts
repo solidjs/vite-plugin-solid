@@ -35,7 +35,7 @@ export function solidPlugin(options?: SolidPluginOptions): Plugin {
     configureServer: ({ resolver, app }) => {
       app.use(async (ctx, next) => {
         // Intercept the current request to the dev server and check if it's a js/ts/jsx/tsx file
-        if (/\.(t|j)s(x)?$/.test(ctx.path)) {
+        if (/\.(t|j)sx?$/.test(ctx.path)) {
           // Retrieve the requested file and transform it on the fly with babel
           const result = await transformFileAsync(
             resolver.requestToFile(ctx.path),

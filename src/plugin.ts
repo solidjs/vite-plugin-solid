@@ -69,17 +69,13 @@ export function solidPlugin(options?: SolidPluginOptions): Plugin {
 
 function addHMR(code: string) {
   if (!code.includes(`const dispose`)) return code;
-  if (!code.includes(`const rootEl`)) return code;
 
   return dd`
     ${code}
 
     if (import.meta.hot) {
       import.meta.hot.accept();
-      import.meta.hot.dispose(() => {
-        dispose();
-        rootEl.textContent = "";
-      });
+      import.meta.hot.dispose(dispose);
     }
   `;
 }

@@ -27,15 +27,15 @@ export function solidPlugin(options?: SolidPluginOptions): Plugin {
           presets: babelPresets,
           plugins: babelPlugins,
           babelHelpers: "bundled",
-          extensions: [".js", ".ts", ".jsx", ".tsx"],
+          extensions: [".jsx", ".tsx"],
           ...(babelOptions || babel),
         } as RollupBabelInputPluginOptions),
       ],
     },
     configureServer: ({ resolver, app }) => {
       app.use(async (ctx, next) => {
-        // Intercept the current request to the dev server and check if it's a js/ts/jsx/tsx file
-        if (/\.(t|j)sx?$/.test(ctx.path)) {
+        // Intercept the current request to the dev server and check if it's a jsx/tsx file
+        if (/\.(t|j)sx$/.test(ctx.path)) {
           // Retrieve the requested file and transform it on the fly with babel
           const result = await transformFileAsync(
             resolver.requestToFile(ctx.path),

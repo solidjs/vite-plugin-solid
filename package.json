@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/amoutonbrady/vite-plugin-solid#readme",
   "peerDependencies": {
-    "solid-js": "^0.20.0 || ^1.0.0",
+    "solid-js": "^0.21.0 || ^1.0.0",
     "vite": "^1.0.0-rc.4 || ^1.0.0"
   },
   "dependencies": {

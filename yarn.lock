@@ -24,7 +24,7 @@ __metadata:
     typescript: ^4.0.5
     vite: ^1.0.0-rc.9
   peerDependencies:
-    solid-js: ^0.20.0 || ^1.0.0
+    solid-js: ^0.21.0 || ^1.0.0
     vite: ^1.0.0-rc.4 || ^1.0.0
   languageName: unknown
   linkType: soft

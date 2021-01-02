@@ -1,10 +1,2 @@
 node_modules
-lib
 dist
-
-.yarn/*
-!.yarn/cache
-!.yarn/releases
-!.yarn/plugins
-!.yarn/sdks
-!.yarn/versions

@@ -1,14 +1,16 @@
 {
+  "include": ["src"],
+  "exclude": ["**/*.spec.ts"],
   "compilerOptions": {
-    "target": "ES2019",
+    "target": "ESNext",
+    "module": "ESNext",
     "moduleResolution": "node",
+    "strict": false,
     "declaration": true,
     "noUnusedLocals": true,
     "esModuleInterop": true,
-    "outDir": "lib",
-    "module": "commonjs",
-    "lib": ["ESNext"],
-    "sourceMap": true
-  },
-  "include": ["./src"]
+    "allowSyntheticDefaultImports": true,
+    "declarationDir": "dist/types",
+    "baseUrl": "."
+  }
 }

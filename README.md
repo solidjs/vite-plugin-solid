@@ -1,8 +1,14 @@
-# ⚡ Vite Plugin Solid
+# ⚡ vite-plugin-solid
 
 A simple integration to run [solid-js](https://github.com/ryansolid/solid) with [vite](https://github.com/vitejs/vite)
 
+## Disclaimer
+
 This targets vite 2 (which is in beta right now). To checkout vite 1 support, check out the `vite-1.x` branch.
+
+The mean breaking change is that the package has been renamed from `@amoutonbrady/vite-plugin-solid` to `vite-plugin-solid`.
+
+For other breaking changes, check [the migration guide of vite](https://vitejs.dev/guide/migration.html).
 
 ## Features
 

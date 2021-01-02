@@ -1,0 +1,19 @@
+{
+  "name": "playground",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "keywords": [],
+  "author": "Alexandre Mouton-Brady",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^2.0.0-beta.1"
+  },
+  "dependencies": {
+    "solid-js": "^0.23.6"
+  }
+}

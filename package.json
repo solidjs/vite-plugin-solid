@@ -15,7 +15,9 @@
   },
   "types": "dist/types/index.d.ts",
   "scripts": {
-    "build": "rollup -c && tsc --emitDeclarationOnly"
+    "build": "rollup -c && tsc --emitDeclarationOnly",
+    "prepublishOnly": "pnpm build",
+    "check": "package-check"
   },
   "repository": {
     "type": "git",
@@ -50,6 +52,7 @@
     "@types/node": "^14.14.9",
     "rollup": "^2.35.1",
     "rollup-plugin-cleaner": "^1.0.0",
-    "typescript": "^4.1.2"
+    "typescript": "^4.1.2",
+    "@skypack/package-check": "^0.2.2"
   }
 }

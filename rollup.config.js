@@ -14,15 +14,16 @@ const config = {
     {
       format: 'esm',
       dir: 'dist/esm',
-      sourcemap: 'inline',
+      sourcemap: true,
     },
     {
       format: 'cjs',
       dir: 'dist/cjs',
-      sourcemap: 'inline',
+      sourcemap: true,
+      exports: 'default',
     },
   ],
-  external: Object.keys(pkg.dependencies),
+  external: [...Object.keys(pkg.dependencies), 'fs/promises'],
   plugins: [
     cleaner({ targets: ['./dist/'] }),
     babel({

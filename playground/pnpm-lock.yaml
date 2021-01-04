@@ -1,9 +1,19 @@
 dependencies:
-  solid-js: 0.23.6
+  '@vitejs/plugin-vue': 1.0.3
+  solid-app-router: 0.0.19_solid-js@0.23.8
+  solid-js: 0.23.8
 devDependencies:
-  vite: 2.0.0-beta.1
+  vite: 2.0.0-beta.4
 lockfileVersion: 5.2
 packages:
+  /@vitejs/plugin-vue/1.0.3:
+    dev: false
+    engines:
+      node: '>=12.0.0'
+    peerDependencies:
+      '@vue/compiler-sfc': ^3.0.4
+    resolution:
+      integrity: sha512-sOVHFS97zxuRLAMj10C9Vaiv3WeEwnhtee9V+yv/G/xoJTXPJIRct4Nj2unPtp5zAUoCL+iTVbIC6LnNmNE4Hw==
   /colorette/1.2.1:
     dev: true
     resolution:
@@ -50,17 +60,25 @@ packages:
       fsevents: 2.1.3
     resolution:
       integrity: sha512-q5KxEyWpprAIcainhVy6HfRttD9kutQpHbeqDTWnqAFNJotiojetK6uqmcydNMymBEtC4I8bCYR+J3mTMqeaUA==
-  /solid-js/0.23.6:
+  /solid-app-router/0.0.19_solid-js@0.23.8:
+    dependencies:
+      solid-js: 0.23.8
+    dev: false
+    peerDependencies:
+      solid-js: ^0.23.0
+    resolution:
+      integrity: sha512-kaOVqhkv1i4YAuqpqCrIVZOmzb8Ya4T+azAIu/v9MH5j6QrsBxGGBm/mFR3eNNDswkpweAH8tDVoYopzgb4Hcg==
+  /solid-js/0.23.8:
     dev: false
     resolution:
-      integrity: sha512-ag9LBr3njVy07ZvGFcrdCoRBrDh0zUanqYzV6iayx74Z7JqFUYA6lBBk1u2ZbuUjb9w9vJLZ8XoHZCrcalpS7w==
+      integrity: sha512-MeJ/7dYFWR5egqtmTwuNlxV9K5MlSF4Ji6Gec/r/f5Cy64npWdXC6pl7cnpUlEpnhl34VJbBkkQWXVDQdqmePg==
   /source-map/0.6.1:
     dev: true
     engines:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
-  /vite/2.0.0-beta.1:
+  /vite/2.0.0-beta.4:
     dependencies:
       esbuild: 0.8.29
       postcss: 8.2.2
@@ -72,7 +90,9 @@ packages:
     optionalDependencies:
       fsevents: 2.1.3
     resolution:
-      integrity: sha512-Rycsi2cfNVhONUvzX5gdBR4Rdsg0LH13a5Yz0LHTDwhAyZHefvYo+m90oj/bKHhHR5iIk6h73lvd+8GCo0hbEw==
+      integrity: sha512-V0HV6xyUPQ9ktJ8gLm0Et7zTFtp8WmISsH/K+FuGF3aJ4VJOlSYEaget1nHCauUPI7WDPe97suz7SCIVHW2iEg==
 specifiers:
-  solid-js: ^0.23.6
-  vite: ^2.0.0-beta.1
+  '@vitejs/plugin-vue': ^1.0.3
+  solid-app-router: ^0.0.19
+  solid-js: ^0.23.8
+  vite: ^2.0.0-beta.4

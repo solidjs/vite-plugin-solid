@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-solid",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "solid-js integration plugin for vite 2",
   "files": [
     "dist"
@@ -16,6 +16,7 @@
   "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "rollup -c && tsc --emitDeclarationOnly",
+    "dev": "rollup -c -w",
     "prepublishOnly": "pnpm build",
     "check": "package-check"
   },
@@ -37,15 +38,19 @@
   },
   "homepage": "https://github.com/amoutonbrady/vite-plugin-solid#readme",
   "peerDependencies": {
-    "vite": "^2"
+    "solid-js": "^0.23",
+    "vite": "^2.0.0-beta.4",
+    "babel-preset-solid": "^0.23"
   },
   "dependencies": {
     "@babel/core": "^7.12.7",
     "@babel/preset-typescript": "^7.12.7",
-    "babel-preset-solid": "^0.23.5",
-    "vite": "^2.0.0-beta.1"
+    "babel-preset-solid": "^0.23",
+    "solid-js": "^0.23",
+    "vite": "^2.0.0-beta.4"
   },
   "devDependencies": {
+    "@babel/plugin-transform-typescript": "^7.12.1",
     "@rollup/plugin-babel": "^5.2.2",
     "@rollup/plugin-node-resolve": "^11.0.1",
     "@skypack/package-check": "^0.2.2",

@@ -7,6 +7,7 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "jsx": "preserve",
-    "jsxImportSource": "solid-js"
+    "jsxImportSource": "solid-js",
+    "types": ["vite/client"]
   }
 }

@@ -1,19 +1,21 @@
+import { lazy } from 'solid-js';
+import { render } from 'solid-js/web';
+import { Link } from 'solid-app-router';
 import { MetaProvider } from 'solid-meta';
 import { Router, Route, RouteDefinition } from 'solid-app-router';
-import { Link } from 'solid-app-router';
-import { render } from 'solid-js/web';
-import { createApp } from 'solid-utils';
 
-const pages = import.meta.globEager('./pages/*.tsx');
+import Home from './pages';
 
-const routes = Object.entries(pages).map<RouteDefinition>(([file, { default: component }]) => {
-  const path = file
-    .replace('./pages', '')
-    .replace('index', '')
-    .replace(/\.[tj]sx?/gi, '');
-
-  return { component, path } as RouteDefinition;
-});
+const routes: RouteDefinition[] = [
+  {
+    path: '/',
+    component: Home,
+  },
+  {
+    path: '/about',
+    component: lazy(() => import('./pages/about')),
+  },
+];
 
 const App = () => (
   <>

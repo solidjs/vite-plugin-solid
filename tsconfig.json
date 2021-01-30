@@ -8,6 +8,7 @@
     "strict": false,
     "declaration": true,
     "noUnusedLocals": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "declarationDir": "dist/types",

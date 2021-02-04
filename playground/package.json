@@ -11,12 +11,12 @@
   "author": "Alexandre Mouton-Brady",
   "license": "ISC",
   "devDependencies": {
-    "vite": "^2.0.0-beta.59"
+    "vite": "^2.0.0-beta.64"
   },
   "dependencies": {
-    "solid-app-router": "^0.0.19",
-    "solid-js": "^0.23.11",
-    "solid-meta": "^0.23.11",
-    "solid-utils": "^0.2.1"
+    "solid-app-router": "^0.0.21",
+    "solid-js": "^0.24.0",
+    "solid-meta": "^0.24.0",
+    "solid-utils": "^0.3.1"
   }
 }

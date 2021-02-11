@@ -1,8 +1,6 @@
-import { Plugin } from 'vite';
-import solid from 'babel-preset-solid';
 import { transformAsync, TransformOptions } from '@babel/core';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import solid from 'babel-preset-solid';
+import { Plugin } from 'vite';
 
 interface Options {
   moduleName: string;
@@ -23,31 +21,23 @@ export default function solidPlugin(options?: Partial<Options>): Plugin {
     name: 'solid',
 
     config() {
-      // HACK: This is a temporary hack while I find a better to either
-      // transform JSX dependencies via Babel or find a better automated way
-      // to exclude JSX dependencies from deps optimization
-      const pkgPath = join(process.cwd(), 'package.json');
-      const pkgContent = readFileSync(pkgPath, { encoding: 'utf-8' });
-      const pkgParsed = JSON.parse(pkgContent);
-      const deps = Object.keys(pkgParsed.dependencies);
-
-      const exclude = deps.filter((dep) => dep !== 'solid-js' && dep.includes('solid'));
-
       return {
         /**
          * We only need esbuild on .ts or .js files.
          * .tsx & .jsx files are handled by us
          */
         esbuild: { include: /\.ts$/ },
-        dedupe: ['solid-js', 'solid-js/web'],
+        resolve: {
+          dedupe: ['solid-js', 'solid-js/web'],
+        },
         optimizeDeps: {
           include: ['solid-js/web'],
-          exclude,
         },
       };
     },
 
     configResolved(config) {
+      console.log(config.resolve);
       needHmr = config.command === 'serve' && !config.isProduction;
     },
 

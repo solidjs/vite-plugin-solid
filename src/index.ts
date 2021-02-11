@@ -37,7 +37,6 @@ export default function solidPlugin(options?: Partial<Options>): Plugin {
     },
 
     configResolved(config) {
-      console.log(config.resolve);
       needHmr = config.command === 'serve' && !config.isProduction;
     },
 

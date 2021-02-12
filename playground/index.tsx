@@ -1,8 +1,8 @@
 import { createSignal, lazy } from 'solid-js';
-import { render } from 'solid-js/web';
 import { Link } from 'solid-app-router';
 import { MetaProvider } from 'solid-meta';
 import { Router, Route, RouteDefinition } from 'solid-app-router';
+import { createApp } from 'solid-utils';
 
 import Home from './pages';
 
@@ -23,23 +23,14 @@ const App = () => {
   return (
     <>
       <Link href="/">Home</Link>
-    <Link href="/about">About!!!</Link>
-    <Route />
+      <Link href="/about">About!!!</Link>
+      <Route />
       <button onClick={() => setCount(count() + 1)}>{count()}</button>
     </>
   );
 };
 
-const dispose = render(
-  () => (
-    <Router routes={routes}>
-     <MetaProvider>
-    <App />
-     </MetaProvider>
-    </Router>
-  ),
-  document.getElementById('app'),
-);
+const dispose = createApp(App).use(MetaProvider).use(Router, { routes }).mount('#app');
 
 if (import.meta.hot) {
   import.meta.hot.accept();

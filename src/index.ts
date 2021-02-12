@@ -1,8 +1,9 @@
-import { transformAsync, TransformOptions } from '@babel/core';
-import solid from 'babel-preset-solid';
 import { Plugin } from 'vite';
+import solid from 'babel-preset-solid';
+import { transformAsync, TransformOptions } from '@babel/core';
 
 interface Options {
+  dev: boolean;
   moduleName: string;
   builtIns: string[];
   delegateEvents: boolean;
@@ -14,13 +15,20 @@ interface Options {
   generate: 'dom' | 'ssr';
 }
 
-export default function solidPlugin(options?: Partial<Options>): Plugin {
+export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let needHmr = false;
 
   return {
     name: 'solid',
 
-    config() {
+    config(_, { command }) {
+      const replaceDev = options.dev !== false;
+
+      const alias =
+        command === 'serve' && replaceDev
+          ? [{ find: /^solid-js$/, replacement: 'solid-js/dev' }]
+          : [];
+
       return {
         /**
          * We only need esbuild on .ts or .js files.
@@ -29,9 +37,10 @@ export default function solidPlugin(options?: Partial<Options>): Plugin {
         esbuild: { include: /\.ts$/ },
         resolve: {
           dedupe: ['solid-js', 'solid-js/web'],
+          alias,
         },
         optimizeDeps: {
-          include: ['solid-js/web'],
+          include: ['solid-js/dev', 'solid-js/web'],
         },
       };
     },

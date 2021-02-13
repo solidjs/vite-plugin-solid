@@ -11,12 +11,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-puCDz0CzydiSYOrnXpz/PKd69zRrribezjtE9yd4zvytoRc8+RY/KJPvtPFKZS3E3wP6neGyMe0vOTlHO5L3Pw==
-  /esbuild/0.8.44:
+  /esbuild/0.8.45:
     dev: true
     hasBin: true
     requiresBuild: true
     resolution:
-      integrity: sha512-m9yyBZMgWuAB7e7tA2g9L4PovoLa5Xb73+Yg9uBBR2w3Fe4P9/nxqj/HLrw1k/rjdjF1eX1kNJRytboqOtRCCQ==
+      integrity: sha512-AhR+h/Kat9QMssi0rSJIei0yR+dJ0DQ5aDqnZy4VLu9kOBHdJh8vDSE2XzUlwnm4umvMFnfQTELZlsH7Zmvksw==
   /fsevents/2.3.2:
     dev: true
     engines:
@@ -72,7 +72,7 @@ packages:
     dev: true
     resolution:
       integrity: sha512-wENBPt4ySzg4ybFQW2TT1zMQucPK95HSh/nq2CFTZVOGut2+pQvSsgtda4d26YrYcr067wjbmzOG8byDPBX63A==
-  /rollup/2.38.5:
+  /rollup/2.39.0:
     dev: true
     engines:
       node: '>=10.0.0'
@@ -80,7 +80,7 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
     resolution:
-      integrity: sha512-VoWt8DysFGDVRGWuHTqZzT02J0ASgjVq/hPs9QcBOGMd7B+jfTr/iqMVEyOi901rE3xq+Deq66GzIT1yt7sGwQ==
+      integrity: sha512-+WR3bttcq7zE+BntH09UxaW3bQo3vItuYeLsyk4dL2tuwbeSKJuvwiawyhEnvRdRgrII0Uzk00FpctHO/zB1kw==
   /solid-app-router/0.0.23_solid-js@0.24.5:
     dependencies:
       solid-js: 0.24.5
@@ -115,10 +115,10 @@ packages:
       integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
   /vite/2.0.0-beta.69:
     dependencies:
-      esbuild: 0.8.44
+      esbuild: 0.8.45
       postcss: 8.2.6
       resolve: 1.20.0
-      rollup: 2.38.5
+      rollup: 2.39.0
     dev: true
     engines:
       node: '>=12.0.0'

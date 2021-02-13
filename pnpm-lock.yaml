@@ -410,12 +410,12 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-FJ3UgI4gIl+PHZm53knsuSFpE+nESMr7M4v9QcgB7S63Kj/6WqMiFQJpBBYz1Pt+66bZpP3Q7Lye0Oo9MPKEdg==
-  /esbuild/0.8.44:
+  /esbuild/0.8.45:
     dev: false
     hasBin: true
     requiresBuild: true
     resolution:
-      integrity: sha512-m9yyBZMgWuAB7e7tA2g9L4PovoLa5Xb73+Yg9uBBR2w3Fe4P9/nxqj/HLrw1k/rjdjF1eX1kNJRytboqOtRCCQ==
+      integrity: sha512-AhR+h/Kat9QMssi0rSJIei0yR+dJ0DQ5aDqnZy4VLu9kOBHdJh8vDSE2XzUlwnm4umvMFnfQTELZlsH7Zmvksw==
   /escape-string-regexp/1.0.5:
     engines:
       node: '>=0.8.0'
@@ -609,17 +609,7 @@ packages:
       rollup: '> 1.0'
     resolution:
       integrity: sha512-q+Zf9estkFwGede9QzmbkhKeuXzlliOvcICVNzBHAs5xYPPs1XLtfin5TMU2tC2EYjmfaF97saY9MnQM6Og4eA==
-  /rollup/2.38.5:
-    dev: false
-    engines:
-      node: '>=10.0.0'
-    hasBin: true
-    optionalDependencies:
-      fsevents: 2.3.2
-    resolution:
-      integrity: sha512-VoWt8DysFGDVRGWuHTqZzT02J0ASgjVq/hPs9QcBOGMd7B+jfTr/iqMVEyOi901rE3xq+Deq66GzIT1yt7sGwQ==
   /rollup/2.39.0:
-    dev: true
     engines:
       node: '>=10.0.0'
     hasBin: true
@@ -672,10 +662,10 @@ packages:
       integrity: sha512-6OSu9PTIzmn9TCDiovULTnET6BgXtDYL4Gg4szY+cGsc3JP1dQL8qvE8kShTRx1NIw4Q9IBHlwODjkjWEtMUyA==
   /vite/2.0.0-beta.69:
     dependencies:
-      esbuild: 0.8.44
+      esbuild: 0.8.45
       postcss: 8.2.6
       resolve: 1.20.0
-      rollup: 2.38.5
+      rollup: 2.39.0
     dev: false
     engines:
       node: '>=12.0.0'

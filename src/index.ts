@@ -47,10 +47,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       let solidOptions;
 
       if (options.ssr) {
+	// This is a ugly hack that doesn't work really well..
         if (globalThis._SOLID_SSR) {
-          solidOptions = { generate: 'dom', hydratable: true };
-        } else {
           solidOptions = { generate: 'ssr', hydratable: true };
+        } else {
+          solidOptions = { generate: 'dom', hydratable: true };
         }
       } else {
         solidOptions = { generate: 'dom', hydratable: false };

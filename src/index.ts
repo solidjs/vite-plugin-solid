@@ -4,15 +4,7 @@ import { transformAsync, TransformOptions } from '@babel/core';
 
 interface Options {
   dev: boolean;
-  moduleName: string;
-  builtIns: string[];
-  delegateEvents: boolean;
-  contextToCustomElements: boolean;
-  wrapConditionals: boolean;
-  wrapSpreads: boolean;
-  hydratable: boolean;
-  async: boolean;
-  generate: 'dom' | 'ssr';
+  ssr: boolean;
 }
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
@@ -52,9 +44,21 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     async transform(source, id) {
       if (!/\.[jt]sx/.test(id)) return null;
 
+      let solidOptions;
+
+      if (options.ssr) {
+        if (globalThis._SOLID_SSR) {
+          solidOptions = { generate: 'dom', hydratable: true };
+        } else {
+          solidOptions = { generate: 'ssr', hydratable: true };
+        }
+      } else {
+        solidOptions = { generate: 'dom', hydratable: false };
+      }
+
       const opts: TransformOptions = {
         filename: id,
-        presets: [[solid, options]],
+        presets: [[solid, solidOptions]],
       };
 
       if (id.includes('tsx')) {

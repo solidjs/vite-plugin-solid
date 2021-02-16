@@ -44,10 +44,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     async transform(source, id) {
       if (!/\.[jt]sx/.test(id)) return null;
 
-      let solidOptions;
+      let solidOptions: { generate: 'ssr' | 'dom'; hydratable: boolean };
 
       if (options.ssr) {
-	// This is a ugly hack that doesn't work really well..
+        // This is a ugly hack that doesn't work really well..
         if (globalThis._SOLID_SSR) {
           solidOptions = { generate: 'ssr', hydratable: true };
         } else {

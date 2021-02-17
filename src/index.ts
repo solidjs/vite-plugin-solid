@@ -1,5 +1,4 @@
 import { Plugin } from 'vite';
-import solid from 'babel-preset-solid';
 import { transformAsync, TransformOptions } from '@babel/core';
 
 interface Options {
@@ -41,14 +40,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       needHmr = config.command === 'serve' && !config.isProduction;
     },
 
-    async transform(source, id) {
+    async transform(source, id, ssr) {
       if (!/\.[jt]sx/.test(id)) return null;
 
       let solidOptions: { generate: 'ssr' | 'dom'; hydratable: boolean };
 
       if (options.ssr) {
-        // This is a ugly hack that doesn't work really well..
-        if (globalThis._SOLID_SSR) {
+        if (ssr) {
           solidOptions = { generate: 'ssr', hydratable: true };
         } else {
           solidOptions = { generate: 'dom', hydratable: true };
@@ -59,7 +57,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       const opts: TransformOptions = {
         filename: id,
-        presets: [[solid, solidOptions]],
+        presets: [[require('babel-preset-solid'), solidOptions]],
       };
 
       if (id.includes('tsx')) {

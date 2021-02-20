@@ -4,6 +4,7 @@ import { transformAsync, TransformOptions } from '@babel/core';
 interface Options {
   dev: boolean;
   ssr: boolean;
+  hot: boolean;
 }
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
@@ -27,6 +28,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
          */
         esbuild: { include: /\.ts$/ },
         resolve: {
+          // conditions: ['solid'],
           dedupe: ['solid-js', 'solid-js/web'],
           alias,
         },
@@ -37,7 +39,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     configResolved(config) {
-      needHmr = config.command === 'serve' && !config.isProduction;
+      needHmr = config.command === 'serve' && !config.isProduction && options.hot !== false;
     },
 
     async transform(source, id, ssr) {
@@ -58,6 +60,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       const opts: TransformOptions = {
         filename: id,
         presets: [[require('babel-preset-solid'), solidOptions]],
+        plugins: needHmr ? [[require('solid-refresh/babel'), { bundler: 'vite' }]] : [],
       };
 
       if (id.includes('tsx')) {
@@ -66,18 +69,6 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       const { code, map } = await transformAsync(source, opts);
 
-      if (!needHmr) return { code, map };
-
-      /**
-       * TODO: We want to inject HMR runtime here when we know how to do it
-       *
-       * Couple of ressources:
-       * - [vue jsx](https://github.com/vitejs/vite/blob/main/packages/plugin-vue-jsx/index.js#L61)
-       * - [solid hmr brainstorm](https://github.com/ryansolid/solid/issues/263)
-       * - [solid hmr for wbepack](https://github.com/ryansolid/solid-hot-loader/blob/master/index.js#L5)
-       * - [react guide for fast refresh](https://github.com/facebook/react/issues/16604#issuecomment-528663101)
-       * - [react fast refresh detection mechanism](https://github.com/facebook/react/blob/master/packages/react-refresh/src/ReactFreshRuntime.js#L696)
-       */
       return { code, map };
     },
   };

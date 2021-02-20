@@ -1,5 +1,10 @@
 import { Plugin } from 'vite';
+import { readFileSync } from 'fs';
 import { transformAsync, TransformOptions } from '@babel/core';
+
+const runtimePublicPath = '/@solid-refresh';
+const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
+const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 
 interface Options {
   dev: boolean;
@@ -12,6 +17,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
   return {
     name: 'solid',
+    enforce: 'pre',
 
     config(_, { command }) {
       const replaceDev = options.dev !== false;
@@ -30,7 +36,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         resolve: {
           // conditions: ['solid'],
           dedupe: ['solid-js', 'solid-js/web'],
-          alias,
+          alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }, ...alias],
         },
         optimizeDeps: {
           include: ['solid-js/dev', 'solid-js/web'],
@@ -40,6 +46,14 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
     configResolved(config) {
       needHmr = config.command === 'serve' && !config.isProduction && options.hot !== false;
+    },
+
+    resolveId(id) {
+      if (id === runtimePublicPath) return id;
+    },
+
+    load(id) {
+      if (id === runtimePublicPath) return runtimeCode;
     },
 
     async transform(source, id, ssr) {

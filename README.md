@@ -4,18 +4,18 @@ A simple integration to run [solid-js](https://github.com/ryansolid/solid) with 
 
 ## Disclaimer
 
-This targets vite 2 (which is in beta right now). To checkout vite 1 support, check out the `vite-1.x` branch.
+This targets vite 2.
 
-The main breaking change is that the package has been renamed from `@amoutonbrady/vite-plugin-solid` to `vite-plugin-solid`.
+The main breaking change from previous version is that the package has been renamed from `@amoutonbrady/vite-plugin-solid` to `vite-plugin-solid`.
 
 For other breaking changes, check [the migration guide of vite](https://vitejs.dev/guide/migration.html).
 
 ## Features
 
-- HMR with minimal configuration
-- Drop-in installation as vite plugin
-- Minimal bundle size (5.99kb non gzip for a [Hello World](./playground/src/main.tsx))
-- Support typescript (`.jsx .tsx`) out of the box, even when exported as `source` in the `node_modules`
+- HMR with no configuration needed
+- Drop-in installation as a vite plugin
+- Minimal bundle size
+- Support typescript (`.tsx`) out of the box
 - Support code splitting out of the box
 
 ## Quickstart
@@ -33,6 +33,7 @@ $ npm run build # builds to /dist
 ## Installation
 
 Install `vite`, `vite-plugin-solid` and `babel-preset-solid` as dev dependencies.
+
 Install `solid-js` as dependency.
 
 You have to install those so that you are in control to which solid version is used to compile your code.
@@ -51,48 +52,16 @@ $ yarn add -D vite vite-plugin-solid babel-preset-solid
 $ yarn add solid-js
 ```
 
-Add it as plugin to `vite.config.ts`
-
-```ts
-// vite.config.ts
-import { UserConfig } from "vite";
-import { solidPlugin } from "vite-plugin-solid";
-
-const config: UserConfig = {
-  plugins: [solidPlugin()],
-};
-
-export default config;
-```
-
-Or `vite.config.js`
+Add it as plugin to `vite.config.js`
 
 ```js
-// vite.config.js
-import solidPlugin from "vite-plugin-solid";
+// vite.config.ts
+import { defineConfig } from 'vite';
+import { solidPlugin } from 'vite-plugin-solid';
 
-/**
- *  @type {import('vite').UserConfig}
- */
-const config = {
+export default defineConfig({
   plugins: [solidPlugin()],
-};
-
-export default config;
-```
-
-Finally you have to add a bit of code to your entry point to activate HMR. This might be handled automatically at some point by the plugin but for now it's manual.
-
-*NB: This is actually a partial HMR, it doesn't retain any state, it just reload the page without reloading the page...*
-
-```ts
-const dispose = render(() => App, rootElement);
-
-// HMR stuff, this will be automatically removed during build
-if (import.meta.hot) {
-  import.meta.hot.accept();
-  import.meta.hot.dispose(dispose);
-}
+});
 ```
 
 ## Run
@@ -105,6 +74,67 @@ Just use regular `vite` or `vite build` commands
     "dev": "vite",
     "build": "vite build"
   }
+}
+```
+
+## API
+
+### options
+
+- Type: Object
+- Default: {}
+
+#### options.dev
+
+- Type: Boolean
+- Default: true
+
+This will inject `solid-js/dev` in place of `solid-js` in dev mode. Has no effect in prod.
+If set to false, it won't inject it in dev.
+This is useful for extra logs and debug.
+
+#### options.hmr
+
+- Type: Boolean
+- Default: true
+
+This will inject HMR runtime in dev mode. Has no effect in prod.
+If set to false, it won't inject the runtime in dev.
+
+#### options.ssr
+
+- Type: Boolean
+- Default: false
+
+This will force SSR code in the produced files. This is experiemental and mostly not working yet.
+
+## Note on HMR
+
+Starting from version `1.1.0`, this plugin handle automatic HMR via [solid-refresh](https://github.com/ryansolid/solid-refresh).
+
+At this stage it's still early work but provide basic HMR. In order to get the best out of it there are couple of things to keep in mind:
+
+- Every component that you expect to have HMR should be exported as default eg:
+
+```tsx
+const MyComponent = () => <h1>My component</h1>;
+export default MyComponent;
+```
+
+- When you modify a file every state below this component will be reset to default state (including the current file). The state in parent component is preserved.
+
+- The entrypoint can't benefit from HMR yet and will force a hard reload of the entire app. This is still really fast thanks to browser caching.
+
+- Currently there's a parsing issue if you export default on the same line as declaration like so: `export default function App() {...}`. It should be made in two steps. First declare then export, similar to the example in the first bullet point.
+
+If at least one of this point is blocking to you, you can revert to the old behavior but [opting out the automatic HMR](#options) and placing the following snippet in your entry point:
+
+```jsx
+const dispose = render(() => <App />, document.body);
+
+if (import.meta.hot) {
+  import.meta.accept();
+  import.meta.dispose(dispose);
 }
 ```
 

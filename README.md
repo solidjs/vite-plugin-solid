@@ -2,6 +2,8 @@
 
 A simple integration to run [solid-js](https://github.com/ryansolid/solid) with [vite](https://github.com/vitejs/vite)
 
+<img alt="HMR gif demonstrationdemodemodemo" src=".github/hmr.gif">
+
 ## Disclaimer
 
 This targets vite 2.

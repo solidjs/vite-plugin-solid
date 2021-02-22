@@ -22,9 +22,10 @@ const App = () => {
   return (
     <>
       <Link href="/">Home</Link>
-      <Link href="/about">About!!!</Link>
+      <Link href="/about">About</Link>
+      <hr />
       <Route />
-      <button onClick={() => setCount(count() + 1)}>{count()}!!!!</button>
+      <button onClick={() => setCount(count() + 1)}>{count()}</button>
     </>
   );
 };

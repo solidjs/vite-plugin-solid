@@ -4,7 +4,7 @@ dependencies:
   babel-preset-solid: 0.24.2_@babel+core@7.12.17
   resolve.exports: 1.0.2
   solid-js: 0.24.7
-  solid-refresh: 0.0.1_solid-js@0.24.7
+  solid-refresh: 0.0.3_solid-js@0.24.7
   vite: 2.0.1
 devDependencies:
   '@babel/plugin-transform-typescript': 7.12.17_@babel+core@7.12.17
@@ -272,7 +272,7 @@ packages:
   /@skypack/package-check/0.2.2:
     dependencies:
       kleur: 4.1.4
-      yargs-parser: 20.2.5
+      yargs-parser: 20.2.6
     dev: true
     hasBin: true
     resolution:
@@ -411,12 +411,12 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-FJ3UgI4gIl+PHZm53knsuSFpE+nESMr7M4v9QcgB7S63Kj/6WqMiFQJpBBYz1Pt+66bZpP3Q7Lye0Oo9MPKEdg==
-  /esbuild/0.8.49:
+  /esbuild/0.8.50:
     dev: false
     hasBin: true
     requiresBuild: true
     resolution:
-      integrity: sha512-itiFVYv5UZz4NooO7/Y0bRGVDGz/M/cxKbl6zyNI5pnKaz1mZjvZXAFhhDVz6rGCmcdTKj5oag6rh8DaaSSmfQ==
+      integrity: sha512-oidFLXssA7IccYzkqLVZSqNJDwDq8Mh/vqvrW+3fPWM7iUiC5O2bCllhnO8+K9LlyL/2Z6n+WwRJAz9fqSIVRg==
   /escape-string-regexp/1.0.5:
     engines:
       node: '>=0.8.0'
@@ -631,14 +631,14 @@ packages:
     dev: false
     resolution:
       integrity: sha512-Hi/Kvf3+e+664bBMG5NhZb+0jkWJHvMbWagCDH1AQMODFwoOZABBpUK1xfOhrtHEWMKpIz3fOzg5jOWwd/cdMA==
-  /solid-refresh/0.0.1_solid-js@0.24.7:
+  /solid-refresh/0.0.3_solid-js@0.24.7:
     dependencies:
       solid-js: 0.24.7
     dev: false
     peerDependencies:
       solid-js: ^0.24.0
     resolution:
-      integrity: sha512-btFBAi/Kt7c+V1wWu4uSaMZINuwk9WelULnONzxS4r1FKQO3ot4jBnxjFg5Dp2n8M0DWQ2xVz6T619ac+XUTZw==
+      integrity: sha512-RqUq4d4IMPel8mHwy4WA5RMpymNtIX6Ux5tlD048KRV64b82/dOoNEbcrRf3cjbjnqlNbYA2dQR30mQoZMYZAw==
   /source-map/0.5.7:
     engines:
       node: '>=0.10.0'
@@ -671,7 +671,7 @@ packages:
       integrity: sha512-6OSu9PTIzmn9TCDiovULTnET6BgXtDYL4Gg4szY+cGsc3JP1dQL8qvE8kShTRx1NIw4Q9IBHlwODjkjWEtMUyA==
   /vite/2.0.1:
     dependencies:
-      esbuild: 0.8.49
+      esbuild: 0.8.50
       postcss: 8.2.6
       resolve: 1.20.0
       rollup: 2.39.0
@@ -687,12 +687,12 @@ packages:
     dev: true
     resolution:
       integrity: sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
-  /yargs-parser/20.2.5:
+  /yargs-parser/20.2.6:
     dev: true
     engines:
       node: '>=10'
     resolution:
-      integrity: sha512-jYRGS3zWy20NtDtK2kBgo/TlAoy5YUuhD9/LZ7z7W4j1Fdw2cqD0xEEclf8fxc8xjD6X5Qr+qQQwCEsP8iRiYg==
+      integrity: sha512-AP1+fQIWSM/sMiET8fyayjx/J+JmTPt2Mr0FkrgqB4todtfa53sOsrSAcIrJRD5XS20bKUwaDIuMkWKCEiQLKA==
 specifiers:
   '@babel/core': ^7.12.17
   '@babel/plugin-transform-typescript': ^7.12.17
@@ -708,6 +708,6 @@ specifiers:
   rollup: ^2.39.0
   rollup-plugin-cleaner: ^1.0.0
   solid-js: ^0.24.7
-  solid-refresh: ^0.0.1
+  solid-refresh: ^0.0.3
   typescript: ^4.1.5
   vite: ^2.0.1

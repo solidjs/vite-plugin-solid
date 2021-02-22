@@ -50,7 +50,7 @@
     "resolve.exports": "^1.0.2",
     "solid-js": "^0.24.7",
     "solid-refresh": "^0.0.3",
-    "vite": "^2.0.1"
+    "vite": "^2.0.2"
   },
   "devDependencies": {
     "@babel/plugin-transform-typescript": "^7.12.17",

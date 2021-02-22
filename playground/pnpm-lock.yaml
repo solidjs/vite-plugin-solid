@@ -4,7 +4,7 @@ dependencies:
   solid-meta: 0.24.7_solid-js@0.24.7
   solid-utils: 0.4.1
 devDependencies:
-  vite: 2.0.1
+  vite: 2.0.2
 lockfileVersion: 5.2
 packages:
   /colorette/1.2.1:
@@ -113,7 +113,7 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
-  /vite/2.0.1:
+  /vite/2.0.2:
     dependencies:
       esbuild: 0.8.50
       postcss: 8.2.6
@@ -126,10 +126,10 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
     resolution:
-      integrity: sha512-x7ZfikjNs+6n4cdvwb9L5r5xBCdjmtmHFHaI4JVR3nAkJbMCK/dynfDWky8/NseZ9Ncz1jVxTQ/Bcf+n1ps1Ww==
+      integrity: sha512-X+PTIPRt6/5Odf/h0kBkwkck+YC0I6oKH5+ttA9ytoLyC9yeksktVq1KNzImqB+/1CNBiBE2vr7orcgSxAi67w==
 specifiers:
   solid-app-router: ^0.0.23
   solid-js: ^0.24.7
   solid-meta: ^0.24.7
   solid-utils: ^0.4.1
-  vite: ^2.0.1
+  vite: ^2.0.2

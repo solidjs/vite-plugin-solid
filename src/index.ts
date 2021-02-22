@@ -34,7 +34,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
          */
         esbuild: { include: /\.ts$/ },
         resolve: {
-          // conditions: ['solid'],
+          conditions: ['solid'],
           dedupe: ['solid-js', 'solid-js/web'],
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }, ...alias],
         },

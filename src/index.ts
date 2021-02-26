@@ -28,10 +28,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       // To fix that we convert user alias config to array.
       const userAlias = userConfig.resolve && userConfig.resolve.alias;
       const userAliasArray = !Array.isArray(userAlias)
-        ? Object.keys(userAlias).reduce((accum, aliasKey) => {
-            accum.push({ find: aliasKey, replacement: userAlias[aliasKey] });
-            return accum;
-          }, [])
+        ? Object.keys(userAlias).map(
+            (find) => ({
+              find,
+              replacement: userAlias[find],
+            }),
+            [],
+          )
         : [];
 
       const alias =

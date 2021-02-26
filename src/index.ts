@@ -19,8 +19,20 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     name: 'solid',
     enforce: 'pre',
 
-    config(_, { command }) {
+    config(userConfig, { command }) {
       const replaceDev = options.dev !== false;
+
+      // Our config will be merged with the user config. However, if user used an object
+      // format to set aliases, then vite will not be able to properly merge our alias config with the
+      // user's one.
+      // To fix that we convert user alias config to array.
+      const userAlias = userConfig.resolve && userConfig.resolve.alias;
+      const userAliasArray = !Array.isArray(userAlias)
+        ? Object.keys(userAlias).reduce((accum, aliasKey) => {
+            accum.push({ find: aliasKey, replacement: userAlias[aliasKey] });
+            return accum;
+          }, [])
+        : [];
 
       const alias =
         command === 'serve' && replaceDev
@@ -36,7 +48,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         resolve: {
           conditions: ['solid'],
           dedupe: ['solid-js', 'solid-js/web'],
-          alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }, ...alias],
+          alias: [
+            ...userAliasArray,
+            { find: /^solid-refresh$/, replacement: runtimePublicPath },
+            ...alias,
+          ],
         },
         optimizeDeps: {
           include: ['solid-js/dev', 'solid-js/web'],

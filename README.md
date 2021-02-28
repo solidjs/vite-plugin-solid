@@ -4,13 +4,9 @@ A simple integration to run [solid-js](https://github.com/ryansolid/solid) with 
 
 <img alt="HMR gif demonstrationdemodemodemo" src=".github/hmr.gif">
 
-## Disclaimer
+# Got a question? / Need help?
 
-This targets vite 2.
-
-The main breaking change from previous version is that the package has been renamed from `@amoutonbrady/vite-plugin-solid` to `vite-plugin-solid`.
-
-For other breaking changes, check [the migration guide of vite](https://vitejs.dev/guide/migration.html).
+Join [solid discord](https://discord.com/invite/solidjs) and check the [troubleshooting section](#troubleshooting) to see if your question hasn't been already answered.
 
 ## Features
 
@@ -142,11 +138,17 @@ if (import.meta.hot) {
 
 # Troubleshooting
 
-It appears that Webstorm generate some weird triggers when saving a file. In order to prevent that you can follow [this thread](https://intellij-support.jetbrains.com/hc/en-us/community/posts/360000154544-I-m-having-a-huge-problem-with-Webstorm-and-react-hot-loader-) and disable the **"Safe Write"** option in **"Settings | Appearance & Behavior | System Settings"**.
+- It appears that Webstorm generate some weird triggers when saving a file. In order to prevent that you can follow [this thread](https://intellij-support.jetbrains.com/hc/en-us/community/posts/360000154544-I-m-having-a-huge-problem-with-Webstorm-and-react-hot-loader-) and disable the **"Safe Write"** option in **"Settings | Appearance & Behavior | System Settings"**.
 
-# Got a question? / Need help?
+- If one of your dependency spit out React code instead of Solid that means that they don't expose JSX properly. To get around it, you might want to manually exclude it from the [dependecies optimization](https://vitejs.dev/config/#optimizedeps-exclude)
 
-Join [solid discord](https://discord.com/invite/solidjs)
+## Migration from v1
+
+The master branch now target vite 2.
+
+The main breaking change from previous version is that the package has been renamed from `@amoutonbrady/vite-plugin-solid` to `vite-plugin-solid`.
+
+For other breaking changes, check [the migration guide of vite](https://vitejs.dev/guide/migration.html).
 
 # Credits
 

@@ -44,24 +44,24 @@
     "vite": "^2"
   },
   "dependencies": {
-    "@babel/core": "^7.12.17",
-    "@babel/preset-typescript": "^7.12.17",
-    "babel-preset-solid": "^0.24.2",
+    "@babel/core": "^7.13.8",
+    "@babel/preset-typescript": "^7.13.0",
+    "babel-preset-solid": "^0.24.9",
     "resolve.exports": "^1.0.2",
-    "solid-js": "^0.24.7",
+    "solid-js": "^0.24.9",
     "solid-refresh": "^0.0.3",
-    "vite": "^2.0.2"
+    "vite": "^2.0.4"
   },
   "devDependencies": {
-    "@babel/plugin-transform-typescript": "^7.12.17",
+    "@babel/plugin-transform-typescript": "^7.13.0",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-node-resolve": "^11.2.0",
     "@skypack/package-check": "^0.2.2",
     "@types/babel__core": "^7.1.12",
     "@types/node": "^14.14.31",
     "prettier": "^2.2.1",
-    "rollup": "^2.39.0",
+    "rollup": "^2.40.0",
     "rollup-plugin-cleaner": "^1.0.0",
-    "typescript": "^4.1.5"
+    "typescript": "^4.2.2"
   }
 }

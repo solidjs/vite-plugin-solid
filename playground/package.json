@@ -10,9 +10,9 @@
     "vite": "^2.0.4"
   },
   "dependencies": {
-    "solid-app-router": "^0.0.28",
-    "solid-js": "^0.24.9",
-    "solid-meta": "^0.24.9",
+    "solid-app-router": "^0.0.29",
+    "solid-js": "^0.24.10",
+    "solid-meta": "^0.24.10",
     "solid-utils": "^0.4.1"
   }
 }

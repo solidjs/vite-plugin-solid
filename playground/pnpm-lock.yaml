@@ -1,7 +1,7 @@
 dependencies:
-  solid-app-router: 0.0.28_solid-js@0.24.9
-  solid-js: 0.24.9
-  solid-meta: 0.24.9_solid-js@0.24.9
+  solid-app-router: 0.0.29_solid-js@0.24.10
+  solid-js: 0.24.10
+  solid-meta: 0.24.10_solid-js@0.24.10
   solid-utils: 0.4.1
 devDependencies:
   vite: 2.0.4
@@ -11,12 +11,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-MKGMzyfeuutC/ZJ1cba9NqcNpfeqMUcYmyF1ZFY6/Cn7CNSAKx6a+s48sqLqyAiZuaP2TcqMhoo+dlwFnVxT9w==
-  /esbuild/0.8.53:
+  /esbuild/0.8.54:
     dev: true
     hasBin: true
     requiresBuild: true
     resolution:
-      integrity: sha512-GIaYGdMukH58hu+lf07XWAeESBYFAsz8fXnrylHDCbBXKOSNtFmoYA8PhSeSF+3/qzeJ0VjzV9AkLURo5yfu3g==
+      integrity: sha512-DJH38OiTgXJxFb/EhHrCrY8eGmtdkTtWymHpN9IYN9AF+4jykT0dQArr7wzFejpVbaB0TMIq2+vfNRWr3LXpvw==
   /fsevents/2.3.2:
     dev: true
     engines:
@@ -81,29 +81,29 @@ packages:
       fsevents: 2.3.2
     resolution:
       integrity: sha512-WiOGAPbXoHu+TOz6hyYUxIksOwsY/21TRWoO593jgYt8mvYafYqQl+axaA8y1z2HFazNUUrsMSjahV2A6/2R9A==
-  /solid-app-router/0.0.28_solid-js@0.24.9:
+  /solid-app-router/0.0.29_solid-js@0.24.10:
     dependencies:
-      solid-js: 0.24.9
+      solid-js: 0.24.10
     dev: false
     peerDependencies:
       solid-js: ^0.24.0
     resolution:
-      integrity: sha512-y8L0iToY11o722z9SobM/l2nHGjRTOtXqZSJaOM4h5nj/X/K1U0jTIPPlIYBsIlMlBTq327ytO3O5HXh2Mn65w==
-  /solid-js/0.24.9:
+      integrity: sha512-WBAy2/CRYQelTCcJUBs986Rwgd+/Zm1ZuGtGImdcVQf21mObE+KFBENbPM2ghuT3PiKWcSfALwtVftydM+rYhQ==
+  /solid-js/0.24.10:
     dev: false
     resolution:
-      integrity: sha512-5kVeF2cbtbxj4ajh8NnPJSTaBzQ5cAPFcqnfgNNl3td50ib0x/fMAmnXtaSGQmeFI/Jy7NQzakLQIuBn5rlo8Q==
-  /solid-meta/0.24.9_solid-js@0.24.9:
+      integrity: sha512-Nes+5kARPtan6M7fOZYZKiUdVd5iJbh1N4HndPuIVoWLulftykqwDyW3/FdrKfkuE70rv1uJdTDdLSVBSkeHWA==
+  /solid-meta/0.24.10_solid-js@0.24.10:
     dependencies:
-      solid-js: 0.24.9
+      solid-js: 0.24.10
     dev: false
     peerDependencies:
       solid-js: ^0.24.0
     resolution:
-      integrity: sha512-JLVPtatJG8BodGT2EnnpIv399UQb/omRzCj7R0W7CZvcT9OxlCoS5rWRUPBZbTscqC4QVsh8cGa+Qwi7VjOi2g==
+      integrity: sha512-SHn9Q1LbgVHHNseXl7ahWGmzqGwUMg4iAMHJRfo6emo8eHph+yS6kuvbF+pqcbWqrylwLYSUVPcU4aBqJGaShA==
   /solid-utils/0.4.1:
     dependencies:
-      solid-js: 0.24.9
+      solid-js: 0.24.10
     dev: false
     resolution:
       integrity: sha512-dCnRngwrtJo8ZMT/k/vc2bapTfol0gOlu3/SCw5wifEZp97X3n17BK73gC+cjUEWwV0QOgSGgjYb3P+8OYPQcA==
@@ -115,7 +115,7 @@ packages:
       integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
   /vite/2.0.4:
     dependencies:
-      esbuild: 0.8.53
+      esbuild: 0.8.54
       postcss: 8.2.6
       resolve: 1.20.0
       rollup: 2.40.0
@@ -128,8 +128,8 @@ packages:
     resolution:
       integrity: sha512-+PP89D7AKXFE4gps8c5+4eP5yXTh5qCogjdYX7iSsIxbLZAa26JoGSq6OLk0qdb/fqDh7gtJqGiLbG2V6NvkKQ==
 specifiers:
-  solid-app-router: ^0.0.28
-  solid-js: ^0.24.9
-  solid-meta: ^0.24.9
+  solid-app-router: ^0.0.29
+  solid-js: ^0.24.10
+  solid-meta: ^0.24.10
   solid-utils: ^0.4.1
   vite: ^2.0.4

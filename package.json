@@ -46,11 +46,11 @@
   "dependencies": {
     "@babel/core": "^7.13.8",
     "@babel/preset-typescript": "^7.13.0",
-    "babel-preset-solid": "^0.24.9",
+    "babel-preset-solid": "^0.24.12",
     "resolve.exports": "^1.0.2",
-    "solid-js": "^0.24.10",
-    "solid-refresh": "^0.0.4",
-    "vite": "^2.0.4"
+    "solid-js": "^0.24.12",
+    "solid-refresh": "^0.0.5",
+    "vite": "^2.0.5"
   },
   "devDependencies": {
     "@babel/plugin-transform-typescript": "^7.13.0",

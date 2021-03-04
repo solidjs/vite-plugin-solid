@@ -1,22 +1,22 @@
 dependencies:
-  solid-app-router: 0.0.29_solid-js@0.24.10
-  solid-js: 0.24.10
-  solid-meta: 0.24.10_solid-js@0.24.10
+  solid-app-router: 0.0.32_solid-js@0.24.12
+  solid-js: 0.24.12
+  solid-meta: 0.24.12_solid-js@0.24.12
   solid-utils: 0.4.1
 devDependencies:
-  vite: 2.0.4
+  vite: 2.0.5
 lockfileVersion: 5.2
 packages:
   /colorette/1.2.2:
     dev: true
     resolution:
       integrity: sha512-MKGMzyfeuutC/ZJ1cba9NqcNpfeqMUcYmyF1ZFY6/Cn7CNSAKx6a+s48sqLqyAiZuaP2TcqMhoo+dlwFnVxT9w==
-  /esbuild/0.8.54:
+  /esbuild/0.8.55:
     dev: true
     hasBin: true
     requiresBuild: true
     resolution:
-      integrity: sha512-DJH38OiTgXJxFb/EhHrCrY8eGmtdkTtWymHpN9IYN9AF+4jykT0dQArr7wzFejpVbaB0TMIq2+vfNRWr3LXpvw==
+      integrity: sha512-mM/s7hjYe5mQR+zAWOM5JVrCtYCke182E9l1Bbs6rG5EDP3b1gZF9sHZka53PD/iNt6OccymVZRWkTtBfcKW4w==
   /fsevents/2.3.2:
     dev: true
     engines:
@@ -55,7 +55,7 @@ packages:
     dev: true
     resolution:
       integrity: sha512-GSmOT2EbHrINBf9SR7CDELwlJ8AENk3Qn7OikK4nFYAu3Ote2+JYNVvkpAEQm3/TLNEJFD/xZJjzyxg3KBWOzw==
-  /postcss/8.2.6:
+  /postcss/8.2.7:
     dependencies:
       colorette: 1.2.2
       nanoid: 3.1.20
@@ -64,7 +64,7 @@ packages:
     engines:
       node: ^10 || ^12 || >=14
     resolution:
-      integrity: sha512-xpB8qYxgPuly166AGlpRjUdEYtmOWx2iCwGmrv4vqZL9YPVviDVPZPRXxnXr6xPZOdxQ9lp3ZBFCRgWJ7LE3Sg==
+      integrity: sha512-DsVLH3xJzut+VT+rYr0mtvOtpTjSyqDwPf5EZWXcb0uAKfitGpTY9Ec+afi2+TgdN8rWS9Cs88UDYehKo/RvOw==
   /resolve/1.20.0:
     dependencies:
       is-core-module: 2.2.0
@@ -81,29 +81,29 @@ packages:
       fsevents: 2.3.2
     resolution:
       integrity: sha512-WiOGAPbXoHu+TOz6hyYUxIksOwsY/21TRWoO593jgYt8mvYafYqQl+axaA8y1z2HFazNUUrsMSjahV2A6/2R9A==
-  /solid-app-router/0.0.29_solid-js@0.24.10:
+  /solid-app-router/0.0.32_solid-js@0.24.12:
     dependencies:
-      solid-js: 0.24.10
+      solid-js: 0.24.12
     dev: false
     peerDependencies:
       solid-js: ^0.24.0
     resolution:
-      integrity: sha512-WBAy2/CRYQelTCcJUBs986Rwgd+/Zm1ZuGtGImdcVQf21mObE+KFBENbPM2ghuT3PiKWcSfALwtVftydM+rYhQ==
-  /solid-js/0.24.10:
+      integrity: sha512-CPNZ5GIJJS8q32gK/90I5CVVq9wBDhPMDcwIj2In7IpMFLS65Ez+cUm0SfbhAhNi30JKFLjVoecRikNys0Crfg==
+  /solid-js/0.24.12:
     dev: false
     resolution:
-      integrity: sha512-Nes+5kARPtan6M7fOZYZKiUdVd5iJbh1N4HndPuIVoWLulftykqwDyW3/FdrKfkuE70rv1uJdTDdLSVBSkeHWA==
-  /solid-meta/0.24.10_solid-js@0.24.10:
+      integrity: sha512-xQSSxCNuhSa8mYZS9J5VVb6v1vtzJV2oXNZMZMumszLoqcksQZbC8tZPXD8I3FZqXvKX7T3ldr6/v4M/4T7ThA==
+  /solid-meta/0.24.12_solid-js@0.24.12:
     dependencies:
-      solid-js: 0.24.10
+      solid-js: 0.24.12
     dev: false
     peerDependencies:
       solid-js: ^0.24.0
     resolution:
-      integrity: sha512-SHn9Q1LbgVHHNseXl7ahWGmzqGwUMg4iAMHJRfo6emo8eHph+yS6kuvbF+pqcbWqrylwLYSUVPcU4aBqJGaShA==
+      integrity: sha512-KYtkx1/R4buNCVBqw6nZaSUtzxOybdBP0TWFyFwLh63hCdUbaFYR18i3A7pqpjXMMLv6afhlLxWPodHNpM8Cdg==
   /solid-utils/0.4.1:
     dependencies:
-      solid-js: 0.24.10
+      solid-js: 0.24.12
     dev: false
     resolution:
       integrity: sha512-dCnRngwrtJo8ZMT/k/vc2bapTfol0gOlu3/SCw5wifEZp97X3n17BK73gC+cjUEWwV0QOgSGgjYb3P+8OYPQcA==
@@ -113,10 +113,10 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
-  /vite/2.0.4:
+  /vite/2.0.5:
     dependencies:
-      esbuild: 0.8.54
-      postcss: 8.2.6
+      esbuild: 0.8.55
+      postcss: 8.2.7
       resolve: 1.20.0
       rollup: 2.40.0
     dev: true
@@ -126,10 +126,10 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
     resolution:
-      integrity: sha512-+PP89D7AKXFE4gps8c5+4eP5yXTh5qCogjdYX7iSsIxbLZAa26JoGSq6OLk0qdb/fqDh7gtJqGiLbG2V6NvkKQ==
+      integrity: sha512-QTgEDbq1WsTtr6j+++ewjhBFEk6c8v0xz4fb/OWJQKNYU8ZZtphOshwOqAlnarSstPBtWCBR0tsugXx6ajfoUg==
 specifiers:
-  solid-app-router: ^0.0.29
-  solid-js: ^0.24.10
-  solid-meta: ^0.24.10
+  solid-app-router: ^0.0.32
+  solid-js: ^0.24.12
+  solid-meta: ^0.24.12
   solid-utils: ^0.4.1
-  vite: ^2.0.4
+  vite: ^2.0.5

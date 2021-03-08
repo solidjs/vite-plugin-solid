@@ -18,7 +18,8 @@
     "build": "rollup -c && tsc --emitDeclarationOnly",
     "dev": "rollup -c -w",
     "prepublishOnly": "pnpm build",
-    "check": "package-check"
+    "check": "package-check",
+    "postinstall": "patch-package"
   },
   "repository": {
     "type": "git",
@@ -59,6 +60,7 @@
     "@skypack/package-check": "^0.2.2",
     "@types/babel__core": "^7.1.12",
     "@types/node": "^14.14.32",
+    "patch-package": "^6.4.6",
     "prettier": "^2.2.1",
     "rollup": "^2.40.0",
     "rollup-plugin-cleaner": "^1.0.0",

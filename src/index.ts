@@ -1,6 +1,7 @@
-import { Plugin } from 'vite';
+import { Plugin, UserConfig } from 'vite';
 import { readFileSync } from 'fs';
 import { transformAsync, TransformOptions } from '@babel/core';
+import { merge } from 'merge-anything';
 
 const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
@@ -22,27 +23,12 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     config(userConfig, { command }) {
       const replaceDev = options.dev !== false;
 
-      // Our config will be merged with the user config. However, if user used an object
-      // format to set aliases, then vite will not be able to properly merge our alias config with the
-      // user's one.
-      // To fix that we convert user alias config to array.
-      const userAlias = userConfig.resolve && userConfig.resolve.alias;
-      const userAliasArray = !Array.isArray(userAlias)
-        ? Object.keys(userAlias).map(
-            (find) => ({
-              find,
-              replacement: userAlias[find],
-            }),
-            [],
-          )
-        : [];
-
       const alias =
         command === 'serve' && replaceDev
           ? [{ find: /^solid-js$/, replacement: 'solid-js/dev' }]
           : [];
 
-      return {
+      return merge(userConfig, {
         /**
          * We only need esbuild on .ts or .js files.
          * .tsx & .jsx files are handled by us
@@ -52,7 +38,6 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           conditions: ['solid'],
           dedupe: ['solid-js', 'solid-js/web'],
           alias: [
-            ...userAliasArray,
             { find: /^solid-refresh$/, replacement: runtimePublicPath },
             ...alias,
           ],
@@ -60,7 +45,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         optimizeDeps: {
           include: ['solid-js/dev', 'solid-js/web'],
         },
-      };
+      }) as UserConfig;
     },
 
     configResolved(config) {

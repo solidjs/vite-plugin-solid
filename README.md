@@ -24,7 +24,7 @@ You can use the [vite-template-solid](https://github.com/amoutonbrady/vite-templ
 $ npx degit amoutonbrady/vite-template-solid/js my-project
 $ cd my-project
 $ npm install # or pnpm install or yarn install
-$ npm run dev # starts dev-server with hot-module-reloading
+$ npm run start # starts dev-server with hot-module-reloading
 $ npm run build # builds to /dist
 ```
 

@@ -1,7 +1,7 @@
 import { Plugin, UserConfig } from 'vite';
 import { readFileSync } from 'fs';
 import { transformAsync, TransformOptions } from '@babel/core';
-import { merge } from 'merge-anything';
+import { mergeAndConcat } from 'merge-anything';
 
 const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
@@ -28,7 +28,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           ? [{ find: /^solid-js$/, replacement: 'solid-js/dev' }]
           : [];
 
-      return merge(userConfig, {
+      return mergeAndConcat(userConfig, {
         /**
          * We only need esbuild on .ts or .js files.
          * .tsx & .jsx files are handled by us

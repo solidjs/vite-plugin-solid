@@ -1,5 +1,17 @@
 # Changelog
 
+<a name="1.3.1"></a>
+## 1.3.1 (2021-03-15)
+
+### Fixed
+
+- 🐛 Merge arrays together&#x27; [[a2e7837](https://github.com/amoutonbrady/vite-plugin-solid/commit/a2e783716c8bb2e304e03a562cfcaaa0a2c3831f)]
+
+### Miscellaneous
+
+- 📝 Adding changelog [[2b2ade7](https://github.com/amoutonbrady/vite-plugin-solid/commit/2b2ade70c7d85237a47e403f4f41426505eeb1c5)]
+
+
 <a name="1.3.0"></a>
 ## 1.3.0 (2021-03-09)
 

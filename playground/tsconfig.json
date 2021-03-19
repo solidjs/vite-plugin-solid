@@ -8,6 +8,11 @@
     "moduleResolution": "node",
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./pages/*"],
+      "@@/*": ["./assets/*"]
+    }
   }
 }

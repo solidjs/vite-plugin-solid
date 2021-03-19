@@ -1,4 +1,4 @@
-import { Plugin, UserConfig } from 'vite';
+import { Plugin, UserConfig, AliasOptions, Alias } from 'vite';
 import { readFileSync } from 'fs';
 import { transformAsync, TransformOptions } from '@babel/core';
 import { mergeAndConcat } from 'merge-anything';
@@ -20,13 +20,19 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     name: 'solid',
     enforce: 'pre',
 
-    config(userConfig, { command }) {
+    config(userConfig, { command }): UserConfig {
       const replaceDev = options.dev !== false;
 
       const alias =
         command === 'serve' && replaceDev
           ? [{ find: /^solid-js$/, replacement: 'solid-js/dev' }]
           : [];
+
+      // TODO: remove when fully removed from vite
+      userConfig.alias = normalizeAliases(userConfig.alias)
+
+      if (!userConfig.resolve) userConfig.resolve = {}
+      userConfig.resolve.alias = normalizeAliases(userConfig.resolve?.alias)
 
       return mergeAndConcat(userConfig, {
         /**
@@ -91,3 +97,16 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
   };
 }
+
+/**
+ * This basically normalize all aliases of the config into
+ * the array format of the alias.
+ *
+ * eg: alias: { '@': 'src/' } => [{ find: '@', replacement: 'src/' }]
+ */
+function normalizeAliases(alias: AliasOptions = []): Alias[] {
+  return Array.isArray(alias)
+    ? alias
+    : Object.entries(alias).map(([find, replacement]) => ({ find, replacement }))
+}
+

@@ -3,7 +3,11 @@ import { MetaProvider } from 'solid-meta';
 import { createApp } from 'solid-utils';
 import { Router, Route, RouteDefinition, Link } from 'solid-app-router';
 
-import Home from './pages';
+import test from '@@/test.txt?raw'
+import Home from '@/index';
+
+// This should log Hello World
+console.log(test)
 
 const routes: RouteDefinition[] = [
   {

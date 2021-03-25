@@ -29,10 +29,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           : [];
 
       // TODO: remove when fully removed from vite
-      userConfig.alias = normalizeAliases(userConfig.alias)
+      const legacyAlias = normalizeAliases(userConfig.alias);
 
-      if (!userConfig.resolve) userConfig.resolve = {}
-      userConfig.resolve.alias = normalizeAliases(userConfig.resolve?.alias)
+      if (!userConfig.resolve) userConfig.resolve = {};
+      userConfig.resolve.alias = [...legacyAlias, ...normalizeAliases(userConfig.resolve?.alias)];
 
       return mergeAndConcat(userConfig, {
         /**
@@ -43,10 +43,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         resolve: {
           conditions: ['solid'],
           dedupe: ['solid-js', 'solid-js/web'],
-          alias: [
-            { find: /^solid-refresh$/, replacement: runtimePublicPath },
-            ...alias,
-          ],
+          alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }, ...alias],
         },
         optimizeDeps: {
           include: ['solid-js/dev', 'solid-js/web'],
@@ -107,6 +104,5 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 function normalizeAliases(alias: AliasOptions = []): Alias[] {
   return Array.isArray(alias)
     ? alias
-    : Object.entries(alias).map(([find, replacement]) => ({ find, replacement }))
+    : Object.entries(alias).map(([find, replacement]) => ({ find, replacement }));
 }
-

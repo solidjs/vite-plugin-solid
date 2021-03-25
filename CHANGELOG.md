@@ -1,5 +1,29 @@
 # Changelog
 
+<a name="1.3.3"></a>
+## 1.3.3 (2021-03-25)
+
+### Changed
+
+- ⬆️ Update dependencies [[7e9bec8](https://github.com/amoutonbrady/vite-plugin-solid/commit/7e9bec89b7d72600f38bb6fa60263e1832201d4f)]
+
+### Fixed
+
+- 🐛 Fix legacy alias warning [[847cdfe](https://github.com/amoutonbrady/vite-plugin-solid/commit/847cdfe5e7809be1b29817f382ca1c2659ab400d)]
+
+
+<a name="1.3.2"></a>
+## 1.3.2 (2021-03-19)
+
+### Fixed
+
+- 🐛 Force alias to be arrays to properly support config merging fix [#3](https://github.com/amoutonbrady/vite-plugin-solid/issues/3) [[9ffe0e5](https://github.com/amoutonbrady/vite-plugin-solid/commit/9ffe0e5989a36c8871a01f8aa767d8a7d57f089a)]
+
+### Miscellaneous
+
+- 📝 Updating changelog [[af0ab70](https://github.com/amoutonbrady/vite-plugin-solid/commit/af0ab7039950792ea1778955cc9eb4f46999aac7)]
+
+
 <a name="1.3.1"></a>
 ## 1.3.1 (2021-03-15)
 

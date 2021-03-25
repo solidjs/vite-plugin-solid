@@ -7,12 +7,12 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "vite": "^2.0.5"
+    "vite": "^2.1.2"
   },
   "dependencies": {
-    "solid-app-router": "^0.0.32",
-    "solid-js": "^0.24.13",
-    "solid-meta": "^0.24.13",
-    "solid-utils": "^0.4.1"
+    "solid-app-router": "^0.0.36",
+    "solid-js": "^0.24.15",
+    "solid-meta": "^0.24.15",
+    "solid-utils": "^0.5.0"
   }
 }

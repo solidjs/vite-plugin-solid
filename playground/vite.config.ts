@@ -1,13 +1,19 @@
-import solid from '../src';
+import solid from '..';
 import { defineConfig } from 'vite';
-import { resolve } from 'path'
+import { resolve } from 'path';
 
 export default defineConfig({
-  plugins: [solid()],
+  plugins: [
+    solid({
+      babel: {
+        plugins: ['@babel/plugin-syntax-top-level-await'],
+      },
+    }),
+  ],
   resolve: {
     alias: {
       '@': '/pages',
-      '@@': '/assets'
-    }
-  }
+      '@@': '/assets',
+    },
+  },
 });

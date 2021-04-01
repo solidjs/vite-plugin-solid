@@ -6,6 +6,13 @@ import { Router, Route, RouteDefinition, Link } from 'solid-app-router';
 import test from '@@/test.txt?raw'
 import Home from '@/index';
 
+// This needs to be tested once vite upgrade to esbuild 0.10.0
+
+// const json = await fetch('https://jsonplaceholder.typicode.com/todos/1')
+// .then(response => response.json())
+
+// console.log({ json })
+
 // This should log Hello World
 console.log(test)
 

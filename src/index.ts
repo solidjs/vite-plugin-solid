@@ -11,6 +11,10 @@ interface Options {
   dev: boolean;
   ssr: boolean;
   hot: boolean;
+  babel:
+    | TransformOptions
+    | ((source: string, id: string, ssr: boolean) => TransformOptions)
+    | ((source: string, id: string, ssr: boolean) => Promise<TransformOptions>);
 }
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
@@ -88,7 +92,21 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         opts.presets.push(require('@babel/preset-typescript'));
       }
 
-      const { code, map } = await transformAsync(source, opts);
+      // Default value for babel user options
+      let babelUserOptions: TransformOptions = {};
+
+      if (options.babel) {
+        if (typeof options.babel === 'function') {
+          const babelOptions = options.babel(source, id, ssr);
+          babelUserOptions = babelOptions instanceof Promise ? await babelOptions : babelOptions;
+        } else {
+          babelUserOptions = options.babel;
+        }
+      }
+
+      const babelOptions = mergeAndConcat(babelUserOptions, opts) as TransformOptions;
+
+      const { code, map } = await transformAsync(source, babelOptions);
 
       return { code, map };
     },

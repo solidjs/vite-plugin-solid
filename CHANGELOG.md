@@ -1,5 +1,18 @@
 # Changelog
 
+<a name="1.4.0"></a>
+## 1.4.0 (2021-04-01)
+
+### Changed
+
+- ⬆️ Update dependencies [[d065caa](https://github.com/amoutonbrady/vite-plugin-solid/commit/d065caa126cab3b7def1fe3f8c4b8e44df3808a4)]
+- 🔧 Configure plugin target to current node fix [#8](https://github.com/amoutonbrady/vite-plugin-solid/issues/8) [[9a0a635](https://github.com/amoutonbrady/vite-plugin-solid/commit/9a0a635400c636ce012142c87456196d8bf74b5d)]
+
+### Miscellaneous
+
+- 📝 Update changelog [[ba5ced3](https://github.com/amoutonbrady/vite-plugin-solid/commit/ba5ced3928f7d059617ec56ac63dbdc52dd16eed)]
+
+
 <a name="1.3.3"></a>
 ## 1.3.3 (2021-03-25)
 

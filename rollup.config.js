@@ -29,7 +29,10 @@ const config = {
     babel({
       extensions,
       babelHelpers: 'bundled',
-      presets: ['@babel/preset-typescript'],
+      presets: [
+        ['@babel/preset-env', { targets: { node: 'current' } }],
+        '@babel/preset-typescript',
+      ],
     }),
     nodeResolve({ extensions, preferBuiltins: true, browser: false }),
   ],

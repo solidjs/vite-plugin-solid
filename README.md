@@ -106,6 +106,13 @@ If set to false, it won't inject the runtime in dev.
 
 This will force SSR code in the produced files. This is experiemental and mostly not working yet.
 
+#### options.babel
+
+- Type: Babel.TransformOptions
+- Default: {}
+
+Pass any additional [babel transform options](https://babeljs.io/docs/en/options). Those will be merged with the transformations required by Solid.
+
 ## Note on HMR
 
 Starting from version `1.1.0`, this plugin handle automatic HMR via [solid-refresh](https://github.com/ryansolid/solid-refresh).

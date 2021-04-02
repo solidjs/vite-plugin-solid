@@ -1,7 +1,13 @@
-import { Plugin, UserConfig, AliasOptions, Alias } from 'vite';
-import { readFileSync } from 'fs';
 import { transformAsync, TransformOptions } from '@babel/core';
+import ts from '@babel/preset-typescript';
+import solid from 'babel-preset-solid';
+import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
+import { createRequire } from 'module';
+import solidRefresh from 'solid-refresh/babel';
+import { Alias, AliasOptions, Plugin, UserConfig } from 'vite';
+
+const require = createRequire(import.meta.url);
 
 const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
@@ -84,12 +90,12 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       const opts: TransformOptions = {
         filename: id,
-        presets: [[require('babel-preset-solid'), solidOptions]],
-        plugins: needHmr ? [[require('solid-refresh/babel'), { bundler: 'vite' }]] : [],
+        presets: [[solid, solidOptions]],
+        plugins: needHmr ? [[solidRefresh, { bundler: 'vite' }]] : [],
       };
 
       if (id.includes('tsx')) {
-        opts.presets.push(require('@babel/preset-typescript'));
+        opts.presets.push(ts);
       }
 
       // Default value for babel user options

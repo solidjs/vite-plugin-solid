@@ -6,6 +6,7 @@ dependencies:
 devDependencies:
   '@babel/plugin-syntax-top-level-await': 7.12.13
   vite: 2.1.5
+  vite-plugin-solid: link:..
 lockfileVersion: 5.2
 packages:
   /@babel/helper-plugin-utils/7.13.0:
@@ -149,3 +150,4 @@ specifiers:
   solid-meta: ^0.25.0
   solid-utils: ^0.5.0
   vite: ^2.1.5
+  vite-plugin-solid: link:..

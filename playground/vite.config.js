@@ -1,6 +1,5 @@
-import solid from '..';
+import solid from 'vite-plugin-solid';
 import { defineConfig } from 'vite';
-import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [

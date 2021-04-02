@@ -1,6 +1,8 @@
+// @ts-check
 import cleaner from 'rollup-plugin-cleaner';
 import { babel } from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+import cjs from '@rollup/plugin-commonjs';
 import pkg from './package.json';
 
 const extensions = ['.js', '.ts', '.json', '.tsx', '.jsx'];
@@ -13,12 +15,12 @@ const config = {
   output: [
     {
       format: 'esm',
-      dir: 'dist/esm',
+      file: 'dist/esm/index.mjs',
       sourcemap: true,
     },
     {
       format: 'cjs',
-      dir: 'dist/cjs',
+      file: 'dist/cjs/index.cjs',
       sourcemap: true,
       exports: 'default',
     },
@@ -34,6 +36,7 @@ const config = {
         '@babel/preset-typescript',
       ],
     }),
+    cjs({ extensions }),
     nodeResolve({ extensions, preferBuiltins: true, browser: false }),
   ],
 };

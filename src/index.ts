@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
-import { Alias, AliasOptions, Plugin, UserConfig } from 'vite';
+import type { Alias, AliasOptions, Plugin, UserConfig } from 'vite';
 
 const require = createRequire(import.meta.url);
 

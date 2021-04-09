@@ -13,9 +13,9 @@
     "vite-plugin-solid": "link:.."
   },
   "dependencies": {
-    "solid-app-router": "^0.0.36",
-    "solid-js": "^0.25.0",
-    "solid-meta": "^0.25.0",
-    "solid-utils": "^0.5.0"
+    "solid-app-router": "^0.0.37",
+    "solid-js": "^0.25.1",
+    "solid-meta": "^0.25.1",
+    "solid-utils": "^0.6.1"
   }
 }

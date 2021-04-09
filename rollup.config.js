@@ -1,11 +1,15 @@
-// @ts-check
+import cjs from '@rollup/plugin-commonjs';
 import cleaner from 'rollup-plugin-cleaner';
 import { babel } from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import cjs from '@rollup/plugin-commonjs';
-import pkg from './package.json';
 
 const extensions = ['.js', '.ts', '.json', '.tsx', '.jsx'];
+
+const external = [
+  "@babel/core",
+  "@babel/preset-typescript",
+  "babel-preset-solid",
+];
 
 /**
  * @type {import('rollup').RollupOptions}
@@ -25,7 +29,7 @@ const config = {
       exports: 'default',
     },
   ],
-  external: [...Object.keys(pkg.dependencies), 'fs/promises'],
+  external, 
   plugins: [
     cleaner({ targets: ['./dist/'] }),
     babel({
@@ -36,8 +40,8 @@ const config = {
         '@babel/preset-typescript',
       ],
     }),
-    cjs({ extensions }),
     nodeResolve({ extensions, preferBuiltins: true, browser: false }),
+    cjs({ extensions }),
   ],
 };
 

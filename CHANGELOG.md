@@ -1,5 +1,26 @@
 # Changelog
 
+<a name="1.5.1"></a>
+## 1.5.1 (2021-04-09)
+
+### Changed
+
+- ⚡ Bake merge-anything into the plugin [[ba1f655](https://github.com/amoutonbrady/vite-plugin-solid/commit/ba1f65562c6b45ea25ccb74ff690e052a4d0ec4e)]
+
+
+<a name="1.5.0"></a>
+## 1.5.0 (2021-04-02)
+
+### Added
+
+- ✨ Support &quot;type: module&quot; [[81b28a3](https://github.com/amoutonbrady/vite-plugin-solid/commit/81b28a3681a217ad3b674871133c672d0ef1e4bc)]
+- ✨ Adding babel transform options [#7](https://github.com/amoutonbrady/vite-plugin-solid/issues/7) [[a70b7b7](https://github.com/amoutonbrady/vite-plugin-solid/commit/a70b7b707d7200bf1085501b4d74f159c6f7e09c)]
+
+### Miscellaneous
+
+- 📝 Update changelog [[296fa6c](https://github.com/amoutonbrady/vite-plugin-solid/commit/296fa6cbf63162315f2aea74c7038489bbe71d5d)]
+
+
 <a name="1.4.0"></a>
 ## 1.4.0 (2021-04-01)
 

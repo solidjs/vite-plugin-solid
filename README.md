@@ -16,6 +16,12 @@ Join [solid discord](https://discord.com/invite/solidjs) and check the [troubles
 - Support typescript (`.tsx`) out of the box
 - Support code splitting out of the box
 
+## Requirements
+
+We've recently made this module 100% esm compatible. As per [this document](https://nodejs.org/api/esm.html) it is strongly recommended to have at least version `14.13.0` of node installed.
+
+You can check your current version of node by typing `node -v` in your terminal. If your version is below that one version I'd encourage you to either do an update globally or use a node version management tool such as [volta](https://volta.sh/) or [nvm](https://github.com/nvm-sh/nvm).
+
 ## Quickstart
 
 You can use the [vite-template-solid](https://github.com/amoutonbrady/vite-template-solid) starter templates similar to CRA:

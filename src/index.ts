@@ -13,7 +13,7 @@ const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
 const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 
-interface Options {
+export interface Options {
   dev: boolean;
   ssr: boolean;
   hot: boolean;

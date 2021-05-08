@@ -144,8 +144,8 @@ If at least one of this point is blocking to you, you can revert to the old beha
 const dispose = render(() => <App />, document.body);
 
 if (import.meta.hot) {
-  import.meta.accept();
-  import.meta.dispose(dispose);
+  import.meta.hmr.accept();
+  import.meta.hmr.dispose(dispose);
 }
 ```
 

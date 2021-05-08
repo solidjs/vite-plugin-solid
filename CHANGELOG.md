@@ -1,5 +1,17 @@
 # Changelog
 
+<a name="1.7.0"></a>
+## 1.7.0 (2021-05-08)
+
+### Changed
+
+- ⬆️ Update dependnecies [[baf497a](https://github.com/amoutonbrady/vite-plugin-solid/commit/baf497afc3a144ecff904825e4e3640a58405d3c)]
+
+### Miscellaneous
+
+- 📝 Update changelog [[e2df01b](https://github.com/amoutonbrady/vite-plugin-solid/commit/e2df01b264b346fff8a2386a34f2c989244238dd)]
+
+
 <a name="1.6.0"></a>
 ## 1.6.0 (2021-04-20)
 

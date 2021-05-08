@@ -13,10 +13,36 @@ const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
 const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 
-interface Options {
+/** Configuration options for vite-plugin-solid. */
+export interface Options {
+  /**
+   * This will inject solid-js/dev in place of solid-js in dev mode. Has no 
+   * effect in prod. If set to `false`, it won't inject it in dev. This is  
+   * useful for extra logs and debugging.
+   *
+   * @default true
+   */
   dev: boolean;
+  /**
+   * This will force SSR code in the produced files. This is experiemental 
+   * and mostly not working yet.
+   *
+   * @default false
+   */
   ssr: boolean;
+  /**
+   * This will inject HMR runtime in dev mode. Has no effect in prod. If 
+   * set to `false`, it won't inject the runtime in dev.
+   *
+   * @default true
+   */
   hot: boolean;
+  /**
+   * Pass any additional babel transform options. They will be merged with 
+   * the transformations required by Solid.
+   *
+   * @default {}
+   */
   babel:
     | TransformOptions
     | ((source: string, id: string, ssr: boolean) => TransformOptions)
@@ -31,12 +57,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     enforce: 'pre',
 
     config(userConfig, { command }): UserConfig {
-      const replaceDev = options.dev !== false;
+      // We inject the dev mode only if the user explicitely wants it or if we are in dev (serve) mode
+      const replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
 
-      const alias =
-        command === 'serve' && replaceDev
-          ? [{ find: /^solid-js$/, replacement: 'solid-js/dev' }]
-          : [];
+      const alias = replaceDev ? [{ find: /^solid-js$/, replacement: 'solid-js/dev' }] : [];
 
       // TODO: remove when fully removed from vite
       const legacyAlias = normalizeAliases(userConfig.alias);

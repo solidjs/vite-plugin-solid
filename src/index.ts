@@ -16,29 +16,29 @@ const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 /** Configuration options for vite-plugin-solid. */
 export interface Options {
   /**
-   * This will inject solid-js/dev in place of solid-js in dev mode. Has no 
-   * effect in prod. If set to `false`, it won't inject it in dev. This is  
+   * This will inject solid-js/dev in place of solid-js in dev mode. Has no
+   * effect in prod. If set to `false`, it won't inject it in dev. This is
    * useful for extra logs and debugging.
    *
    * @default true
    */
   dev: boolean;
   /**
-   * This will force SSR code in the produced files. This is experiemental 
+   * This will force SSR code in the produced files. This is experiemental
    * and mostly not working yet.
    *
    * @default false
    */
   ssr: boolean;
   /**
-   * This will inject HMR runtime in dev mode. Has no effect in prod. If 
+   * This will inject HMR runtime in dev mode. Has no effect in prod. If
    * set to `false`, it won't inject the runtime in dev.
    *
    * @default true
    */
   hot: boolean;
   /**
-   * Pass any additional babel transform options. They will be merged with 
+   * Pass any additional babel transform options. They will be merged with
    * the transformations required by Solid.
    *
    * @default {}
@@ -80,7 +80,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }, ...alias],
         },
         optimizeDeps: {
-          include: ['solid-js/dev', 'solid-js/web'],
+          include: ['solid-js', 'solid-js/dev', 'solid-js/web'],
         },
       }) as UserConfig;
     },

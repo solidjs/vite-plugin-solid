@@ -1,5 +1,28 @@
 # Changelog
 
+<a name="1.8.0"></a>
+## 1.8.0 (2021-05-13)
+
+### Changed
+
+- ⬆️ Update dependencies [[90b8a4c](https://github.com/amoutonbrady/vite-plugin-solid/commit/90b8a4c076ff235d23305e4b14985684c1efad2a)]
+
+### Fixed
+
+- ✏️ Fix typo in the readme regarding opting out of hmr (fix [#10](https://github.com/amoutonbrady/vite-plugin-solid/issues/10)) [[a3720a5](https://github.com/amoutonbrady/vite-plugin-solid/commit/a3720a563d3293b07e0cd9d9690afa91fee5d1d9)]
+- 🐛 Make dev mode work in prod when set to true [[84a6eff](https://github.com/amoutonbrady/vite-plugin-solid/commit/84a6eff5de065800ff4be0962a8603ddc60f57ff)]
+
+### Miscellaneous
+
+-  Merge pull request [#12](https://github.com/amoutonbrady/vite-plugin-solid/issues/12) from jorroll/monorepo-fix [[ba5d40c](https://github.com/amoutonbrady/vite-plugin-solid/commit/ba5d40c710bef282a88bffae48305abb83a27490)]
+-  fix: ensure &#x60;solid-js&#x60; is included in pre-bundle [[7098edc](https://github.com/amoutonbrady/vite-plugin-solid/commit/7098edcceff1af62328203f1dff6ed3edf0746d1)]
+-  Merge branch &#x27;master&#x27; of github.com:amoutonbrady/vite-plugin-solid [[c8a6cfc](https://github.com/amoutonbrady/vite-plugin-solid/commit/c8a6cfc4234f8b0ce48b4e4d200c43b53b21e49f)]
+- 📝 Update changelog [[c7590ac](https://github.com/amoutonbrady/vite-plugin-solid/commit/c7590ac38fba0d6720d640fd75386f18122cba99)]
+-  Merge pull request [#11](https://github.com/amoutonbrady/vite-plugin-solid/issues/11) from jorroll/patch-1 [[25f0cea](https://github.com/amoutonbrady/vite-plugin-solid/commit/25f0ceacfe6f47cd026faa1811cc4ccfa84d18a3)]
+-  docs: add jsdoc comments for Options interface [[6f0cea9](https://github.com/amoutonbrady/vite-plugin-solid/commit/6f0cea9d76593d4dc59006b6599d01fd1042ff53)]
+-  fix: export this plugin&#x27;s options interface [[6d5a31a](https://github.com/amoutonbrady/vite-plugin-solid/commit/6d5a31ae6f1781d00e8fb53f16e730c04558462e)]
+
+
 <a name="1.7.0"></a>
 ## 1.7.0 (2021-05-08)
 

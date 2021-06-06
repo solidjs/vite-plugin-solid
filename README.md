@@ -119,6 +119,14 @@ This will force SSR code in the produced files. This is experiemental and mostly
 
 Pass any additional [babel transform options](https://babeljs.io/docs/en/options). Those will be merged with the transformations required by Solid.
 
+#### options.solid
+
+- Type: [babel-plugin-jsx-dom-expressions](https://github.com/ryansolid/dom-expressions/tree/main/packages/babel-plugin-jsx-dom-expressions#plugin-options)
+- Default: {}
+
+Pass any additional [babel-plugin-jsx-dom-expressions](https://github.com/ryansolid/dom-expressions/tree/main/packages/babel-plugin-jsx-dom-expressions#plugin-options).
+They will be merged with the defaults sets by [babel-preset-solid](https://github.com/solidjs/solid/blob/main/packages/babel-preset-solid/index.js#L8-L25).
+
 ## Note on HMR
 
 Starting from version `1.1.0`, this plugin handle automatic HMR via [solid-refresh](https://github.com/ryansolid/solid-refresh).

@@ -17,7 +17,7 @@ specifiers:
   rollup: ^2.50.5
   rollup-plugin-cleaner: ^1.0.0
   solid-js: ^1.0.0-rc.2
-  solid-refresh: ^0.1.2
+  solid-refresh: ^0.2.0-rc.0
   typescript: ^4.3.2
   vite: ^2.3.6
 
@@ -27,7 +27,7 @@ dependencies:
   babel-preset-solid: 1.0.0-rc.2_@babel+core@7.14.3
   merge-anything: 4.0.1
   solid-js: 1.0.0-rc.2
-  solid-refresh: 0.1.2_solid-js@1.0.0-rc.2
+  solid-refresh: 0.2.0-rc.0_solid-js@1.0.0-rc.2
   vite: 2.3.6
 
 devDependencies:
@@ -1792,8 +1792,8 @@ packages:
     resolution: {integrity: sha512-RsZnESPbvEPC8txya63kKrxnbR+sfj2P0+sKdA8llq5GCyIzc5jASWyGDeXe8j45UQaKjd9Trx/AmSS/uT+ujw==}
     dev: false
 
-  /solid-refresh/0.1.2_solid-js@1.0.0-rc.2:
-    resolution: {integrity: sha512-irpGTZcn9xtzTQZhHslIEB4D1zYpWizT6GZ15GXyQE/gFBn6bKo53umQGmhq3NqRFqPXXavFDhiEQnyC08gzNg==}
+  /solid-refresh/0.2.0-rc.0_solid-js@1.0.0-rc.2:
+    resolution: {integrity: sha512-GbhouwMFCQ0HZAcM65q9vnRrNBlOlhDilPsNwC8lN8DcYOpCx54LZZWG23O3pttSGISl62Xm/qC4X0dJcpUr/Q==}
     peerDependencies:
       solid-js: '*'
     dependencies:

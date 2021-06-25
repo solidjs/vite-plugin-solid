@@ -128,6 +128,14 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       if (!userConfig.resolve) userConfig.resolve = {};
       userConfig.resolve.alias = [...legacyAlias, ...normalizeAliases(userConfig.resolve?.alias)];
 
+      const nestedDeps = [
+        'solid-js',
+        'solid-js/web',
+        'solid-js/store',
+        'solid-js/html',
+        'solid-js/h',
+      ];
+
       return mergeAndConcat(userConfig, {
         /**
          * We only need esbuild on .ts or .js files.
@@ -136,11 +144,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         esbuild: { include: /\.ts$/ },
         resolve: {
           conditions: ['solid', ...(replaceDev ? ['development'] : [])],
-          dedupe: ['solid-js', 'solid-js/web'],
+          dedupe: nestedDeps,
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
         },
         optimizeDeps: {
-          include: ['solid-js', 'solid-js/web'],
+          include: nestedDeps,
         },
       }) as UserConfig;
     },

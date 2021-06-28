@@ -3,17 +3,17 @@ lockfileVersion: 5.3
 specifiers:
   '@babel/plugin-syntax-top-level-await': ^7.14.5
   solid-app-router: ^0.0.50-rc.0
-  solid-js: ^1.0.0-rc.9
-  solid-meta: ^0.27.0-rc.0
-  solid-utils: ^0.8.0-rc.0
+  solid-js: ^1.0.0
+  solid-meta: ^0.27.0
+  solid-utils: ^0.8.1
   vite: ^2.3.8
   vite-plugin-solid: link:..
 
 dependencies:
-  solid-app-router: 0.0.50-rc.0_solid-js@1.0.0-rc.9
-  solid-js: 1.0.0-rc.9
-  solid-meta: 0.27.0-rc.0_solid-js@1.0.0-rc.9
-  solid-utils: 0.8.0-rc.0_solid-js@1.0.0-rc.9
+  solid-app-router: 0.0.50-rc.0_solid-js@1.0.0
+  solid-js: 1.0.0
+  solid-meta: 0.27.0_solid-js@1.0.0
+  solid-utils: 0.8.1_solid-js@1.0.0
 
 devDependencies:
   '@babel/plugin-syntax-top-level-await': 7.14.5
@@ -104,32 +104,32 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /solid-app-router/0.0.50-rc.0_solid-js@1.0.0-rc.9:
+  /solid-app-router/0.0.50-rc.0_solid-js@1.0.0:
     resolution: {integrity: sha512-KH9SYQ2EvACxwqp2j7XaZ6rOE8z0GbQpmew7tEhUiJcY8vl0BR2ZQm+MBP3gGmcm+MObsYTZ2cPl8FBaxcp86g==}
     peerDependencies:
       solid-js: '*'
     dependencies:
-      solid-js: 1.0.0-rc.9
+      solid-js: 1.0.0
     dev: false
 
-  /solid-js/1.0.0-rc.9:
-    resolution: {integrity: sha512-bhSihGFDn0Bh06shr+Qy6pb5Mrx571BnTGn0TNcYG34CU5lwFwe3czpHvmZzMXcnBv8dF+BkM+xWDyKtRq9z8Q==}
+  /solid-js/1.0.0:
+    resolution: {integrity: sha512-5huTDVyMqZSjg5Sa4mwl15feK4il1cE68n4weL5NYGC8lX2wiDlcHhBdSB8trKgaJ50Q9/pwtLrQngFaDC+5Tw==}
     dev: false
 
-  /solid-meta/0.27.0-rc.0_solid-js@1.0.0-rc.9:
-    resolution: {integrity: sha512-9VCPUE3QwkUx4lgVmhU5BQQiydqB92V3eAtbh+zswgmeE2Y9po/4W2QNOE1ZRAR8zFaLcpj2zKh8GGOM6/XcJw==}
+  /solid-meta/0.27.0_solid-js@1.0.0:
+    resolution: {integrity: sha512-DudhektuDc35HgLznHLKD1s5CFGLqT65LXvJyHGarrKZN2CV57qatlwIvhG4R0Pc8sUx+8W9Cn056bFrF4v5qg==}
     peerDependencies:
-      solid-js: '>= 0.26.0'
+      solid-js: ^1.0.0
     dependencies:
-      solid-js: 1.0.0-rc.9
+      solid-js: 1.0.0
     dev: false
 
-  /solid-utils/0.8.0-rc.0_solid-js@1.0.0-rc.9:
-    resolution: {integrity: sha512-bZZpcUu3qt199voTIThy+Ystj0KauYLpxQsQ87s9Vo9+D8HjasH51Me1IlfwrxlSPvxbYixTODh6OSo+a6ZtkQ==}
+  /solid-utils/0.8.1_solid-js@1.0.0:
+    resolution: {integrity: sha512-LLeO7Hr99OLFY+Zfx8U7Hw5VZOaFT8qWoLWGfnq3kDmo7KAGdIoq44ijy7mdYj88e+2cWPdkyhItsS3FGjeS6g==}
     peerDependencies:
-      solid-js: '>= 0.26'
+      solid-js: '>= 1.0'
     dependencies:
-      solid-js: 1.0.0-rc.9
+      solid-js: 1.0.0
     dev: false
 
   /source-map-js/0.6.2:

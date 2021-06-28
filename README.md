@@ -1,6 +1,8 @@
 # ⚡ vite-plugin-solid
 
-A simple integration to run [solid-js](https://github.com/ryansolid/solid) with [vite](https://github.com/vitejs/vite)
+> Looking for a `solid-js@1.0.0-rc` compatible `vite-plugin-solid`? Try `vite-plugin-solid@next` and report any bug you may encounter.
+
+A simple integration to run [solid-js](https://github.com/solidjs/solid) with [vite](https://github.com/vitejs/vite)
 
 <img alt="HMR gif demonstrationdemodemodemo" src=".github/hmr.gif">
 
@@ -129,7 +131,7 @@ They will be merged with the defaults sets by [babel-preset-solid](https://githu
 
 ## Note on HMR
 
-Starting from version `1.1.0`, this plugin handle automatic HMR via [solid-refresh](https://github.com/ryansolid/solid-refresh).
+Starting from version `1.1.0`, this plugin handle automatic HMR via [solid-refresh](https://github.com/solidjs/solid-refresh).
 
 At this stage it's still early work but provide basic HMR. In order to get the best out of it there are couple of things to keep in mind:
 
@@ -161,7 +163,7 @@ if (import.meta.hot) {
 
 - It appears that Webstorm generate some weird triggers when saving a file. In order to prevent that you can follow [this thread](https://intellij-support.jetbrains.com/hc/en-us/community/posts/360000154544-I-m-having-a-huge-problem-with-Webstorm-and-react-hot-loader-) and disable the **"Safe Write"** option in **"Settings | Appearance & Behavior | System Settings"**.
 
-- If one of your dependency spit out React code instead of Solid that means that they don't expose JSX properly. To get around it, you might want to manually exclude it from the [dependecies optimization](https://vitejs.dev/config/#optimizedeps-exclude)
+- If one of your dependency spit out React code instead of Solid that means that they don't expose JSX properly. To get around it, you might want to manually exclude it from the [dependencies optimization](https://vitejs.dev/config/#optimizedeps-exclude)
 
 ## Migration from v1
 
@@ -173,5 +175,5 @@ For other breaking changes, check [the migration guide of vite](https://vitejs.d
 
 # Credits
 
-- [solid-js](https://github.com/ryansolid/solid) and [vite](https://github.com/vitejs/vite#readme) obviously
+- [solid-js](https://github.com/solid-js/solid) and [vite](https://github.com/vitejs/vite#readme) obviously
 - [vite](https://github.com/vitejs/vite) obviously

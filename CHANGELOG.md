@@ -1,5 +1,17 @@
 # Changelog
 
+<a name="2.0.0-rc.1"></a>
+## 2.0.0-rc.1 (2021-06-02)
+
+### Changed
+
+- ⬆️ Update to solid 1.0.0-rc.2 [[b4795bd](https://github.com/amoutonbrady/vite-plugin-solid/commit/b4795bdd7f6dd688ea7bc3f7e63e0b934886bf14)]
+
+### Miscellaneous
+
+- 📝 Update changelog [[c2bf813](https://github.com/amoutonbrady/vite-plugin-solid/commit/c2bf81380628b5696ca8c5a6f336d0e9613f5e35)]
+
+
 <a name="1.8.0"></a>
 ## 1.8.0 (2021-05-13)
 

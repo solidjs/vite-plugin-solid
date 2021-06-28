@@ -122,13 +122,19 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       // We inject the dev mode only if the user explicitely wants it or if we are in dev (serve) mode
       const replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
 
-      const alias = replaceDev ? [{ find: /^solid-js$/, replacement: 'solid-js/dev' }] : [];
-
       // TODO: remove when fully removed from vite
       const legacyAlias = normalizeAliases(userConfig.alias);
 
       if (!userConfig.resolve) userConfig.resolve = {};
       userConfig.resolve.alias = [...legacyAlias, ...normalizeAliases(userConfig.resolve?.alias)];
+
+      const nestedDeps = [
+        'solid-js',
+        'solid-js/web',
+        'solid-js/store',
+        'solid-js/html',
+        'solid-js/h',
+      ];
 
       return mergeAndConcat(userConfig, {
         /**
@@ -137,12 +143,12 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
          */
         esbuild: { include: /\.ts$/ },
         resolve: {
-          conditions: ['solid'],
-          dedupe: ['solid-js', 'solid-js/web'],
-          alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }, ...alias],
+          conditions: ['solid', ...(replaceDev ? ['development'] : [])],
+          dedupe: nestedDeps,
+          alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
         },
         optimizeDeps: {
-          include: ['solid-js', 'solid-js/dev', 'solid-js/web'],
+          include: nestedDeps,
         },
       }) as UserConfig;
     },

@@ -1,5 +1,86 @@
 # Changelog
 
+<a name="2.0.1"></a>
+## 2.0.1 (2021-07-17)
+
+### Changed
+
+- 🔧 Externalize all dependencies [[0ec0692](https://github.com/solidjs/vite-plugin-solid/commit/0ec06926a7bb03d352583d07a84176c8dbe506cd)]
+- ⬆️ Update dependencies [[f684995](https://github.com/solidjs/vite-plugin-solid/commit/f684995f378b3ad4055b0bbe93506ec70179c998)]
+- ⬆️ Update solid-refresh [[b3180ae](https://github.com/solidjs/vite-plugin-solid/commit/b3180aeb89338bce2b8285df90b359812d6a294a)]
+
+### Fixed
+
+- 🐛 Fix solid-refresh import [[f24ef12](https://github.com/solidjs/vite-plugin-solid/commit/f24ef1200394b839d3c3cec0b89f83bf6e884fe2)]
+
+
+<a name="2.0.0"></a>
+## 2.0.0 (2021-06-28)
+
+### Added
+
+- ✨ Adding &#x60;babel-preset-solid&#x60; options from the vite plugin (fix [#13](https://github.com/solidjs/vite-plugin-solid/issues/13)) [[6759fee](https://github.com/solidjs/vite-plugin-solid/commit/6759fee6e732897c02918c21e6f35bd831a2999e)]
+
+### Changed
+
+- ⬆️ Update to solid 1.0 [[752e47e](https://github.com/solidjs/vite-plugin-solid/commit/752e47e73ef94109e3efd22dafea393edf702f6a)]
+
+### Miscellaneous
+
+-  Merge remote-tracking branch &#x27;origin/master&#x27; [[66d8501](https://github.com/solidjs/vite-plugin-solid/commit/66d85018959eb6e1b6bb90f8e60c58e0ae26d912)]
+-  Merge branch &#x27;next&#x27; [[6d26d87](https://github.com/solidjs/vite-plugin-solid/commit/6d26d87ba10836347b913aca6cc3f993960076fd)]
+- 📝 Update README [[337b022](https://github.com/solidjs/vite-plugin-solid/commit/337b0226143e6b525945d3d6252ccf732e0545f5)]
+- 📝 Update readme for solid options [[4550cbf](https://github.com/solidjs/vite-plugin-solid/commit/4550cbf8bf4b5ba828273850396b30f98c4ae435)]
+
+
+<a name="2.0.0-rc.4"></a>
+## 2.0.0-rc.4 (2021-06-25)
+
+### Added
+
+- ✨ Adding new exports to dedupe / deps include [[7b7ca58](https://github.com/solidjs/vite-plugin-solid/commit/7b7ca583d4625e033b016f8b615f59d0fcd38460)]
+
+### Changed
+
+- ⬆️ Update dependencies to latest [[b36514b](https://github.com/solidjs/vite-plugin-solid/commit/b36514ba35fc248b01fadf4cd62fcf647fd841bb)]
+
+
+<a name="2.0.0-rc.3"></a>
+## 2.0.0-rc.3 (2021-06-19)
+
+### Changed
+
+- ⬆️ Update solid-refresh to latest [[3dd8081](https://github.com/solidjs/vite-plugin-solid/commit/3dd8081b353caf9552405c9253b4d86072cc75ed)]
+
+### Miscellaneous
+
+- 📝 Update readme for solid options [[66d35f0](https://github.com/solidjs/vite-plugin-solid/commit/66d35f0761023593dcb05557abad2ca59244cb22)]
+
+
+<a name="2.0.0-rc.2"></a>
+## 2.0.0-rc.2 (2021-06-06)
+
+### Added
+
+- ✨ Adding &#x60;babel-preset-solid&#x60; options from the vite plugin (fix [#13](https://github.com/solidjs/vite-plugin-solid/issues/13)) [[584d4e9](https://github.com/solidjs/vite-plugin-solid/commit/584d4e98c5b32affeeca625e92524e96a81f4844)]
+
+### Changed
+
+- ⬆️ Update to solid 1.0.0-rc.2 [[b4795bd](https://github.com/solidjs/vite-plugin-solid/commit/b4795bdd7f6dd688ea7bc3f7e63e0b934886bf14)]
+
+### Miscellaneous
+
+- 📝 Update changelog [[6389e88](https://github.com/solidjs/vite-plugin-solid/commit/6389e88f5472abf7cb39cf7e078bda64b05c78f6)]
+
+
+<a name="1.9.0"></a>
+## 1.9.0 (2021-06-06)
+
+### Added
+
+- ✨ Adding &#x60;babel-preset-solid&#x60; options from the vite plugin (fix [#13](https://github.com/solidjs/vite-plugin-solid/issues/13)) [[6759fee](https://github.com/solidjs/vite-plugin-solid/commit/6759fee6e732897c02918c21e6f35bd831a2999e)]
+
+
 <a name="2.0.0-rc.1"></a>
 ## 2.0.0-rc.1 (2021-06-02)
 

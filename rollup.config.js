@@ -9,6 +9,9 @@ const external = [
   "@babel/core",
   "@babel/preset-typescript",
   "babel-preset-solid",
+  "solid-refresh",
+  "solid-refresh/babel.js",
+  "merge-anything"
 ];
 
 /**
@@ -29,7 +32,7 @@ const config = {
       exports: 'default',
     },
   ],
-  external, 
+  external,
   plugins: [
     cleaner({ targets: ['./dist/'] }),
     babel({

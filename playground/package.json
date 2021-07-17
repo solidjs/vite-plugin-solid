@@ -9,12 +9,12 @@
   "license": "MIT",
   "devDependencies": {
     "@babel/plugin-syntax-top-level-await": "^7.14.5",
-    "vite": "^2.3.8",
+    "vite": "^2.4.2",
     "vite-plugin-solid": "link:.."
   },
   "dependencies": {
-    "solid-app-router": "^0.0.50-rc.0",
-    "solid-js": "^1.0.0",
+    "solid-app-router": "^0.0.51",
+    "solid-js": "^1.0.3",
     "solid-meta": "^0.27.0",
     "solid-utils": "^0.8.1"
   }

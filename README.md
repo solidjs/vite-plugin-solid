@@ -63,7 +63,7 @@ Add it as plugin to `vite.config.js`
 ```js
 // vite.config.ts
 import { defineConfig } from 'vite';
-import { solidPlugin } from 'vite-plugin-solid';
+import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig({
   plugins: [solidPlugin()],

@@ -1,20 +1,19 @@
 import { createSignal, lazy } from 'solid-js';
 import { MetaProvider } from 'solid-meta';
 import { createApp } from 'solid-utils';
-import { Router, Route, RouteDefinition, Link } from 'solid-app-router';
+import { Router, useRoutes, RouteDefinition, Link } from 'solid-app-router';
 
-import test from '@@/test.txt?raw'
+import test from '@@/test.txt?raw';
 import Home from '@/index';
 
-// This needs to be tested once vite upgrade to esbuild 0.10.0
+const json = await fetch('https://jsonplaceholder.typicode.com/todos/1').then((response) =>
+  response.json(),
+);
 
-// const json = await fetch('https://jsonplaceholder.typicode.com/todos/1')
-// .then(response => response.json())
-
-// console.log({ json })
+console.log({ json });
 
 // This should log Hello World
-console.log(test)
+console.log(test);
 
 const routes: RouteDefinition[] = [
   {
@@ -29,6 +28,7 @@ const routes: RouteDefinition[] = [
 
 const App = () => {
   const [count, setCount] = createSignal(0);
+  const Route = useRoutes(routes);
 
   return (
     <>
@@ -41,4 +41,4 @@ const App = () => {
   );
 };
 
-createApp(App).use(MetaProvider).use(Router, { routes }).mount('#app');
+createApp(App).use(MetaProvider).use(Router).mount('#app');

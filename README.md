@@ -26,11 +26,11 @@ You can check your current version of node by typing `node -v` in your terminal.
 
 ## Quickstart
 
-You can use the [vite-template-solid](https://github.com/amoutonbrady/vite-template-solid) starter templates similar to CRA:
+You can use the [vite-template-solid](https://github.com/solidjs/templates) starter templates similar to CRA:
 
 ```bash
-$ npx degit amoutonbrady/vite-template-solid/js my-project
-$ cd my-project
+$ npx degit solidjs/templates/js my-solid-project
+$ cd my-solid-project
 $ npm install # or pnpm install or yarn install
 $ npm run start # starts dev-server with hot-module-reloading
 $ npm run build # builds to /dist

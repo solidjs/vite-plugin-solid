@@ -175,5 +175,5 @@ For other breaking changes, check [the migration guide of vite](https://vitejs.d
 
 # Credits
 
-- [solid-js](https://github.com/solid-js/solid) and [vite](https://github.com/vitejs/vite#readme) obviously
+- [solid-js](https://github.com/solidjs/solid) and [vite](https://github.com/vitejs/vite#readme) obviously
 - [vite](https://github.com/vitejs/vite) obviously

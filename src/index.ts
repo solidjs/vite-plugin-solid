@@ -187,7 +187,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       };
 
       if (id.includes('tsx')) {
-        opts.presets.push(ts);
+        // The `onlyRemoveTypeImports` prevent directives from failing
+        opts.presets.push([ts, { onlyRemoveTypeImports: true }]);
       }
 
       // Default value for babel user options

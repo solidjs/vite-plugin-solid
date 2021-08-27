@@ -1,7 +1,8 @@
 import { createSignal, lazy } from 'solid-js';
 import { MetaProvider } from 'solid-meta';
 import { createApp } from 'solid-utils';
-import { Router, useRoutes, RouteDefinition, Link } from 'solid-app-router';
+import { Router, useRoutes, Link } from 'solid-app-router';
+import type { RouteDefinition } from 'solid-app-router';
 
 import test from '@@/test.txt?raw';
 import Home from '@/index';

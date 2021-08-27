@@ -40,26 +40,26 @@
   },
   "homepage": "https://github.com/solidjs/vite-plugin-solid#readme",
   "dependencies": {
-    "@babel/core": "^7.14.8",
-    "@babel/preset-typescript": "^7.14.5",
-    "babel-preset-solid": "^1.0.6",
+    "@babel/core": "^7.15.0",
+    "@babel/preset-typescript": "^7.15.0",
+    "babel-preset-solid": "^1.1.1",
     "merge-anything": "^4.0.1",
-    "solid-js": "^1.0.7",
+    "solid-js": "^1.1.1",
     "solid-refresh": "^0.2.2",
-    "vite": "^2.4.4"
+    "vite": "^2.5.1"
   },
   "devDependencies": {
-    "@babel/plugin-transform-typescript": "^7.14.6",
-    "@babel/preset-env": "^7.14.8",
+    "@babel/plugin-transform-typescript": "^7.15.0",
+    "@babel/preset-env": "^7.15.0",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "^20.0.0",
     "@rollup/plugin-node-resolve": "^13.0.4",
     "@skypack/package-check": "^0.2.2",
     "@types/babel__core": "^7.1.15",
-    "@types/node": "^16.4.7",
+    "@types/node": "^16.7.4",
     "prettier": "^2.3.2",
-    "rollup": "^2.55.1",
+    "rollup": "^2.56.3",
     "rollup-plugin-cleaner": "^1.0.0",
-    "typescript": "^4.3.5"
+    "typescript": "^4.4.2"
   }
 }

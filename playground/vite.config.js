@@ -2,6 +2,7 @@ import solid from 'vite-plugin-solid';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  target: 'esnext',
   plugins: [
     solid({
       babel: {

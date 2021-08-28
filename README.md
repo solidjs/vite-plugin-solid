@@ -20,7 +20,7 @@ Join [solid discord](https://discord.com/invite/solidjs) and check the [troubles
 
 ## Requirements
 
-We've recently made this module 100% esm compatible. As per [this document](https://nodejs.org/api/esm.html) it is strongly recommended to have at least version `14.13.0` of node installed.
+This module 100% esm compatible. As per [this document](https://nodejs.org/api/esm.html) it is strongly recommended to have at least the version `14.13.0` of node installed.
 
 You can check your current version of node by typing `node -v` in your terminal. If your version is below that one version I'd encourage you to either do an update globally or use a node version management tool such as [volta](https://volta.sh/) or [nvm](https://github.com/nvm-sh/nvm).
 
@@ -129,6 +129,13 @@ Pass any additional [babel transform options](https://babeljs.io/docs/en/options
 Pass any additional [babel-plugin-jsx-dom-expressions](https://github.com/ryansolid/dom-expressions/tree/main/packages/babel-plugin-jsx-dom-expressions#plugin-options).
 They will be merged with the defaults sets by [babel-preset-solid](https://github.com/solidjs/solid/blob/main/packages/babel-preset-solid/index.js#L8-L25).
 
+#### options.typescript
+
+- Type: [@babel/preset-typescript](https://babeljs.io/docs/en/babel-preset-typescript)
+- Default: {}
+
+Pass any additional [@babel/preset-typescript](https://babeljs.io/docs/en/babel-preset-typescript).
+
 ## Note on HMR
 
 Starting from version `1.1.0`, this plugin handle automatic HMR via [solid-refresh](https://github.com/solidjs/solid-refresh).
@@ -164,6 +171,8 @@ if (import.meta.hot) {
 - It appears that Webstorm generate some weird triggers when saving a file. In order to prevent that you can follow [this thread](https://intellij-support.jetbrains.com/hc/en-us/community/posts/360000154544-I-m-having-a-huge-problem-with-Webstorm-and-react-hot-loader-) and disable the **"Safe Write"** option in **"Settings | Appearance & Behavior | System Settings"**.
 
 - If one of your dependency spit out React code instead of Solid that means that they don't expose JSX properly. To get around it, you might want to manually exclude it from the [dependencies optimization](https://vitejs.dev/config/#optimizedeps-exclude)
+
+- If you are trying to make [directives](https://www.solidjs.com/docs/latest/api#use%3A___) work and they somehow don't try setting the `options.typescript.onlyRemoveTypeImports` option to `true`
 
 ## Migration from v1
 

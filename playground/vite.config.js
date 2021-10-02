@@ -14,6 +14,7 @@ const logPlugin = () => {
 };
 
 export default defineConfig({
+  target: 'esnext',
   plugins: [
     solid({
       babel: {

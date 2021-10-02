@@ -1,5 +1,4 @@
-import { createRenderEffect, createSignal } from 'solid-js';
-import type { Accessor } from 'solid-js';
+import { Accessor, createRenderEffect, createSignal } from 'solid-js';
 
 function model(
   element: HTMLInputElement,

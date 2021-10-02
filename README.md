@@ -1,7 +1,5 @@
 # ⚡ vite-plugin-solid
 
-> Looking for a `solid-js@1.0.0-rc` compatible `vite-plugin-solid`? Try `vite-plugin-solid@next` and report any bug you may encounter.
-
 A simple integration to run [solid-js](https://github.com/solidjs/solid) with [vite](https://github.com/vitejs/vite)
 
 <img alt="HMR gif demonstrationdemodemodemo" src=".github/hmr.gif">

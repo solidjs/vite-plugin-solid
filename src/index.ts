@@ -136,7 +136,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         'solid-js/h',
       ];
 
-      return mergeAndConcat(userConfig, {
+      return {
         /**
          * We only need esbuild on .ts or .js files.
          * .tsx & .jsx files are handled by us
@@ -150,7 +150,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         optimizeDeps: {
           include: nestedDeps,
         },
-      }) as UserConfig;
+      } as UserConfig;
     },
 
     configResolved(config) {

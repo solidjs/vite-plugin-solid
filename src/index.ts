@@ -284,7 +284,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       if (id === runtimePublicPath) return runtimeCode;
     },
 
-    async transform(source, id, ssr) {
+    async transform(source, id, transformOptions) {
+      // @ts-expect-error anticipate vite changing second parameter as options object
+      // see https://github.com/vitejs/vite/discussions/5109
+      const ssr: boolean = transformOptions === true || transformOptions?.ssr;
+
       if (!/\.[jt]sx/.test(id)) return null;
 
       let solidOptions: { generate: 'ssr' | 'dom'; hydratable: boolean };

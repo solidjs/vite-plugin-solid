@@ -1,5 +1,78 @@
 # Changelog
 
+<a name="2.1.2"></a>
+## 2.1.2 (2021-11-04)
+
+### Changed
+
+- ⬆️ Update dependencies [[9938081](https://github.com/solidjs/vite-plugin-solid/commit/993808181e46bf7f92ab9fe5b1c908abaca9d395)]
+
+### Fixed
+
+- 🐛 Fix issues where the sourcemap wasn&#x27;t properly set (fix [#21](https://github.com/solidjs/vite-plugin-solid/issues/21)) [[d12159d](https://github.com/solidjs/vite-plugin-solid/commit/d12159d55f6a0fa16a72521219dc125ddb17a8c7)]
+
+
+<a name="2.1.1"></a>
+## 2.1.1 (2021-10-14)
+
+### Changed
+
+- 🔧 Prepare for upcomming vite update around ssr boolean [[b9b3f73](https://github.com/solidjs/vite-plugin-solid/commit/b9b3f73ab22bfc6e3451fbfc21441a06dc3acd9c)]
+- ⬆️ Update dependencies [[5701543](https://github.com/solidjs/vite-plugin-solid/commit/5701543cec6a4921cb44dabf70cf6d3e43420fc0)]
+
+### Miscellaneous
+
+- 📝 Remove deprecated section [[942ede6](https://github.com/solidjs/vite-plugin-solid/commit/942ede6bc263903f492a9862f8905d18c5349127)]
+
+
+<a name="2.1.0"></a>
+## 2.1.0 (2021-10-02)
+
+### Added
+
+- ✨ Adding opt-in @babel/preset-typescript options [[fd746e6](https://github.com/solidjs/vite-plugin-solid/commit/fd746e6735c84ea51ddcd686b17be0ad7c91bd40)]
+
+### Changed
+
+- ⬆️ Update dependencies [[c6c96d5](https://github.com/solidjs/vite-plugin-solid/commit/c6c96d561fd6291e2756a877d2dfd903f98236a1)]
+
+### Removed
+
+- 🔥 Remove config merging (fix [#20](https://github.com/solidjs/vite-plugin-solid/issues/20)) [[124e7fa](https://github.com/solidjs/vite-plugin-solid/commit/124e7fa68d3b4270e45baed8be3a9d3cd4df1e81)]
+
+### Miscellaneous
+
+-  Merge branch &#x27;master&#x27; of github.com:solidjs/vite-plugin-solid [[02aaa9f](https://github.com/solidjs/vite-plugin-solid/commit/02aaa9fd3e1f01d5e4f4c7444b7333fac9ab9c6f)]
+
+
+<a name="2.0.2"></a>
+## 2.0.2 (2021-08-27)
+
+### Added
+
+- ✨ Add directive to playground to make sure it works [[d506e83](https://github.com/solidjs/vite-plugin-solid/commit/d506e83a7d575b798e7cb4a3551022ee93f8309d)]
+
+### Changed
+
+- ⬆️ Update playground dependencies [[dfadfd7](https://github.com/solidjs/vite-plugin-solid/commit/dfadfd7ba3891f92486db76c7326a2e47d85af8b)]
+- ⬆️ Update dependencies [[9a31397](https://github.com/solidjs/vite-plugin-solid/commit/9a31397f3218f93b81b907ad671e20a58d0ba171)]
+- 🔧 Add &#x60;onlyRemoveTypeImports&#x60; on the TS preset [[7c9ad7e](https://github.com/solidjs/vite-plugin-solid/commit/7c9ad7edd65052f8a1f112786ebd7e7c529f8226)]
+- 🔧 Fix playground after latest update [[18f8307](https://github.com/solidjs/vite-plugin-solid/commit/18f8307a6f874de3ea5356f98df1fea2a57e3efa)]
+- ⬆️ Update to latest dependencies [[4856be5](https://github.com/solidjs/vite-plugin-solid/commit/4856be51360dd2be2104203fdc0c2fd55ffccc87)]
+
+### Miscellaneous
+
+- 📦 Fix lock file [[8740ad6](https://github.com/solidjs/vite-plugin-solid/commit/8740ad6fa4c6e20a6c26a788ea5ca27d9fd2a5cf)]
+- 📝 Update readme [[6c18a33](https://github.com/solidjs/vite-plugin-solid/commit/6c18a3387b2160fdf0e8c703bc37c644b8ac4234)]
+-  Merge pull request [#17](https://github.com/solidjs/vite-plugin-solid/issues/17) from LXSMNSYC/patch-1 [[b03c61b](https://github.com/solidjs/vite-plugin-solid/commit/b03c61b15610f4acc498ecfecdb63299998b7c80)]
+-  Fix &#x60;solid-js&#x60; credits pointing to wrong url [[18d8dad](https://github.com/solidjs/vite-plugin-solid/commit/18d8dad1dba68a275535bb9e611f634770f82753)]
+-  Merge pull request [#16](https://github.com/solidjs/vite-plugin-solid/issues/16) from sprabowo/master [[17da93e](https://github.com/solidjs/vite-plugin-solid/commit/17da93e35e200e29e0869575aa75949b6ceab902)]
+-  fix: update repo in degit script [[b11624d](https://github.com/solidjs/vite-plugin-solid/commit/b11624db8a9652d04d165054858cbb1b35afe961)]
+-  Merge pull request [#15](https://github.com/solidjs/vite-plugin-solid/issues/15) from visualfanatic/patch-1 [[b2c64b7](https://github.com/solidjs/vite-plugin-solid/commit/b2c64b7390620ca1cfaea739db788724cfa12b3b)]
+-  Fix example Vite config [[198e27f](https://github.com/solidjs/vite-plugin-solid/commit/198e27fa8da8dabbbf25dd20e25c770aea73beaf)]
+- 📝 Update changelog [[0c76257](https://github.com/solidjs/vite-plugin-solid/commit/0c76257ad2a864793fb48732168b216899d75a32)]
+
+
 <a name="2.0.1"></a>
 ## 2.0.1 (2021-07-17)
 

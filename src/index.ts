@@ -232,6 +232,8 @@ export interface Options {
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let needHmr = false;
+  let replaceDev = false;
+  let projectRoot = process.cwd();
 
   return {
     name: 'solid',
@@ -239,7 +241,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
     config(userConfig, { command }): UserConfig {
       // We inject the dev mode only if the user explicitely wants it or if we are in dev (serve) mode
-      const replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
+      replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
+      projectRoot = userConfig.root;
 
       // TODO: remove when fully removed from vite
       const legacyAlias = normalizeAliases(userConfig.alias);
@@ -304,9 +307,16 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       }
 
       const opts: TransformOptions = {
+        babelrc: false,
+        configFile: false,
+        root: projectRoot,
         filename: id,
+        sourceFileName: id,
         presets: [[solid, { ...solidOptions, ...(options.solid || {}) }]],
         plugins: needHmr ? [[solidRefresh, { bundler: 'vite' }]] : [],
+        sourceMaps: true,
+        // Vite handles sourcemap flattening
+        inputSourceMap: false as any,
       };
 
       if (id.includes('tsx')) {

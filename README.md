@@ -97,7 +97,7 @@ This will inject `solid-js/dev` in place of `solid-js` in dev mode. Has no effec
 If set to false, it won't inject it in dev.
 This is useful for extra logs and debug.
 
-#### options.hmr
+#### options.hot
 
 - Type: Boolean
 - Default: true
@@ -140,18 +140,9 @@ Starting from version `1.1.0`, this plugin handle automatic HMR via [solid-refre
 
 At this stage it's still early work but provide basic HMR. In order to get the best out of it there are couple of things to keep in mind:
 
-- Every component that you expect to have HMR should be exported as default eg:
-
-```tsx
-const MyComponent = () => <h1>My component</h1>;
-export default MyComponent;
-```
-
 - When you modify a file every state below this component will be reset to default state (including the current file). The state in parent component is preserved.
 
 - The entrypoint can't benefit from HMR yet and will force a hard reload of the entire app. This is still really fast thanks to browser caching.
-
-- Currently there's a parsing issue if you export default on the same line as declaration like so: `export default function App() {...}`. It should be made in two steps. First declare then export, similar to the example in the first bullet point.
 
 If at least one of this point is blocking to you, you can revert to the old behavior but [opting out the automatic HMR](#options) and placing the following snippet in your entry point:
 
@@ -159,8 +150,8 @@ If at least one of this point is blocking to you, you can revert to the old beha
 const dispose = render(() => <App />, document.body);
 
 if (import.meta.hot) {
-  import.meta.hmr.accept();
-  import.meta.hmr.dispose(dispose);
+  import.meta.hot.accept();
+  import.meta.hot.dispose(dispose);
 }
 ```
 

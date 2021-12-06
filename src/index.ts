@@ -250,13 +250,14 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       if (!userConfig.resolve) userConfig.resolve = {};
       userConfig.resolve.alias = [...legacyAlias, ...normalizeAliases(userConfig.resolve?.alias)];
 
-      const nestedDeps = [
+      // fix for bundling dev in production
+      const nestedDeps = replaceDev ? [
         'solid-js',
         'solid-js/web',
         'solid-js/store',
         'solid-js/html',
         'solid-js/h',
-      ];
+      ] : [];
 
       return {
         /**
@@ -293,6 +294,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       const ssr: boolean = transformOptions === true || transformOptions?.ssr;
 
       if (!/\.[jt]sx/.test(id)) return null;
+      const inNodeModules = /node_modules/.test(id);
 
       let solidOptions: { generate: 'ssr' | 'dom'; hydratable: boolean };
 
@@ -313,7 +315,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         filename: id,
         sourceFileName: id,
         presets: [[solid, { ...solidOptions, ...(options.solid || {}) }]],
-        plugins: needHmr ? [[solidRefresh, { bundler: 'vite' }]] : [],
+        plugins: needHmr && !inNodeModules ? [[solidRefresh, { bundler: 'vite' }]] : [],
         sourceMaps: true,
         // Vite handles sourcemap flattening
         inputSourceMap: false as any,

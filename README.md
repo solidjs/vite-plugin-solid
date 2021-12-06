@@ -97,7 +97,7 @@ This will inject `solid-js/dev` in place of `solid-js` in dev mode. Has no effec
 If set to false, it won't inject it in dev.
 This is useful for extra logs and debug.
 
-#### options.hmr
+#### options.hot
 
 - Type: Boolean
 - Default: true

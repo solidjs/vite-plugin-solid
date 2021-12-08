@@ -42,11 +42,11 @@
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@babel/preset-typescript": "^7.16.0",
-    "babel-preset-solid": "^1.2.2",
+    "babel-preset-solid": "^1.2.6",
     "merge-anything": "^4.0.1",
-    "solid-js": "^1.2.2",
+    "solid-js": "^1.2.6",
     "solid-refresh": "^0.3.2",
-    "vite": "^2.6.13"
+    "vite": "^2.7.1"
   },
   "devDependencies": {
     "@babel/plugin-transform-typescript": "^7.16.1",

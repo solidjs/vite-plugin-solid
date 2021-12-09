@@ -1,3 +1,7 @@
+<p>
+  <img width="100%" src="https://raw.githubusercontent.com/solidjs/vite-plugin-solid/master/banner.png" alt="Solid Vite Plugin">
+</p>
+
 # ⚡ vite-plugin-solid
 
 A simple integration to run [solid-js](https://github.com/solidjs/solid) with [vite](https://github.com/vitejs/vite)

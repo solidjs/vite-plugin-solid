@@ -38,6 +38,13 @@ export interface Options {
    */
   hot: boolean;
   /**
+   * This registers additional extensions that should be processed by
+   * vite-plugin-solid.
+   *
+   * @default undefined
+   */
+  extensions?: string[];
+  /**
    * Pass any additional babel transform options. They will be merged with
    * the transformations required by Solid.
    *
@@ -230,6 +237,11 @@ export interface Options {
   };
 }
 
+function getExtension(filename: string): string {
+  const index = filename.lastIndexOf('.');
+  return index < 0 ? '' : filename.substring(index);
+}
+
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let needHmr = false;
   let replaceDev = false;
@@ -251,18 +263,14 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       userConfig.resolve.alias = [...legacyAlias, ...normalizeAliases(userConfig.resolve?.alias)];
 
       // fix for bundling dev in production
-      const nestedDeps = replaceDev ? [
-        'solid-js',
-        'solid-js/web',
-        'solid-js/store',
-        'solid-js/html',
-        'solid-js/h',
-      ] : [];
+      const nestedDeps = replaceDev
+        ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
+        : [];
 
       return {
         /**
          * We only need esbuild on .ts or .js files.
-         * .tsx & .jsx files are handled by us
+         * .tsx & .jsx files are handled by us 
          */
         esbuild: { include: /\.ts$/ },
         resolve: {
@@ -293,7 +301,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       // see https://github.com/vitejs/vite/discussions/5109
       const ssr: boolean = transformOptions === true || transformOptions?.ssr;
 
-      if (!/\.[jt]sx/.test(id)) return null;
+      if (!(/\.[jt]sx/.test(id) || options.extensions?.includes(getExtension(id).split('?')[0])))
+        return null;
+
       const inNodeModules = /node_modules/.test(id);
 
       let solidOptions: { generate: 'ssr' | 'dom'; hydratable: boolean };
@@ -321,9 +331,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         inputSourceMap: false as any,
       };
 
-      if (id.includes('tsx')) {
-        opts.presets.push([ts, options.typescript || {}]);
-      }
+      if (id.includes('tsx')) opts.presets.push([ts, options.typescript || {}]);
 
       // Default value for babel user options
       let babelUserOptions: TransformOptions = {};

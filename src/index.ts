@@ -13,6 +13,9 @@ const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
 const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 
+export interface ExtensionOptions {
+  typescript?: boolean;
+}
 /** Configuration options for vite-plugin-solid. */
 export interface Options {
   /**
@@ -37,6 +40,13 @@ export interface Options {
    * @default true
    */
   hot: boolean;
+  /**
+   * This registers additional extensions that should be processed by
+   * vite-plugin-solid.
+   *
+   * @default undefined
+   */
+  extensions?: (string | [string, ExtensionOptions])[];
   /**
    * Pass any additional babel transform options. They will be merged with
    * the transformations required by Solid.
@@ -230,6 +240,11 @@ export interface Options {
   };
 }
 
+function getExtension(filename: string): string {
+  const index = filename.lastIndexOf('.');
+  return index < 0 ? '' : filename.substring(index);
+}
+
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let needHmr = false;
   let replaceDev = false;
@@ -286,8 +301,23 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
     async transform(source, id, transformOptions) {
       const ssr: boolean = transformOptions?.ssr;
+      let extension: string;
 
-      if (!/\.[jt]sx/.test(id)) return null;
+      if (!/\.[jt]sx/.test(id)) {
+        if (options.extensions) {
+          extension = getExtension(id);
+          if (
+            !options.extensions
+              .map((ext) => (typeof ext === 'string' ? ext : ext[0]))
+              .includes(extension)
+          ) {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      }
+
       const inNodeModules = /node_modules/.test(id);
 
       let solidOptions: { generate: 'ssr' | 'dom'; hydratable: boolean };
@@ -315,7 +345,12 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         inputSourceMap: false as any,
       };
 
-      if (id.includes('tsx')) {
+      if (
+        id.includes('tsx') ||
+        options.extensions?.find(
+          (ext) => typeof ext !== 'string' && ext[0] === extension && ext[1].typescript,
+        )
+      ) {
         opts.presets.push([ts, options.typescript || {}]);
       }
 

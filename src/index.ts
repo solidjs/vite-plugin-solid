@@ -300,9 +300,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     async transform(source, id, transformOptions) {
-      // @ts-expect-error anticipate vite changing second parameter as options object
-      // see https://github.com/vitejs/vite/discussions/5109
-      const ssr: boolean = transformOptions === true || transformOptions?.ssr;
+      const ssr: boolean = transformOptions?.ssr;
       let extension: string;
 
       if (!/\.[jt]sx/.test(id)) {

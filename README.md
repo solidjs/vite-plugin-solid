@@ -138,6 +138,15 @@ They will be merged with the defaults sets by [babel-preset-solid](https://githu
 
 Pass any additional [@babel/preset-typescript](https://babeljs.io/docs/en/babel-preset-typescript).
 
+#### options.extensions
+
+- Type: (string, [string, { typescript: boolean }])[]
+- Default: []
+
+An array of custom extension that will be passed through the solid compiler.
+By default, the plugin only transform `jsx` and `tsx` files.
+This is useful if you want to transform `mdx` files for example.
+
 ## Note on HMR
 
 Starting from version `1.1.0`, this plugin handle automatic HMR via [solid-refresh](https://github.com/solidjs/solid-refresh).

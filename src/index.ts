@@ -13,9 +13,11 @@ const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
 const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 
+/** Possible options for the extensions property */
 export interface ExtensionOptions {
   typescript?: boolean;
 }
+
 /** Configuration options for vite-plugin-solid. */
 export interface Options {
   /**
@@ -300,22 +302,17 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     async transform(source, id, transformOptions) {
-      const ssr: boolean = transformOptions?.ssr;
-      let extension: string;
+      const isSsr = transformOptions?.ssr;
+      const currentFileExtension = getExtension(id);
 
-      if (!/\.[jt]sx/.test(id)) {
-        if (options.extensions) {
-          extension = getExtension(id);
-          if (
-            !options.extensions
-              .map((ext) => (typeof ext === 'string' ? ext : ext[0]))
-              .includes(extension)
-          ) {
-            return null;
-          }
-        } else {
-          return null;
-        }
+      const extensionsToWatch = [...(options.extensions || []), '.tsx', '.jsx'];
+      const allCustomExtensions = extensionsToWatch.map((extension) =>
+        // An extension can be a string or a tuple [extension, options]
+        typeof extension === 'string' ? extension : extension[0],
+      );
+
+      if (!allCustomExtensions.includes(currentFileExtension)) {
+        return null;
       }
 
       const inNodeModules = /node_modules/.test(id);
@@ -323,7 +320,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       let solidOptions: { generate: 'ssr' | 'dom'; hydratable: boolean };
 
       if (options.ssr) {
-        if (ssr) {
+        if (isSsr) {
           solidOptions = { generate: 'ssr', hydratable: true };
         } else {
           solidOptions = { generate: 'dom', hydratable: true };
@@ -345,12 +342,19 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         inputSourceMap: false as any,
       };
 
-      if (
-        id.includes('tsx') ||
-        options.extensions?.find(
-          (ext) => typeof ext !== 'string' && ext[0] === extension && ext[1].typescript,
-        )
-      ) {
+      // We need to know if the current file extension has a typescript options tied to it
+      const shouldBeProcessedWithTypescript = extensionsToWatch.some((extension) => {
+        if (typeof extension === 'string') {
+          return extension.includes('tsx');
+        }
+
+        const [extensionName, extensionOptions] = extension;
+        if (extensionName !== currentFileExtension) return false;
+
+        return extensionOptions.typescript;
+      });
+
+      if (shouldBeProcessedWithTypescript) {
         opts.presets.push([ts, options.typescript || {}]);
       }
 
@@ -359,7 +363,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       if (options.babel) {
         if (typeof options.babel === 'function') {
-          const babelOptions = options.babel(source, id, ssr);
+          const babelOptions = options.babel(source, id, isSsr);
           babelUserOptions = babelOptions instanceof Promise ? await babelOptions : babelOptions;
         } else {
           babelUserOptions = options.babel;

@@ -251,13 +251,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       userConfig.resolve.alias = [...legacyAlias, ...normalizeAliases(userConfig.resolve?.alias)];
 
       // fix for bundling dev in production
-      const nestedDeps = replaceDev ? [
-        'solid-js',
-        'solid-js/web',
-        'solid-js/store',
-        'solid-js/html',
-        'solid-js/h',
-      ] : [];
+      const nestedDeps = replaceDev
+        ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
+        : [];
 
       return {
         /**
@@ -289,9 +285,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     async transform(source, id, transformOptions) {
-      // @ts-expect-error anticipate vite changing second parameter as options object
-      // see https://github.com/vitejs/vite/discussions/5109
-      const ssr: boolean = transformOptions === true || transformOptions?.ssr;
+      const ssr: boolean = transformOptions?.ssr;
 
       if (!/\.[jt]sx/.test(id)) return null;
       const inNodeModules = /node_modules/.test(id);

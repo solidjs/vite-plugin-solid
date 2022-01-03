@@ -351,8 +351,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       if (
         id.includes('tsx') ||
-        options.extensions.find((ext) =>
-          typeof ext === 'string' ? ext === extension : ext[0] === extension && ext[1].typescript,
+        options.extensions?.find(
+          (ext) => typeof ext !== 'string' && ext[0] === extension && ext[1].typescript,
         )
       ) {
         opts.presets.push([ts, options.typescript || {}]);

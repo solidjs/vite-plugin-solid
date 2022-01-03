@@ -1,5 +1,41 @@
 # Changelog
 
+<a name="2.2.0"></a>
+## 2.2.0 (2022-01-03)
+
+### Added
+
+- ✨ Add mdx example [[988e065](https://github.com/solidjs/vite-plugin-solid/commit/988e065a02bd9df742d5f56d896732d4593a2bdb)]
+
+### Changed
+
+- 🎨 Refactor code [[3a249f3](https://github.com/solidjs/vite-plugin-solid/commit/3a249f37001561ef66f8e8ab4eed82a42f52832e)]
+- 🔧 Fix lock file [[0a14b3a](https://github.com/solidjs/vite-plugin-solid/commit/0a14b3ab5f00c77a9f28a9bf974f6a1f606b6465)]
+- 🔧 Add pnpm as the default corepack package manager [[6ee5701](https://github.com/solidjs/vite-plugin-solid/commit/6ee5701a5d6702351afa08a95b87abbc0f403ee3)]
+- ⬆️ Update playground dependencies [[3306823](https://github.com/solidjs/vite-plugin-solid/commit/3306823f453639e9af0844ba63b904717189f1fa)]
+- ⬆️ Update dependencies [[5df5464](https://github.com/solidjs/vite-plugin-solid/commit/5df5464e7d3e53b9987e7df55134fba599dfa20c)]
+
+### Removed
+
+- 🔥 Remove deprecated code [[58f0623](https://github.com/solidjs/vite-plugin-solid/commit/58f0623506c588b1312793f281fe33e342eb6ec7)]
+
+### Miscellaneous
+
+-  Merge pull request [#24](https://github.com/solidjs/vite-plugin-solid/issues/24) from high1/solid-mdx [[0416a1a](https://github.com/solidjs/vite-plugin-solid/commit/0416a1ac45c28967abc2ba8864f0b9ee2fd541b3)]
+-  Merge branch &#x27;master&#x27; into solid-mdx [[2d7d862](https://github.com/solidjs/vite-plugin-solid/commit/2d7d86269589f27e5577a90b400a64dc062db178)]
+-  Removed flags parsing [[41bd673](https://github.com/solidjs/vite-plugin-solid/commit/41bd67326cdc9425d48c6369b9f9b5b4363a5a7b)]
+-  Fixed undefined issue [[ea2724e](https://github.com/solidjs/vite-plugin-solid/commit/ea2724e5a336bd1a5147fc1e1d1f33dc027c7a74)]
+-  Updated the code [[2e07b2b](https://github.com/solidjs/vite-plugin-solid/commit/2e07b2bfcc822dc0343ae2d851ad1393288b6f2b)]
+-  Extensions option added [[e5b6389](https://github.com/solidjs/vite-plugin-solid/commit/e5b6389aa7fe579201ad6e4cbeec332441396040)]
+-  New banner [[34967e8](https://github.com/solidjs/vite-plugin-solid/commit/34967e82ea235c8dfe389f3bd91d440382835036)]
+-  Added new banner [[5a4e52f](https://github.com/solidjs/vite-plugin-solid/commit/5a4e52fa2099dea3bb67aeed705cb268999ce6a6)]
+-  bump deps [[9f8a623](https://github.com/solidjs/vite-plugin-solid/commit/9f8a6234cdb1ae290f2f9d434221abbff7c5a870)]
+-  update readme [[04ed442](https://github.com/solidjs/vite-plugin-solid/commit/04ed44299d88d34143cdad5f8764681035d2bb2e)]
+-  fix dev build in prod, stop adding transform refresh to node_modules [[2ea81e1](https://github.com/solidjs/vite-plugin-solid/commit/2ea81e1e6aac3e8a25eff3f0deae222d32d3f16c)]
+-  bump versions [[9395b64](https://github.com/solidjs/vite-plugin-solid/commit/9395b64632d04b860f89109998ae686087e59458)]
+- 📝 Update changelog [[04f1081](https://github.com/solidjs/vite-plugin-solid/commit/04f1081853932b169c4ecbc960d56fa6f6fadfa6)]
+
+
 <a name="2.1.2"></a>
 ## 2.1.2 (2021-11-04)
 

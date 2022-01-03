@@ -6,6 +6,8 @@ import type { RouteDefinition } from 'solid-app-router';
 
 import test from '@@/test.txt?raw';
 import Home from '@/index';
+// @ts-ignore
+import Hello from './hello.mdx';
 
 const json = await fetch('https://jsonplaceholder.typicode.com/todos/1').then((response) =>
   response.json(),
@@ -38,6 +40,7 @@ const App = () => {
       <hr />
       <Route />
       <button onClick={() => setCount(count() + 1)}>{count()}</button>
+      <Hello />
     </>
   );
 };

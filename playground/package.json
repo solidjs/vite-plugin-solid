@@ -10,12 +10,14 @@
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@babel/plugin-syntax-top-level-await": "^7.14.5",
+    "@mdx-js/mdx": "^2.0.0-rc.2",
     "vite": "^2.7.10",
     "vite-plugin-solid": "link:.."
   },
   "dependencies": {
     "solid-app-router": "^0.1.14",
     "solid-js": "^1.2.6",
+    "solid-mdx": "^0.0.5",
     "solid-meta": "^0.27.3",
     "solid-utils": "^0.8.1"
   }

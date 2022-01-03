@@ -307,9 +307,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       if (!/\.[jt]sx/.test(id)) {
         if (options.extensions) {
-          const extensionWithFlags = getExtension(id);
-          extension = extensionWithFlags.split('?')[0];
-
+          extension = getExtension(id);
           if (
             !options.extensions
               .map((ext) => (typeof ext === 'string' ? ext : ext[0]))

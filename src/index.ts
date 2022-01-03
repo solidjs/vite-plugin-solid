@@ -306,12 +306,12 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       const currentFileExtension = getExtension(id);
 
       const extensionsToWatch = [...(options.extensions || []), '.tsx', '.jsx'];
-      const allCustomExtensions = extensionsToWatch.map((extension) =>
+      const allExtensions = extensionsToWatch.map((extension) =>
         // An extension can be a string or a tuple [extension, options]
         typeof extension === 'string' ? extension : extension[0],
       );
 
-      if (!allCustomExtensions.includes(currentFileExtension)) {
+      if (!allExtensions.includes(currentFileExtension)) {
         return null;
       }
 

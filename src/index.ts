@@ -13,6 +13,9 @@ const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
 const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 
+export interface ExtensionOptions {
+  typescript?: boolean;
+}
 /** Configuration options for vite-plugin-solid. */
 export interface Options {
   /**
@@ -43,7 +46,7 @@ export interface Options {
    *
    * @default undefined
    */
-  extensions?: string[];
+  extensions?: (string | [string, ExtensionOptions])[];
   /**
    * Pass any additional babel transform options. They will be merged with
    * the transformations required by Solid.
@@ -270,7 +273,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       return {
         /**
          * We only need esbuild on .ts or .js files.
-         * .tsx & .jsx files are handled by us 
+         * .tsx & .jsx files are handled by us
          */
         esbuild: { include: /\.ts$/ },
         resolve: {
@@ -300,9 +303,24 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       // @ts-expect-error anticipate vite changing second parameter as options object
       // see https://github.com/vitejs/vite/discussions/5109
       const ssr: boolean = transformOptions === true || transformOptions?.ssr;
+      let extension: string;
 
-      if (!(/\.[jt]sx/.test(id) || options.extensions?.includes(getExtension(id).split('?')[0])))
-        return null;
+      if (!/\.[jt]sx/.test(id)) {
+        if (options.extensions) {
+          const extensionWithFlags = getExtension(id);
+          extension = extensionWithFlags.split('?')[0];
+
+          if (
+            !options.extensions
+              .map((ext) => (typeof ext === 'string' ? ext : ext[0]))
+              .includes(extension)
+          ) {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      }
 
       const inNodeModules = /node_modules/.test(id);
 
@@ -331,7 +349,14 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         inputSourceMap: false as any,
       };
 
-      if (id.includes('tsx')) opts.presets.push([ts, options.typescript || {}]);
+      if (
+        id.includes('tsx') ||
+        options.extensions.find((ext) =>
+          typeof ext === 'string' ? ext === extension : ext[0] === extension && ext[1].typescript,
+        )
+      ) {
+        opts.presets.push([ts, options.typescript || {}]);
+      }
 
       // Default value for babel user options
       let babelUserOptions: TransformOptions = {};

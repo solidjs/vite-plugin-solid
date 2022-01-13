@@ -336,7 +336,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         filename: id,
         sourceFileName: id,
         presets: [[solid, { ...solidOptions, ...(options.solid || {}) }]],
-        plugins: needHmr && !inNodeModules ? [[solidRefresh, { bundler: 'vite' }]] : [],
+        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, { bundler: 'vite' }]] : [],
         sourceMaps: true,
         // Vite handles sourcemap flattening
         inputSourceMap: false as any,

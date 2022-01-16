@@ -290,7 +290,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     configResolved(config) {
-      needHmr = config.command === 'serve' && !config.isProduction && options.hot !== false;
+      needHmr = config.command === 'serve' && config.mode !== 'production' && options.hot !== false;
     },
 
     resolveId(id) {
@@ -336,7 +336,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         filename: id,
         sourceFileName: id,
         presets: [[solid, { ...solidOptions, ...(options.solid || {}) }]],
-        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, { bundler: 'vite' }]] : undefined,
+        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, { bundler: 'vite' }]] : [],
         sourceMaps: true,
         // Vite handles sourcemap flattening
         inputSourceMap: false as any,

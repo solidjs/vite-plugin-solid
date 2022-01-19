@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-solid",
-  "version": "2.2.2",
+  "version": "2.2.4",
   "description": "solid-js integration plugin for vite 2",
   "type": "module",
   "files": [
@@ -46,7 +46,7 @@
     "merge-anything": "^4.0.2",
     "solid-js": "^1.3.0",
     "solid-refresh": "^0.4.0",
-    "vite": "^2.7.10"
+    "vite": "^2.7.13"
   },
   "devDependencies": {
     "@babel/plugin-transform-typescript": "^7.16.7",

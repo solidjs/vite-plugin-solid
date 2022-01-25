@@ -43,7 +43,7 @@
     "@babel/core": "^7.16.7",
     "@babel/preset-typescript": "^7.16.7",
     "babel-preset-solid": "^1.3.0",
-    "merge-anything": "^4.0.2",
+    "merge-anything": "^5.0.0",
     "solid-js": "^1.3.0",
     "solid-refresh": "^0.4.0",
     "vite": "^2.7.13"

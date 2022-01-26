@@ -1,5 +1,31 @@
 # Changelog
 
+<a name="2.2.5"></a>
+## 2.2.5 (2022-01-26)
+
+### Changed
+
+- ⬆️ Update dependencies to latest [[0d429c2](https://github.com/solidjs/vite-plugin-solid/commit/0d429c2c59261f4bb23a62e5f9736eed113724bf)]
+- 🎨 Rename poorly named variable [[d71ff9e](https://github.com/solidjs/vite-plugin-solid/commit/d71ff9ee486fa08a8a577f888b1b6902265ff826)]
+
+### Miscellaneous
+
+-  Merge pull request [#29](https://github.com/solidjs/vite-plugin-solid/issues/29) from bgoscinski/master [[7443f0c](https://github.com/solidjs/vite-plugin-solid/commit/7443f0c5e790c4ba5c9539e0d96600ccf816dfab)]
+-  Merge branch &#x27;master&#x27; into master [[5788cc3](https://github.com/solidjs/vite-plugin-solid/commit/5788cc3098fca7d53a0bb770b516a42d670843b3)]
+-  Merge pull request [#27](https://github.com/solidjs/vite-plugin-solid/issues/27) from LXSMNSYC/patch-2 [[e7eb9dc](https://github.com/solidjs/vite-plugin-solid/commit/e7eb9dcc2202d93a5fc79d5fac012076a7c6ae69)]
+-  Update merge-anything to 5.0.0 [[8a5f9b5](https://github.com/solidjs/vite-plugin-solid/commit/8a5f9b51943f189f3147700c24748853a06c22d6)]
+-  revert temporary fix push people to newer vite with windows fix [[1fd98f6](https://github.com/solidjs/vite-plugin-solid/commit/1fd98f6ca566a54b9bc219f3613a382ee361515c)]
+-  Revert &quot;fix around vite plugin merging&quot; [[58dcda1](https://github.com/solidjs/vite-plugin-solid/commit/58dcda14c265122eb497d347b4d6429cf9401147)]
+-  Fix [#26](https://github.com/solidjs/vite-plugin-solid/issues/26) [[408367d](https://github.com/solidjs/vite-plugin-solid/commit/408367d96d4557fe6cac5d4970290a9b8d362372)]
+-  fix around vite plugin merging [[84c2568](https://github.com/solidjs/vite-plugin-solid/commit/84c25682361e94e112f2274910450291208eeee5)]
+-  bump [[2162537](https://github.com/solidjs/vite-plugin-solid/commit/2162537529f8a666cdef314fd67c48f1fac84d36)]
+-  Merge pull request [#25](https://github.com/solidjs/vite-plugin-solid/issues/25) from devinxi/nksaraf-patch-1 [[d61b98d](https://github.com/solidjs/vite-plugin-solid/commit/d61b98d77282b6c4c368c23d8c113c1c2b42f550)]
+-  Disable solid-refresh transform during SSR [[97debbe](https://github.com/solidjs/vite-plugin-solid/commit/97debbe5f820de1112f37a323ba420d9af8449a5)]
+-  update deps [[1494e5d](https://github.com/solidjs/vite-plugin-solid/commit/1494e5d28fb8ae923742b770972c7b12ae644730)]
+- 📝 Adding &#x60;extensions&#x60; option to README [[d3ffe73](https://github.com/solidjs/vite-plugin-solid/commit/d3ffe73c63ff1af91254928820c742a1b15f4311)]
+- 📝 Update changelog [[34095c3](https://github.com/solidjs/vite-plugin-solid/commit/34095c3dcc3cb2c7b867f957694d235c186d44e7)]
+
+
 <a name="2.2.0"></a>
 ## 2.2.0 (2022-01-03)
 

@@ -1,5 +1,13 @@
 # Changelog
 
+<a name="next"></a>
+## next
+
+### Miscellaneous
+
+- 📝 Update changelog [[55ed4f3](https://github.com/solidjs/vite-plugin-solid/commit/55ed4f3e39f0c15e12c897efdfcb6dc42ad756cc)]
+
+
 <a name="2.2.5"></a>
 ## 2.2.5 (2022-01-26)
 

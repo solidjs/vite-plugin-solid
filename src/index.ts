@@ -265,7 +265,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       const legacyAlias = normalizeAliases(userConfig.alias);
 
       if (!userConfig.resolve) userConfig.resolve = {};
-      userConfig.resolve.alias = [...legacyAlias, ...normalizeAliases(userConfig.resolve?.alias)];
+      userConfig.resolve.alias = [
+        ...legacyAlias,
+        ...normalizeAliases(userConfig.resolve && userConfig.resolve.alias),
+      ];
 
       // fix for bundling dev in production
       const nestedDeps = replaceDev
@@ -302,7 +305,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     async transform(source, id, transformOptions) {
-      const isSsr = transformOptions?.ssr;
+      const isSsr = transformOptions && transformOptions.ssr;
       const currentFileExtension = getExtension(id);
 
       const extensionsToWatch = [...(options.extensions || []), '.tsx', '.jsx'];

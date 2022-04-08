@@ -8,16 +8,16 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@babel/core": "^7.16.12",
+    "@babel/core": "^7.17.9",
     "@babel/plugin-syntax-top-level-await": "^7.14.5",
-    "@mdx-js/mdx": "^2.0.0-rc.2",
-    "vite": "^2.7.13",
+    "@mdx-js/mdx": "^2.1.1",
+    "vite": "^2.9.1",
     "vite-plugin-solid": "link:.."
   },
   "dependencies": {
-    "solid-app-router": "^0.2.1",
-    "solid-js": "^1.3.3",
-    "solid-mdx": "^0.0.5",
+    "solid-app-router": "^0.3.2",
+    "solid-js": "^1.3.14",
+    "solid-mdx": "^0.0.6",
     "solid-meta": "^0.27.3",
     "solid-utils": "^0.8.1"
   }

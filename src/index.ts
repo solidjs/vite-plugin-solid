@@ -197,10 +197,11 @@ export interface Options {
      * Can be:
      * - "dom" is standard output
      * - "ssr" is for server side rendering of strings.
+     * - "universal" is for using custom renderers from solid-js/universal
      *
      * @default "dom"
      */
-    generate?: 'ssr' | 'dom';
+    generate?: 'ssr' | 'dom' | 'universal';
 
     /**
      * Indicate whether the output should contain hydratable markers.

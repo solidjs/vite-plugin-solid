@@ -1,10 +1,32 @@
 # Changelog
 
-<a name="next"></a>
-## next
+<a name="2.3.0"></a>
+## 2.3.0 (2022-07-14)
+
+### Changed
+
+- ⬆️ Update playground dependencies [[0438ab4](https://github.com/solidjs/vite-plugin-solid/commit/0438ab4a594d31b6cb15a57caf517060639b6de6)]
+- ⬆️ Update dependencies (vite 3) [[17d5aef](https://github.com/solidjs/vite-plugin-solid/commit/17d5aef698836de5a2514056e5d622be3da711a9)]
+- ⬆️ Update dependencies [[ac130ae](https://github.com/solidjs/vite-plugin-solid/commit/ac130ae5141591f292fa703573282c4f7286aeb1)]
+- ⬆️ Update example folder dependencies [[093f738](https://github.com/solidjs/vite-plugin-solid/commit/093f7380708b22a660f63e3b91c3dd9d27ad5375)]
+- ⬆️ Update dependencies [[0259ba6](https://github.com/solidjs/vite-plugin-solid/commit/0259ba6ad5ee9b46890804a900da9f6e71f92d84)]
+
+### Removed
+
+- 🔥 Remove legacy option &#x60;alias&#x60; [[4a432e8](https://github.com/solidjs/vite-plugin-solid/commit/4a432e80e66f527404db4bd224b689fb59866bf2)]
 
 ### Miscellaneous
 
+-  Merge pull request [#44](https://github.com/solidjs/vite-plugin-solid/issues/44) from vjoao/patch-1 [[88fd588](https://github.com/solidjs/vite-plugin-solid/commit/88fd5884ea6f509efabcb58c0ecf25d1e8fce628)]
+-  Add &#x27;universal&#x27; to compiler output [[75d66bb](https://github.com/solidjs/vite-plugin-solid/commit/75d66bb484fc3c4f9f282affb3d5258400b53619)]
+-  Merge pull request [#39](https://github.com/solidjs/vite-plugin-solid/issues/39) from btakita/issues/38 [[dce3536](https://github.com/solidjs/vite-plugin-solid/commit/dce35361935425d30627113c112b25abc5c8fe47)]
+-  Merge pull request [#37](https://github.com/solidjs/vite-plugin-solid/issues/37) from JoviDeCroock/patch-1 [[6c9c566](https://github.com/solidjs/vite-plugin-solid/commit/6c9c566a0352d9fe68de05b44ce6e70370ec00e3)]
+-  upgrade babel-preset-solid to 1.4.2 [[91e9511](https://github.com/solidjs/vite-plugin-solid/commit/91e9511429ab3e2e3ba3651819283d187775f0bb)]
+-  add types discoverability [[820c115](https://github.com/solidjs/vite-plugin-solid/commit/820c11580d8fe7ecb846616c20e395539a7664fc)]
+-  move &quot;vite&quot; and &quot;solid-js&quot; to peer dependencies [[dfd81c2](https://github.com/solidjs/vite-plugin-solid/commit/dfd81c2ab7b735846096562ea1ced248693b34a9)]
+-  Merge pull request [#36](https://github.com/solidjs/vite-plugin-solid/issues/36) from g-plane/peer-deps [[f896d4d](https://github.com/solidjs/vite-plugin-solid/commit/f896d4d306ccb20c3793c1ce741339d746d3966c)]
+-  remove ?. and bump version [[b310f93](https://github.com/solidjs/vite-plugin-solid/commit/b310f938f2a8a7fa7b7e516335dba1ef14c12b8e)]
+- 📝 Update changelog [[b57f3e9](https://github.com/solidjs/vite-plugin-solid/commit/b57f3e9ed8c3048afe7d1f33bb85b4daefad2e03)]
 - 📝 Update changelog [[55ed4f3](https://github.com/solidjs/vite-plugin-solid/commit/55ed4f3e39f0c15e12c897efdfcb6dc42ad756cc)]
 
 

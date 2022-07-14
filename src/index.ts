@@ -262,14 +262,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
       projectRoot = userConfig.root;
 
-      // TODO: remove when fully removed from vite
-      const legacyAlias = normalizeAliases(userConfig.alias);
-
       if (!userConfig.resolve) userConfig.resolve = {};
-      userConfig.resolve.alias = [
-        ...legacyAlias,
-        ...normalizeAliases(userConfig.resolve && userConfig.resolve.alias),
-      ];
+      userConfig.resolve.alias = normalizeAliases(userConfig.resolve && userConfig.resolve.alias);
 
       // fix for bundling dev in production
       const nestedDeps = replaceDev

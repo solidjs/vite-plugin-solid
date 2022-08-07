@@ -157,7 +157,7 @@ At this stage it's still early work but provide basic HMR. In order to get the b
 
 - The entrypoint can't benefit from HMR yet and will force a hard reload of the entire app. This is still really fast thanks to browser caching.
 
-If at least one of this point is blocking to you, you can revert to the old behavior but [opting out the automatic HMR](#options) and placing the following snippet in your entry point:
+If at least one of this point is blocking to you, you can revert to the old behavior by [opting out the automatic HMR](#options) and placing the following snippet in your entry point:
 
 ```jsx
 const dispose = render(() => <App />, document.body);

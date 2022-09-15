@@ -245,7 +245,7 @@ export interface Options {
 
 function getExtension(filename: string): string {
   const index = filename.lastIndexOf('.');
-  return index < 0 ? '' : filename.substring(index);
+  return index < 0 ? '' : filename.substring(index).replace(/\?.+$/, '');
 }
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {

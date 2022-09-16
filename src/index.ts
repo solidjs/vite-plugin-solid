@@ -326,6 +326,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       } else {
         solidOptions = { generate: 'dom', hydratable: false };
       }
+      
+      id = id.replace(/\?.+$/, '');
 
       const opts: TransformOptions = {
         babelrc: false,

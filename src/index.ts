@@ -282,6 +282,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
         },
         optimizeDeps: {
+          extensions: ['jsx', 'tsx'],
           include: nestedDeps,
         },
       } as UserConfig;

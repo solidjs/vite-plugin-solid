@@ -1,7 +1,8 @@
 import { transformAsync, TransformOptions } from '@babel/core';
 import ts from '@babel/preset-typescript';
 import solid from 'babel-preset-solid';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel.js';
@@ -247,6 +248,52 @@ function getExtension(filename: string): string {
   const index = filename.lastIndexOf('.');
   return index < 0 ? '' : filename.substring(index).replace(/\?.+$/, '');
 }
+function containsSolidField(fields) {
+  const keys = Object.keys(fields);
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    if (key === 'solid') return true;
+    if (typeof fields[key] === 'object' && containsSolidField(fields[key])) return true;
+  }
+  return false;
+}
+
+function getSolidDeps(root) {
+  const pkgPath = join(root, 'package.json');
+  if (!existsSync(pkgPath)) {
+    console.log('No package.json found at project root');
+    return [];
+  }
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+  const deps = [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.devDependencies || {})];
+  const pkgs = deps.map((dep) => {
+    try {
+      return require(`${dep}/package.json`);
+    } catch (e) {
+      try {
+        let dir = dirname(require.resolve(dep));
+        while (dir) {
+          const pkgPath = join(dir, 'package.json');
+          if (existsSync(pkgPath)) {
+            const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+            if (pkg && pkg.name === dep) return pkg;
+          }
+          const parent = dirname(dir);
+          if (parent === dir) {
+            break;
+          }
+          dir = parent;
+        }
+      } catch (e) {
+        console.log("Couldn't find package.json for", dep, e);
+      }
+    }
+  });
+  return deps.reduce((acc, dep, i) => {
+    if (pkgs[i] && pkgs[i].exports && containsSolidField(pkgs[i].exports)) acc.push(dep);
+    return acc;
+  }, []);
+}
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let needHmr = false;
@@ -265,6 +312,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       if (!userConfig.resolve) userConfig.resolve = {};
       userConfig.resolve.alias = normalizeAliases(userConfig.resolve && userConfig.resolve.alias);
 
+      const solidDeps = getSolidDeps(projectRoot);
       // fix for bundling dev in production
       const nestedDeps = replaceDev
         ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
@@ -282,7 +330,16 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
         },
         optimizeDeps: {
+          extensions: ['jsx', 'tsx'],
           include: nestedDeps,
+          exclude: [...(userConfig.optimizeDeps?.exclude || []), ...solidDeps]
+        },
+        ssr: {
+          ...userConfig.ssr,
+          noExternal: [
+            ...(((userConfig.ssr && userConfig.ssr.noExternal) || []) as string[]),
+            ...solidDeps,
+          ],
         },
       } as UserConfig;
     },
@@ -326,7 +383,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       } else {
         solidOptions = { generate: 'dom', hydratable: false };
       }
-      
+
       id = id.replace(/\?.+$/, '');
 
       const opts: TransformOptions = {

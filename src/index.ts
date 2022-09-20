@@ -312,7 +312,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       if (!userConfig.resolve) userConfig.resolve = {};
       userConfig.resolve.alias = normalizeAliases(userConfig.resolve && userConfig.resolve.alias);
 
-      const solidDeps = getSolidDeps(projectRoot);
+      const solidDeps = getSolidDeps(projectRoot || process.cwd());
       // fix for bundling dev in production
       const nestedDeps = replaceDev
         ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']

@@ -260,6 +260,7 @@ function containsSolidField(fields) {
 
 function getSolidDeps(root) {
   const pkgPath = join(root, 'package.json');
+  const require = createRequire(root);
   if (!existsSync(pkgPath)) {
     console.log('No package.json found at project root');
     return [];

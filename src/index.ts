@@ -330,9 +330,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
         },
         optimizeDeps: {
-          extensions: ['jsx', 'tsx'],
           include: nestedDeps,
-          exclude: [...(userConfig.optimizeDeps?.exclude || []), ...solidDeps]
         },
         ssr: {
           ...userConfig.ssr,

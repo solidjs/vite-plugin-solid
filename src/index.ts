@@ -331,6 +331,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         },
         optimizeDeps: {
           include: nestedDeps,
+          exclude: [...(userConfig.optimizeDeps?.exclude || []), ...solidDeps]
         },
         ssr: {
           ...userConfig.ssr,

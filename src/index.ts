@@ -264,6 +264,7 @@ function getSolidDeps(root) {
     console.log('No package.json found at project root');
     return [];
   }
+  const require = createRequire(pkgPath);
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
   const deps = [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.devDependencies || {})];
   const pkgs = deps.map((dep) => {

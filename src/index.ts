@@ -253,7 +253,7 @@ function containsSolidField(fields) {
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     if (key === 'solid') return true;
-    if (typeof fields[key] === 'object' && containsSolidField(fields[key])) return true;
+    if (typeof fields[key] === 'object' && fields[key] != null && containsSolidField(fields[key])) return true;
   }
   return false;
 }

@@ -7,6 +7,7 @@ import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel.js';
 import type { Alias, AliasOptions, Plugin, UserConfig } from 'vite';
+import { resolve } from 'node:path';
 
 const require = createRequire(import.meta.url);
 
@@ -272,7 +273,7 @@ function getSolidDeps(root) {
       return require(`${dep}/package.json`);
     } catch (e) {
       try {
-        let dir = dirname(require.resolve(dep));
+        let dir = dirname(resolve(dep));
         while (dir) {
           const pkgPath = join(dir, 'package.json');
           if (existsSync(pkgPath)) {

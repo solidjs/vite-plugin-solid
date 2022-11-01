@@ -20,7 +20,7 @@ specifiers:
   solid-refresh: ^0.4.1
   typescript: ^4.7.4
   vite: ^3.0.0
-  vitefu: ^0.1.0
+  vitefu: ^0.1.1
 
 dependencies:
   '@babel/core': 7.18.6
@@ -28,7 +28,7 @@ dependencies:
   babel-preset-solid: 1.4.6_@babel+core@7.18.6
   merge-anything: 5.0.2
   solid-refresh: 0.4.1_solid-js@1.4.7
-  vitefu: 0.1.0_vite@3.0.0
+  vitefu: 0.1.1_vite@3.0.0
 
 devDependencies:
   '@babel/plugin-transform-typescript': 7.18.8_@babel+core@7.18.6
@@ -1807,10 +1807,6 @@ packages:
     resolution: {integrity: sha512-c3Ab/url5ksaT0WyleslpBEthOzWhrjQbg75y7XUsfSzi3Dgzt0l8w5e7DylRn15MTlMMD58dTfzddNS2kcAjQ==}
     dev: false
 
-  /import-meta-resolve/2.1.0:
-    resolution: {integrity: sha512-yG9pxkWJVTy4cmRsNWE3ztFdtFuYIV8G4N+cbCkO8b+qngkLyIUhxQFuZ0qJm67+0nUOxjMPT7nfksPKza1v2g==}
-    dev: false
-
   /inflight/1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
     dependencies:
@@ -2151,15 +2147,14 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
 
-  /vitefu/0.1.0_vite@3.0.0:
-    resolution: {integrity: sha512-5MQSHP9yr0HIve8q4XNb7QXfO1P4tzZDZP99qH0FM5ClcwYddeGXRDQ4TQYRUeXLjZ+vLecirHtGNpwFFUF7sw==}
+  /vitefu/0.1.1_vite@3.0.0:
+    resolution: {integrity: sha512-HClD14fjMJ+NQgXBqT3dC3RdO/+Chayil+cCPYZKY3kT+KcJomKzrdgzfCHJkIL2L0OAY+VPvrSW615iPtc7ag==}
     peerDependencies:
       vite: ^3.0.0
     peerDependenciesMeta:
       vite:
         optional: true
     dependencies:
-      import-meta-resolve: 2.1.0
       vite: 3.0.0
     dev: false
 

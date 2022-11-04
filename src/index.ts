@@ -1,13 +1,12 @@
 import { transformAsync, TransformOptions } from '@babel/core';
 import ts from '@babel/preset-typescript';
 import solid from 'babel-preset-solid';
-import { readFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel.js';
-import type { Alias, AliasOptions, Plugin, UserConfig } from 'vite';
-import { resolve } from 'node:path';
+import type { Alias, AliasOptions, Plugin } from 'vite';
+import { crawlFrameworkPkgs } from 'vitefu';
 
 const require = createRequire(import.meta.url);
 
@@ -254,47 +253,10 @@ function containsSolidField(fields) {
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
     if (key === 'solid') return true;
-    if (typeof fields[key] === 'object' && fields[key] != null && containsSolidField(fields[key])) return true;
+    if (typeof fields[key] === 'object' && fields[key] != null && containsSolidField(fields[key]))
+      return true;
   }
   return false;
-}
-
-function getSolidDeps(root) {
-  const pkgPath = join(root, 'package.json');
-  if (!existsSync(pkgPath)) {
-    console.log('No package.json found at project root');
-    return [];
-  }
-  const require = createRequire(pkgPath);
-  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-  const deps = [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.devDependencies || {})];
-  const pkgs = deps.map((dep) => {
-    try {
-      return require(`${dep}/package.json`);
-    } catch (e) {
-      try {
-        let dir = dirname(resolve(dep));
-        while (dir) {
-          const pkgPath = join(dir, 'package.json');
-          if (existsSync(pkgPath)) {
-            const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
-            if (pkg && pkg.name === dep) return pkg;
-          }
-          const parent = dirname(dir);
-          if (parent === dir) {
-            break;
-          }
-          dir = parent;
-        }
-      } catch (e) {
-        console.log("Couldn't find package.json for", dep, e);
-      }
-    }
-  });
-  return deps.reduce((acc, dep, i) => {
-    if (pkgs[i] && pkgs[i].exports && containsSolidField(pkgs[i].exports)) acc.push(dep);
-    return acc;
-  }, []);
 }
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
@@ -306,7 +268,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     name: 'solid',
     enforce: 'pre',
 
-    config(userConfig, { command }): UserConfig {
+    async config(userConfig, { command }) {
       // We inject the dev mode only if the user explicitely wants it or if we are in dev (serve) mode
       replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
       projectRoot = userConfig.root;
@@ -314,7 +276,14 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       if (!userConfig.resolve) userConfig.resolve = {};
       userConfig.resolve.alias = normalizeAliases(userConfig.resolve && userConfig.resolve.alias);
 
-      const solidDeps = getSolidDeps(projectRoot || process.cwd());
+      const solidPkgsConfig = await crawlFrameworkPkgs({
+        root: projectRoot || process.cwd(),
+        isBuild: command === 'build',
+        isFrameworkPkgByJson(pkgJson) {
+          return containsSolidField(pkgJson.exports || {});
+        },
+      });
+
       // fix for bundling dev in production
       const nestedDeps = replaceDev
         ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
@@ -332,17 +301,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
         },
         optimizeDeps: {
-          include: nestedDeps,
-          exclude: [...(userConfig.optimizeDeps?.exclude || []), ...solidDeps]
+          include: [...nestedDeps, ...solidPkgsConfig.optimizeDeps.include],
+          exclude: solidPkgsConfig.optimizeDeps.exclude,
         },
-        ssr: {
-          ...userConfig.ssr,
-          noExternal: [
-            ...(((userConfig.ssr && userConfig.ssr.noExternal) || []) as string[]),
-            ...solidDeps,
-          ],
-        },
-      } as UserConfig;
+        ssr: solidPkgsConfig.ssr,
+      };
     },
 
     configResolved(config) {

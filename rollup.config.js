@@ -11,7 +11,8 @@ const external = [
   "babel-preset-solid",
   "solid-refresh",
   "solid-refresh/babel.js",
-  "merge-anything"
+  "merge-anything",
+  "vitefu"
 ];
 
 /**

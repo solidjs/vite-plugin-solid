@@ -46,7 +46,7 @@
     "babel-preset-solid": "^1.4.6",
     "merge-anything": "^5.0.2",
     "solid-refresh": "^0.4.1",
-    "vitefu": "^0.2.1"
+    "vitefu": "^0.2.2"
   },
   "devDependencies": {
     "@babel/plugin-transform-typescript": "^7.18.8",

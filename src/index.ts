@@ -277,6 +277,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       userConfig.resolve.alias = normalizeAliases(userConfig.resolve && userConfig.resolve.alias);
 
       const solidPkgsConfig = await crawlFrameworkPkgs({
+        viteUserConfig: userConfig,
         root: projectRoot || process.cwd(),
         isBuild: command === 'build',
         isFrameworkPkgByJson(pkgJson) {

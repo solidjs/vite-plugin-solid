@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel.js';
-import type { Alias, AliasOptions, Plugin } from 'vite';
+import type { Alias, AliasOptions, Plugin, UserConfig } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
 
 const require = createRequire(import.meta.url);
@@ -258,6 +258,15 @@ function containsSolidField(fields) {
   }
   return false;
 }
+function isJestDomInstalled() {
+  try {
+    // attempt to reference a file that will not throw error because expect is missing
+    require('@testing-library/jest-dom/dist/utils');
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let needHmr = false;
@@ -290,6 +299,24 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
         : [];
 
+      const test = userConfig.mode === 'test'
+        ? {
+            test: {
+              globals: true,
+              ...(options.ssr ? {} : { environment: 'jsdom' }),
+              transformMode : {
+                [options.ssr ? 'ssr' : 'web']: [/\.[jt]sx?$/]
+              },
+              ...(isJestDomInstalled()
+                ? { setupFiles: ['node_modules/@testing-library/jest-dom/extend-expect.js'] }
+                : {}
+              ),
+              deps: { registerNodeLoader: true },
+              ...(userConfig as UserConfig & { test: Record<string, any>}).test
+            }
+          }
+        : {};
+
       return {
         /**
          * We only need esbuild on .ts or .js files.
@@ -297,7 +324,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
          */
         esbuild: { include: /\.ts$/ },
         resolve: {
-          conditions: ['solid', ...(replaceDev ? ['development'] : [])],
+          conditions: [
+            'solid',
+            ...(replaceDev ? ['development'] : []),
+            ...(userConfig.mode === 'test' && !options.ssr ? ['browser'] : [])
+          ],
           dedupe: nestedDeps,
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
         },
@@ -306,6 +337,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           exclude: solidPkgsConfig.optimizeDeps.exclude,
         },
         ssr: solidPkgsConfig.ssr,
+        ...test
       };
     },
 

@@ -20,7 +20,7 @@ specifiers:
   solid-refresh: ^0.4.1
   typescript: ^4.7.4
   vite: ^3.0.0
-  vitefu: ^0.1.1
+  vitefu: ^0.2.2
 
 dependencies:
   '@babel/core': 7.18.6
@@ -28,7 +28,7 @@ dependencies:
   babel-preset-solid: 1.4.6_@babel+core@7.18.6
   merge-anything: 5.0.2
   solid-refresh: 0.4.1_solid-js@1.4.7
-  vitefu: 0.1.1_vite@3.0.0
+  vitefu: 0.2.2_vite@3.0.0
 
 devDependencies:
   '@babel/plugin-transform-typescript': 7.18.8_@babel+core@7.18.6
@@ -2147,8 +2147,8 @@ packages:
     optionalDependencies:
       fsevents: 2.3.2
 
-  /vitefu/0.1.1_vite@3.0.0:
-    resolution: {integrity: sha512-HClD14fjMJ+NQgXBqT3dC3RdO/+Chayil+cCPYZKY3kT+KcJomKzrdgzfCHJkIL2L0OAY+VPvrSW615iPtc7ag==}
+  /vitefu/0.2.2_vite@3.0.0:
+    resolution: {integrity: sha512-8CKEIWPm4B4DUDN+h+hVJa9pyNi7rzc5MYmbxhs1wcMakueGFNWB5/DL30USm9qU3xUPnL4/rrLEAwwFiD1tag==}
     peerDependencies:
       vite: ^3.0.0
     peerDependenciesMeta:

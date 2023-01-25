@@ -22,9 +22,9 @@ Join [solid discord](https://discord.com/invite/solidjs) and check the [troubles
 
 ## Requirements
 
-This module 100% esm compatible. As per [this document](https://nodejs.org/api/esm.html) it is strongly recommended to have at least the version `14.13.0` of node installed.
+This module 100% ESM compatible and requires NodeJS `14.18.0` or later.
 
-You can check your current version of node by typing `node -v` in your terminal. If your version is below that one version I'd encourage you to either do an update globally or use a node version management tool such as [volta](https://volta.sh/) or [nvm](https://github.com/nvm-sh/nvm).
+You can check your current version of NodeJS by typing `node -v` in your terminal. If your version is below that one version I'd encourage you to either do an update globally or use a NodeJS version management tool such as [Volta](https://volta.sh/) or [nvm](https://github.com/nvm-sh/nvm).
 
 ## Quickstart
 

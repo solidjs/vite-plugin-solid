@@ -4,7 +4,7 @@ import solid from 'babel-preset-solid';
 import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
-import solidRefresh from 'solid-refresh/babel.js';
+import solidRefresh from 'solid-refresh/babel';
 import type { Alias, AliasOptions, Plugin, UserConfig } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
 

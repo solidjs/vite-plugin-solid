@@ -1,6 +1,7 @@
 # Changelog
 
 <a name="2.3.0"></a>
+
 ## 2.3.0 (2022-07-14)
 
 ### Changed
@@ -17,20 +18,20 @@
 
 ### Miscellaneous
 
--  Merge pull request [#44](https://github.com/solidjs/vite-plugin-solid/issues/44) from vjoao/patch-1 [[88fd588](https://github.com/solidjs/vite-plugin-solid/commit/88fd5884ea6f509efabcb58c0ecf25d1e8fce628)]
--  Add &#x27;universal&#x27; to compiler output [[75d66bb](https://github.com/solidjs/vite-plugin-solid/commit/75d66bb484fc3c4f9f282affb3d5258400b53619)]
--  Merge pull request [#39](https://github.com/solidjs/vite-plugin-solid/issues/39) from btakita/issues/38 [[dce3536](https://github.com/solidjs/vite-plugin-solid/commit/dce35361935425d30627113c112b25abc5c8fe47)]
--  Merge pull request [#37](https://github.com/solidjs/vite-plugin-solid/issues/37) from JoviDeCroock/patch-1 [[6c9c566](https://github.com/solidjs/vite-plugin-solid/commit/6c9c566a0352d9fe68de05b44ce6e70370ec00e3)]
--  upgrade babel-preset-solid to 1.4.2 [[91e9511](https://github.com/solidjs/vite-plugin-solid/commit/91e9511429ab3e2e3ba3651819283d187775f0bb)]
--  add types discoverability [[820c115](https://github.com/solidjs/vite-plugin-solid/commit/820c11580d8fe7ecb846616c20e395539a7664fc)]
--  move &quot;vite&quot; and &quot;solid-js&quot; to peer dependencies [[dfd81c2](https://github.com/solidjs/vite-plugin-solid/commit/dfd81c2ab7b735846096562ea1ced248693b34a9)]
--  Merge pull request [#36](https://github.com/solidjs/vite-plugin-solid/issues/36) from g-plane/peer-deps [[f896d4d](https://github.com/solidjs/vite-plugin-solid/commit/f896d4d306ccb20c3793c1ce741339d746d3966c)]
--  remove ?. and bump version [[b310f93](https://github.com/solidjs/vite-plugin-solid/commit/b310f938f2a8a7fa7b7e516335dba1ef14c12b8e)]
+- Merge pull request [#44](https://github.com/solidjs/vite-plugin-solid/issues/44) from vjoao/patch-1 [[88fd588](https://github.com/solidjs/vite-plugin-solid/commit/88fd5884ea6f509efabcb58c0ecf25d1e8fce628)]
+- Add &#x27;universal&#x27; to compiler output [[75d66bb](https://github.com/solidjs/vite-plugin-solid/commit/75d66bb484fc3c4f9f282affb3d5258400b53619)]
+- Merge pull request [#39](https://github.com/solidjs/vite-plugin-solid/issues/39) from btakita/issues/38 [[dce3536](https://github.com/solidjs/vite-plugin-solid/commit/dce35361935425d30627113c112b25abc5c8fe47)]
+- Merge pull request [#37](https://github.com/solidjs/vite-plugin-solid/issues/37) from JoviDeCroock/patch-1 [[6c9c566](https://github.com/solidjs/vite-plugin-solid/commit/6c9c566a0352d9fe68de05b44ce6e70370ec00e3)]
+- upgrade babel-preset-solid to 1.4.2 [[91e9511](https://github.com/solidjs/vite-plugin-solid/commit/91e9511429ab3e2e3ba3651819283d187775f0bb)]
+- add types discoverability [[820c115](https://github.com/solidjs/vite-plugin-solid/commit/820c11580d8fe7ecb846616c20e395539a7664fc)]
+- move &quot;vite&quot; and &quot;solid-js&quot; to peer dependencies [[dfd81c2](https://github.com/solidjs/vite-plugin-solid/commit/dfd81c2ab7b735846096562ea1ced248693b34a9)]
+- Merge pull request [#36](https://github.com/solidjs/vite-plugin-solid/issues/36) from g-plane/peer-deps [[f896d4d](https://github.com/solidjs/vite-plugin-solid/commit/f896d4d306ccb20c3793c1ce741339d746d3966c)]
+- remove ?. and bump version [[b310f93](https://github.com/solidjs/vite-plugin-solid/commit/b310f938f2a8a7fa7b7e516335dba1ef14c12b8e)]
 - 📝 Update changelog [[b57f3e9](https://github.com/solidjs/vite-plugin-solid/commit/b57f3e9ed8c3048afe7d1f33bb85b4daefad2e03)]
 - 📝 Update changelog [[55ed4f3](https://github.com/solidjs/vite-plugin-solid/commit/55ed4f3e39f0c15e12c897efdfcb6dc42ad756cc)]
 
-
 <a name="2.2.5"></a>
+
 ## 2.2.5 (2022-01-26)
 
 ### Changed
@@ -40,23 +41,23 @@
 
 ### Miscellaneous
 
--  Merge pull request [#29](https://github.com/solidjs/vite-plugin-solid/issues/29) from bgoscinski/master [[7443f0c](https://github.com/solidjs/vite-plugin-solid/commit/7443f0c5e790c4ba5c9539e0d96600ccf816dfab)]
--  Merge branch &#x27;master&#x27; into master [[5788cc3](https://github.com/solidjs/vite-plugin-solid/commit/5788cc3098fca7d53a0bb770b516a42d670843b3)]
--  Merge pull request [#27](https://github.com/solidjs/vite-plugin-solid/issues/27) from LXSMNSYC/patch-2 [[e7eb9dc](https://github.com/solidjs/vite-plugin-solid/commit/e7eb9dcc2202d93a5fc79d5fac012076a7c6ae69)]
--  Update merge-anything to 5.0.0 [[8a5f9b5](https://github.com/solidjs/vite-plugin-solid/commit/8a5f9b51943f189f3147700c24748853a06c22d6)]
--  revert temporary fix push people to newer vite with windows fix [[1fd98f6](https://github.com/solidjs/vite-plugin-solid/commit/1fd98f6ca566a54b9bc219f3613a382ee361515c)]
--  Revert &quot;fix around vite plugin merging&quot; [[58dcda1](https://github.com/solidjs/vite-plugin-solid/commit/58dcda14c265122eb497d347b4d6429cf9401147)]
--  Fix [#26](https://github.com/solidjs/vite-plugin-solid/issues/26) [[408367d](https://github.com/solidjs/vite-plugin-solid/commit/408367d96d4557fe6cac5d4970290a9b8d362372)]
--  fix around vite plugin merging [[84c2568](https://github.com/solidjs/vite-plugin-solid/commit/84c25682361e94e112f2274910450291208eeee5)]
--  bump [[2162537](https://github.com/solidjs/vite-plugin-solid/commit/2162537529f8a666cdef314fd67c48f1fac84d36)]
--  Merge pull request [#25](https://github.com/solidjs/vite-plugin-solid/issues/25) from devinxi/nksaraf-patch-1 [[d61b98d](https://github.com/solidjs/vite-plugin-solid/commit/d61b98d77282b6c4c368c23d8c113c1c2b42f550)]
--  Disable solid-refresh transform during SSR [[97debbe](https://github.com/solidjs/vite-plugin-solid/commit/97debbe5f820de1112f37a323ba420d9af8449a5)]
--  update deps [[1494e5d](https://github.com/solidjs/vite-plugin-solid/commit/1494e5d28fb8ae923742b770972c7b12ae644730)]
+- Merge pull request [#29](https://github.com/solidjs/vite-plugin-solid/issues/29) from bgoscinski/master [[7443f0c](https://github.com/solidjs/vite-plugin-solid/commit/7443f0c5e790c4ba5c9539e0d96600ccf816dfab)]
+- Merge branch &#x27;master&#x27; into master [[5788cc3](https://github.com/solidjs/vite-plugin-solid/commit/5788cc3098fca7d53a0bb770b516a42d670843b3)]
+- Merge pull request [#27](https://github.com/solidjs/vite-plugin-solid/issues/27) from LXSMNSYC/patch-2 [[e7eb9dc](https://github.com/solidjs/vite-plugin-solid/commit/e7eb9dcc2202d93a5fc79d5fac012076a7c6ae69)]
+- Update merge-anything to 5.0.0 [[8a5f9b5](https://github.com/solidjs/vite-plugin-solid/commit/8a5f9b51943f189f3147700c24748853a06c22d6)]
+- revert temporary fix push people to newer vite with windows fix [[1fd98f6](https://github.com/solidjs/vite-plugin-solid/commit/1fd98f6ca566a54b9bc219f3613a382ee361515c)]
+- Revert &quot;fix around vite plugin merging&quot; [[58dcda1](https://github.com/solidjs/vite-plugin-solid/commit/58dcda14c265122eb497d347b4d6429cf9401147)]
+- Fix [#26](https://github.com/solidjs/vite-plugin-solid/issues/26) [[408367d](https://github.com/solidjs/vite-plugin-solid/commit/408367d96d4557fe6cac5d4970290a9b8d362372)]
+- fix around vite plugin merging [[84c2568](https://github.com/solidjs/vite-plugin-solid/commit/84c25682361e94e112f2274910450291208eeee5)]
+- bump [[2162537](https://github.com/solidjs/vite-plugin-solid/commit/2162537529f8a666cdef314fd67c48f1fac84d36)]
+- Merge pull request [#25](https://github.com/solidjs/vite-plugin-solid/issues/25) from devinxi/nksaraf-patch-1 [[d61b98d](https://github.com/solidjs/vite-plugin-solid/commit/d61b98d77282b6c4c368c23d8c113c1c2b42f550)]
+- Disable solid-refresh transform during SSR [[97debbe](https://github.com/solidjs/vite-plugin-solid/commit/97debbe5f820de1112f37a323ba420d9af8449a5)]
+- update deps [[1494e5d](https://github.com/solidjs/vite-plugin-solid/commit/1494e5d28fb8ae923742b770972c7b12ae644730)]
 - 📝 Adding &#x60;extensions&#x60; option to README [[d3ffe73](https://github.com/solidjs/vite-plugin-solid/commit/d3ffe73c63ff1af91254928820c742a1b15f4311)]
 - 📝 Update changelog [[34095c3](https://github.com/solidjs/vite-plugin-solid/commit/34095c3dcc3cb2c7b867f957694d235c186d44e7)]
 
-
 <a name="2.2.0"></a>
+
 ## 2.2.0 (2022-01-03)
 
 ### Added
@@ -77,22 +78,22 @@
 
 ### Miscellaneous
 
--  Merge pull request [#24](https://github.com/solidjs/vite-plugin-solid/issues/24) from high1/solid-mdx [[0416a1a](https://github.com/solidjs/vite-plugin-solid/commit/0416a1ac45c28967abc2ba8864f0b9ee2fd541b3)]
--  Merge branch &#x27;master&#x27; into solid-mdx [[2d7d862](https://github.com/solidjs/vite-plugin-solid/commit/2d7d86269589f27e5577a90b400a64dc062db178)]
--  Removed flags parsing [[41bd673](https://github.com/solidjs/vite-plugin-solid/commit/41bd67326cdc9425d48c6369b9f9b5b4363a5a7b)]
--  Fixed undefined issue [[ea2724e](https://github.com/solidjs/vite-plugin-solid/commit/ea2724e5a336bd1a5147fc1e1d1f33dc027c7a74)]
--  Updated the code [[2e07b2b](https://github.com/solidjs/vite-plugin-solid/commit/2e07b2bfcc822dc0343ae2d851ad1393288b6f2b)]
--  Extensions option added [[e5b6389](https://github.com/solidjs/vite-plugin-solid/commit/e5b6389aa7fe579201ad6e4cbeec332441396040)]
--  New banner [[34967e8](https://github.com/solidjs/vite-plugin-solid/commit/34967e82ea235c8dfe389f3bd91d440382835036)]
--  Added new banner [[5a4e52f](https://github.com/solidjs/vite-plugin-solid/commit/5a4e52fa2099dea3bb67aeed705cb268999ce6a6)]
--  bump deps [[9f8a623](https://github.com/solidjs/vite-plugin-solid/commit/9f8a6234cdb1ae290f2f9d434221abbff7c5a870)]
--  update readme [[04ed442](https://github.com/solidjs/vite-plugin-solid/commit/04ed44299d88d34143cdad5f8764681035d2bb2e)]
--  fix dev build in prod, stop adding transform refresh to node_modules [[2ea81e1](https://github.com/solidjs/vite-plugin-solid/commit/2ea81e1e6aac3e8a25eff3f0deae222d32d3f16c)]
--  bump versions [[9395b64](https://github.com/solidjs/vite-plugin-solid/commit/9395b64632d04b860f89109998ae686087e59458)]
+- Merge pull request [#24](https://github.com/solidjs/vite-plugin-solid/issues/24) from high1/solid-mdx [[0416a1a](https://github.com/solidjs/vite-plugin-solid/commit/0416a1ac45c28967abc2ba8864f0b9ee2fd541b3)]
+- Merge branch &#x27;master&#x27; into solid-mdx [[2d7d862](https://github.com/solidjs/vite-plugin-solid/commit/2d7d86269589f27e5577a90b400a64dc062db178)]
+- Removed flags parsing [[41bd673](https://github.com/solidjs/vite-plugin-solid/commit/41bd67326cdc9425d48c6369b9f9b5b4363a5a7b)]
+- Fixed undefined issue [[ea2724e](https://github.com/solidjs/vite-plugin-solid/commit/ea2724e5a336bd1a5147fc1e1d1f33dc027c7a74)]
+- Updated the code [[2e07b2b](https://github.com/solidjs/vite-plugin-solid/commit/2e07b2bfcc822dc0343ae2d851ad1393288b6f2b)]
+- Extensions option added [[e5b6389](https://github.com/solidjs/vite-plugin-solid/commit/e5b6389aa7fe579201ad6e4cbeec332441396040)]
+- New banner [[34967e8](https://github.com/solidjs/vite-plugin-solid/commit/34967e82ea235c8dfe389f3bd91d440382835036)]
+- Added new banner [[5a4e52f](https://github.com/solidjs/vite-plugin-solid/commit/5a4e52fa2099dea3bb67aeed705cb268999ce6a6)]
+- bump deps [[9f8a623](https://github.com/solidjs/vite-plugin-solid/commit/9f8a6234cdb1ae290f2f9d434221abbff7c5a870)]
+- update readme [[04ed442](https://github.com/solidjs/vite-plugin-solid/commit/04ed44299d88d34143cdad5f8764681035d2bb2e)]
+- fix dev build in prod, stop adding transform refresh to node_modules [[2ea81e1](https://github.com/solidjs/vite-plugin-solid/commit/2ea81e1e6aac3e8a25eff3f0deae222d32d3f16c)]
+- bump versions [[9395b64](https://github.com/solidjs/vite-plugin-solid/commit/9395b64632d04b860f89109998ae686087e59458)]
 - 📝 Update changelog [[04f1081](https://github.com/solidjs/vite-plugin-solid/commit/04f1081853932b169c4ecbc960d56fa6f6fadfa6)]
 
-
 <a name="2.1.2"></a>
+
 ## 2.1.2 (2021-11-04)
 
 ### Changed
@@ -103,8 +104,8 @@
 
 - 🐛 Fix issues where the sourcemap wasn&#x27;t properly set (fix [#21](https://github.com/solidjs/vite-plugin-solid/issues/21)) [[d12159d](https://github.com/solidjs/vite-plugin-solid/commit/d12159d55f6a0fa16a72521219dc125ddb17a8c7)]
 
-
 <a name="2.1.1"></a>
+
 ## 2.1.1 (2021-10-14)
 
 ### Changed
@@ -116,8 +117,8 @@
 
 - 📝 Remove deprecated section [[942ede6](https://github.com/solidjs/vite-plugin-solid/commit/942ede6bc263903f492a9862f8905d18c5349127)]
 
-
 <a name="2.1.0"></a>
+
 ## 2.1.0 (2021-10-02)
 
 ### Added
@@ -134,10 +135,10 @@
 
 ### Miscellaneous
 
--  Merge branch &#x27;master&#x27; of github.com:solidjs/vite-plugin-solid [[02aaa9f](https://github.com/solidjs/vite-plugin-solid/commit/02aaa9fd3e1f01d5e4f4c7444b7333fac9ab9c6f)]
-
+- Merge branch &#x27;master&#x27; of github.com:solidjs/vite-plugin-solid [[02aaa9f](https://github.com/solidjs/vite-plugin-solid/commit/02aaa9fd3e1f01d5e4f4c7444b7333fac9ab9c6f)]
 
 <a name="2.0.2"></a>
+
 ## 2.0.2 (2021-08-27)
 
 ### Added
@@ -156,16 +157,16 @@
 
 - 📦 Fix lock file [[8740ad6](https://github.com/solidjs/vite-plugin-solid/commit/8740ad6fa4c6e20a6c26a788ea5ca27d9fd2a5cf)]
 - 📝 Update readme [[6c18a33](https://github.com/solidjs/vite-plugin-solid/commit/6c18a3387b2160fdf0e8c703bc37c644b8ac4234)]
--  Merge pull request [#17](https://github.com/solidjs/vite-plugin-solid/issues/17) from LXSMNSYC/patch-1 [[b03c61b](https://github.com/solidjs/vite-plugin-solid/commit/b03c61b15610f4acc498ecfecdb63299998b7c80)]
--  Fix &#x60;solid-js&#x60; credits pointing to wrong url [[18d8dad](https://github.com/solidjs/vite-plugin-solid/commit/18d8dad1dba68a275535bb9e611f634770f82753)]
--  Merge pull request [#16](https://github.com/solidjs/vite-plugin-solid/issues/16) from sprabowo/master [[17da93e](https://github.com/solidjs/vite-plugin-solid/commit/17da93e35e200e29e0869575aa75949b6ceab902)]
--  fix: update repo in degit script [[b11624d](https://github.com/solidjs/vite-plugin-solid/commit/b11624db8a9652d04d165054858cbb1b35afe961)]
--  Merge pull request [#15](https://github.com/solidjs/vite-plugin-solid/issues/15) from visualfanatic/patch-1 [[b2c64b7](https://github.com/solidjs/vite-plugin-solid/commit/b2c64b7390620ca1cfaea739db788724cfa12b3b)]
--  Fix example Vite config [[198e27f](https://github.com/solidjs/vite-plugin-solid/commit/198e27fa8da8dabbbf25dd20e25c770aea73beaf)]
+- Merge pull request [#17](https://github.com/solidjs/vite-plugin-solid/issues/17) from LXSMNSYC/patch-1 [[b03c61b](https://github.com/solidjs/vite-plugin-solid/commit/b03c61b15610f4acc498ecfecdb63299998b7c80)]
+- Fix &#x60;solid-js&#x60; credits pointing to wrong url [[18d8dad](https://github.com/solidjs/vite-plugin-solid/commit/18d8dad1dba68a275535bb9e611f634770f82753)]
+- Merge pull request [#16](https://github.com/solidjs/vite-plugin-solid/issues/16) from sprabowo/master [[17da93e](https://github.com/solidjs/vite-plugin-solid/commit/17da93e35e200e29e0869575aa75949b6ceab902)]
+- fix: update repo in degit script [[b11624d](https://github.com/solidjs/vite-plugin-solid/commit/b11624db8a9652d04d165054858cbb1b35afe961)]
+- Merge pull request [#15](https://github.com/solidjs/vite-plugin-solid/issues/15) from visualfanatic/patch-1 [[b2c64b7](https://github.com/solidjs/vite-plugin-solid/commit/b2c64b7390620ca1cfaea739db788724cfa12b3b)]
+- Fix example Vite config [[198e27f](https://github.com/solidjs/vite-plugin-solid/commit/198e27fa8da8dabbbf25dd20e25c770aea73beaf)]
 - 📝 Update changelog [[0c76257](https://github.com/solidjs/vite-plugin-solid/commit/0c76257ad2a864793fb48732168b216899d75a32)]
 
-
 <a name="2.0.1"></a>
+
 ## 2.0.1 (2021-07-17)
 
 ### Changed
@@ -178,8 +179,8 @@
 
 - 🐛 Fix solid-refresh import [[f24ef12](https://github.com/solidjs/vite-plugin-solid/commit/f24ef1200394b839d3c3cec0b89f83bf6e884fe2)]
 
-
 <a name="2.0.0"></a>
+
 ## 2.0.0 (2021-06-28)
 
 ### Added
@@ -192,13 +193,13 @@
 
 ### Miscellaneous
 
--  Merge remote-tracking branch &#x27;origin/master&#x27; [[66d8501](https://github.com/solidjs/vite-plugin-solid/commit/66d85018959eb6e1b6bb90f8e60c58e0ae26d912)]
--  Merge branch &#x27;next&#x27; [[6d26d87](https://github.com/solidjs/vite-plugin-solid/commit/6d26d87ba10836347b913aca6cc3f993960076fd)]
+- Merge remote-tracking branch &#x27;origin/master&#x27; [[66d8501](https://github.com/solidjs/vite-plugin-solid/commit/66d85018959eb6e1b6bb90f8e60c58e0ae26d912)]
+- Merge branch &#x27;next&#x27; [[6d26d87](https://github.com/solidjs/vite-plugin-solid/commit/6d26d87ba10836347b913aca6cc3f993960076fd)]
 - 📝 Update README [[337b022](https://github.com/solidjs/vite-plugin-solid/commit/337b0226143e6b525945d3d6252ccf732e0545f5)]
 - 📝 Update readme for solid options [[4550cbf](https://github.com/solidjs/vite-plugin-solid/commit/4550cbf8bf4b5ba828273850396b30f98c4ae435)]
 
-
 <a name="2.0.0-rc.4"></a>
+
 ## 2.0.0-rc.4 (2021-06-25)
 
 ### Added
@@ -209,8 +210,8 @@
 
 - ⬆️ Update dependencies to latest [[b36514b](https://github.com/solidjs/vite-plugin-solid/commit/b36514ba35fc248b01fadf4cd62fcf647fd841bb)]
 
-
 <a name="2.0.0-rc.3"></a>
+
 ## 2.0.0-rc.3 (2021-06-19)
 
 ### Changed
@@ -221,8 +222,8 @@
 
 - 📝 Update readme for solid options [[66d35f0](https://github.com/solidjs/vite-plugin-solid/commit/66d35f0761023593dcb05557abad2ca59244cb22)]
 
-
 <a name="2.0.0-rc.2"></a>
+
 ## 2.0.0-rc.2 (2021-06-06)
 
 ### Added
@@ -237,16 +238,16 @@
 
 - 📝 Update changelog [[6389e88](https://github.com/solidjs/vite-plugin-solid/commit/6389e88f5472abf7cb39cf7e078bda64b05c78f6)]
 
-
 <a name="1.9.0"></a>
+
 ## 1.9.0 (2021-06-06)
 
 ### Added
 
 - ✨ Adding &#x60;babel-preset-solid&#x60; options from the vite plugin (fix [#13](https://github.com/solidjs/vite-plugin-solid/issues/13)) [[6759fee](https://github.com/solidjs/vite-plugin-solid/commit/6759fee6e732897c02918c21e6f35bd831a2999e)]
 
-
 <a name="2.0.0-rc.1"></a>
+
 ## 2.0.0-rc.1 (2021-06-02)
 
 ### Changed
@@ -257,8 +258,8 @@
 
 - 📝 Update changelog [[c2bf813](https://github.com/amoutonbrady/vite-plugin-solid/commit/c2bf81380628b5696ca8c5a6f336d0e9613f5e35)]
 
-
 <a name="1.8.0"></a>
+
 ## 1.8.0 (2021-05-13)
 
 ### Changed
@@ -272,16 +273,16 @@
 
 ### Miscellaneous
 
--  Merge pull request [#12](https://github.com/amoutonbrady/vite-plugin-solid/issues/12) from jorroll/monorepo-fix [[ba5d40c](https://github.com/amoutonbrady/vite-plugin-solid/commit/ba5d40c710bef282a88bffae48305abb83a27490)]
--  fix: ensure &#x60;solid-js&#x60; is included in pre-bundle [[7098edc](https://github.com/amoutonbrady/vite-plugin-solid/commit/7098edcceff1af62328203f1dff6ed3edf0746d1)]
--  Merge branch &#x27;master&#x27; of github.com:amoutonbrady/vite-plugin-solid [[c8a6cfc](https://github.com/amoutonbrady/vite-plugin-solid/commit/c8a6cfc4234f8b0ce48b4e4d200c43b53b21e49f)]
+- Merge pull request [#12](https://github.com/amoutonbrady/vite-plugin-solid/issues/12) from jorroll/monorepo-fix [[ba5d40c](https://github.com/amoutonbrady/vite-plugin-solid/commit/ba5d40c710bef282a88bffae48305abb83a27490)]
+- fix: ensure &#x60;solid-js&#x60; is included in pre-bundle [[7098edc](https://github.com/amoutonbrady/vite-plugin-solid/commit/7098edcceff1af62328203f1dff6ed3edf0746d1)]
+- Merge branch &#x27;master&#x27; of github.com:amoutonbrady/vite-plugin-solid [[c8a6cfc](https://github.com/amoutonbrady/vite-plugin-solid/commit/c8a6cfc4234f8b0ce48b4e4d200c43b53b21e49f)]
 - 📝 Update changelog [[c7590ac](https://github.com/amoutonbrady/vite-plugin-solid/commit/c7590ac38fba0d6720d640fd75386f18122cba99)]
--  Merge pull request [#11](https://github.com/amoutonbrady/vite-plugin-solid/issues/11) from jorroll/patch-1 [[25f0cea](https://github.com/amoutonbrady/vite-plugin-solid/commit/25f0ceacfe6f47cd026faa1811cc4ccfa84d18a3)]
--  docs: add jsdoc comments for Options interface [[6f0cea9](https://github.com/amoutonbrady/vite-plugin-solid/commit/6f0cea9d76593d4dc59006b6599d01fd1042ff53)]
--  fix: export this plugin&#x27;s options interface [[6d5a31a](https://github.com/amoutonbrady/vite-plugin-solid/commit/6d5a31ae6f1781d00e8fb53f16e730c04558462e)]
-
+- Merge pull request [#11](https://github.com/amoutonbrady/vite-plugin-solid/issues/11) from jorroll/patch-1 [[25f0cea](https://github.com/amoutonbrady/vite-plugin-solid/commit/25f0ceacfe6f47cd026faa1811cc4ccfa84d18a3)]
+- docs: add jsdoc comments for Options interface [[6f0cea9](https://github.com/amoutonbrady/vite-plugin-solid/commit/6f0cea9d76593d4dc59006b6599d01fd1042ff53)]
+- fix: export this plugin&#x27;s options interface [[6d5a31a](https://github.com/amoutonbrady/vite-plugin-solid/commit/6d5a31ae6f1781d00e8fb53f16e730c04558462e)]
 
 <a name="1.7.0"></a>
+
 ## 1.7.0 (2021-05-08)
 
 ### Changed
@@ -292,8 +293,8 @@
 
 - 📝 Update changelog [[e2df01b](https://github.com/amoutonbrady/vite-plugin-solid/commit/e2df01b264b346fff8a2386a34f2c989244238dd)]
 
-
 <a name="1.6.0"></a>
+
 ## 1.6.0 (2021-04-20)
 
 ### Changed
@@ -305,16 +306,16 @@
 - 📝 Adding requirements in the readme [#9](https://github.com/amoutonbrady/vite-plugin-solid/issues/9) [[eb5a019](https://github.com/amoutonbrady/vite-plugin-solid/commit/eb5a0194caec42158ed14d5cd2bd60bfacbf8759)]
 - 📝 Update changelog [[94d199d](https://github.com/amoutonbrady/vite-plugin-solid/commit/94d199d2f87c13875e93ef8993672f9b5f070034)]
 
-
 <a name="1.5.1"></a>
+
 ## 1.5.1 (2021-04-09)
 
 ### Changed
 
 - ⚡ Bake merge-anything into the plugin [[ba1f655](https://github.com/amoutonbrady/vite-plugin-solid/commit/ba1f65562c6b45ea25ccb74ff690e052a4d0ec4e)]
 
-
 <a name="1.5.0"></a>
+
 ## 1.5.0 (2021-04-02)
 
 ### Added
@@ -326,8 +327,8 @@
 
 - 📝 Update changelog [[296fa6c](https://github.com/amoutonbrady/vite-plugin-solid/commit/296fa6cbf63162315f2aea74c7038489bbe71d5d)]
 
-
 <a name="1.4.0"></a>
+
 ## 1.4.0 (2021-04-01)
 
 ### Changed
@@ -339,8 +340,8 @@
 
 - 📝 Update changelog [[ba5ced3](https://github.com/amoutonbrady/vite-plugin-solid/commit/ba5ced3928f7d059617ec56ac63dbdc52dd16eed)]
 
-
 <a name="1.3.3"></a>
+
 ## 1.3.3 (2021-03-25)
 
 ### Changed
@@ -351,8 +352,8 @@
 
 - 🐛 Fix legacy alias warning [[847cdfe](https://github.com/amoutonbrady/vite-plugin-solid/commit/847cdfe5e7809be1b29817f382ca1c2659ab400d)]
 
-
 <a name="1.3.2"></a>
+
 ## 1.3.2 (2021-03-19)
 
 ### Fixed
@@ -363,8 +364,8 @@
 
 - 📝 Updating changelog [[af0ab70](https://github.com/amoutonbrady/vite-plugin-solid/commit/af0ab7039950792ea1778955cc9eb4f46999aac7)]
 
-
 <a name="1.3.1"></a>
+
 ## 1.3.1 (2021-03-15)
 
 ### Fixed
@@ -375,24 +376,24 @@
 
 - 📝 Adding changelog [[2b2ade7](https://github.com/amoutonbrady/vite-plugin-solid/commit/2b2ade70c7d85237a47e403f4f41426505eeb1c5)]
 
-
 <a name="1.3.0"></a>
+
 ## 1.3.0 (2021-03-09)
 
 ### Fixed
 
 - 🐛 Fix HMR warning and remove peerDeps [[2a93fb5](https://github.com/amoutonbrady/vite-plugin-solid/commit/2a93fb59b39a98f1931e259bd2d72cc0dba4f161)]
 
-
 <a name="1.2.4"></a>
+
 ## 1.2.4 (2021-03-08)
 
 ### Fixed
 
 - 🐛 Fix deepmerge config issue + patch [[ea5225b](https://github.com/amoutonbrady/vite-plugin-solid/commit/ea5225b199972f1266e483723fd1ac1d3af40a4d)]
 
-
 <a name="1.2.3"></a>
+
 ## 1.2.3 (2021-03-08)
 
 ### Changed
@@ -402,22 +403,22 @@
 ### Miscellaneous
 
 - 💩 Apply patch for the babel warning [[6e71e80](https://github.com/amoutonbrady/vite-plugin-solid/commit/6e71e80b79cbcc68499ca3aadf905b40bf59f739)]
--  Merge pull request [#5](https://github.com/amoutonbrady/vite-plugin-solid/issues/5) from aminya/patch-1 [[79165cd](https://github.com/amoutonbrady/vite-plugin-solid/commit/79165cd9874cd1c0e7698e600508f6a01847f957)]
--  fix start command in the readme [[85d08e2](https://github.com/amoutonbrady/vite-plugin-solid/commit/85d08e2eac1a310a7944e044650fe160ada64cbd)]
--  Merge pull request [#4](https://github.com/amoutonbrady/vite-plugin-solid/issues/4) from maksimsemenov/respect-alias-in-user-config fixes [#3](https://github.com/amoutonbrady/vite-plugin-solid/issues/3) [[30e0442](https://github.com/amoutonbrady/vite-plugin-solid/commit/30e0442641d010d77131d985d006e73bba846b12)]
--  Use map instead of reduce [[cb869a5](https://github.com/amoutonbrady/vite-plugin-solid/commit/cb869a52cee9662211b7153b10adadf629e9955b)]
--  Resolve user alias config [[d775f6c](https://github.com/amoutonbrady/vite-plugin-solid/commit/d775f6c996a3c12a54e7af18492178f0fc832e1a)]
-
+- Merge pull request [#5](https://github.com/amoutonbrady/vite-plugin-solid/issues/5) from aminya/patch-1 [[79165cd](https://github.com/amoutonbrady/vite-plugin-solid/commit/79165cd9874cd1c0e7698e600508f6a01847f957)]
+- fix start command in the readme [[85d08e2](https://github.com/amoutonbrady/vite-plugin-solid/commit/85d08e2eac1a310a7944e044650fe160ada64cbd)]
+- Merge pull request [#4](https://github.com/amoutonbrady/vite-plugin-solid/issues/4) from maksimsemenov/respect-alias-in-user-config fixes [#3](https://github.com/amoutonbrady/vite-plugin-solid/issues/3) [[30e0442](https://github.com/amoutonbrady/vite-plugin-solid/commit/30e0442641d010d77131d985d006e73bba846b12)]
+- Use map instead of reduce [[cb869a5](https://github.com/amoutonbrady/vite-plugin-solid/commit/cb869a52cee9662211b7153b10adadf629e9955b)]
+- Resolve user alias config [[d775f6c](https://github.com/amoutonbrady/vite-plugin-solid/commit/d775f6c996a3c12a54e7af18492178f0fc832e1a)]
 
 <a name="1.2.2"></a>
+
 ## 1.2.2 (2021-03-04)
 
 ### Changed
 
 - ⬆️ Update dependencies (solid-refresh) [[3d74b58](https://github.com/amoutonbrady/vite-plugin-solid/commit/3d74b5841c8c0fa8e7c1827b41de7ba0f30a1a09)]
 
-
 <a name="1.2.1"></a>
+
 ## 1.2.1 (2021-03-02)
 
 ### Changed
@@ -429,32 +430,32 @@
 
 - 📝 Update README for broken dependencies [[2dad73a](https://github.com/amoutonbrady/vite-plugin-solid/commit/2dad73a31a0b25c806ab62dbfc24f77b72d14912)]
 
-
 <a name="1.2.0"></a>
+
 ## 1.2.0 (2021-02-22)
 
 ### Changed
 
 - ⬆️ Update dependencies (and resolve solid export mapping) [[a7f5ee8](https://github.com/amoutonbrady/vite-plugin-solid/commit/a7f5ee898e2e4b5b29efe1c58fade08910bca7ef)]
 
-
 <a name="1.1.3"></a>
+
 ## 1.1.3 (2021-02-22)
 
 ### Changed
 
 - ⬆️ Update dependencies [[e55e8cd](https://github.com/amoutonbrady/vite-plugin-solid/commit/e55e8cdd564eed2ed2e537d53f3d70305650fa90)]
 
-
 <a name="1.1.2"></a>
+
 ## 1.1.2 (2021-02-20)
 
 ### Fixed
 
 - 🐛 Fix solid-refresh dependency [[71af74e](https://github.com/amoutonbrady/vite-plugin-solid/commit/71af74e0dce778d07bb07ab6952a0f10c7870bbe)]
 
-
 <a name="1.1.1"></a>
+
 ## 1.1.1 (2021-02-20)
 
 ### Changed
@@ -465,8 +466,8 @@
 
 - 📝 Adding a demo gif [[85c8e6e](https://github.com/amoutonbrady/vite-plugin-solid/commit/85c8e6e9c1824e107ef8ff70d4d139d529797d5f)]
 
-
 <a name="1.1.0"></a>
+
 ## 1.1.0 (2021-02-20)
 
 ### Added
@@ -477,8 +478,8 @@
 
 - 📝 Update README for HMR [[8d48bb0](https://github.com/amoutonbrady/vite-plugin-solid/commit/8d48bb070b4c361537e95c77c95c099f2c5b04bb)]
 
-
 <a name="1.0.0"></a>
+
 ## 1.0.0 (2021-02-17)
 
 ### Changed
@@ -491,24 +492,24 @@
 
 - 🏷️ Fixing some types &amp; indentation [[c9bb615](https://github.com/amoutonbrady/vite-plugin-solid/commit/c9bb61576da69ed60e0e1b3e35d44ce02350fcf3)]
 
-
 <a name="0.9.1"></a>
+
 ## 0.9.1 (2021-02-13)
 
 ### Fixed
 
 - 🐛 Fix SSR bug [[2eeefe9](https://github.com/amoutonbrady/vite-plugin-solid/commit/2eeefe93a7496b05ebc07d3026e66b789c8bb078)]
 
-
 <a name="0.9.0"></a>
+
 ## 0.9.0 (2021-02-13)
 
 ### Added
 
 - ✨ Adding hacky SSR [[720832a](https://github.com/amoutonbrady/vite-plugin-solid/commit/720832ac5dbc88dcc0bd4e7c4bbaac32b505e4c5)]
 
-
 <a name="0.8.3"></a>
+
 ## 0.8.3 (2021-02-12)
 
 ### Added
@@ -519,16 +520,16 @@
 
 - ⬆️ Update dependencies [[6c37c39](https://github.com/amoutonbrady/vite-plugin-solid/commit/6c37c39992998e38858a33c9da260f03b124e5a5)]
 
-
 <a name="0.8.2"></a>
+
 ## 0.8.2 (2021-02-11)
 
 ### Removed
 
 - 🔇 Remove logs [[54c2bb5](https://github.com/amoutonbrady/vite-plugin-solid/commit/54c2bb576d09a9858dcc4ffe52bef42603a927d7)]
 
-
 <a name="0.8.1"></a>
+
 ## 0.8.1 (2021-02-11)
 
 ### Added
@@ -540,24 +541,24 @@
 - ♻️ Simplified resolve rules [[55ef16b](https://github.com/amoutonbrady/vite-plugin-solid/commit/55ef16b09dcfc8a27647cf4b78d5e7edf11e498b)]
 - ⬆️ Update dependencies [[e91b9a0](https://github.com/amoutonbrady/vite-plugin-solid/commit/e91b9a00f74546a634d3c5a1b9cef1ca97670a0a)]
 
-
 <a name="0.8.0"></a>
+
 ## 0.8.0 (2021-02-04)
 
 ### Changed
 
 - ⬆️ Update to solid 0.24 [[a87ea3f](https://github.com/amoutonbrady/vite-plugin-solid/commit/a87ea3fdef3e6c037ac2e41c5ce61b3f5add6bf9)]
 
-
 <a name="0.7.1"></a>
+
 ## 0.7.1 (2021-01-30)
 
 ### Changed
 
 - ⬆️ Update dependencies and minor fixes [[b37df18](https://github.com/amoutonbrady/vite-plugin-solid/commit/b37df186f13760a7a5c65454b3c33e2983137dd1)]
 
-
 <a name="0.7.0"></a>
+
 ## 0.7.0 (2021-01-23)
 
 ### Changed
@@ -572,16 +573,16 @@
 
 - ✏️ Fix typo [[0431ded](https://github.com/amoutonbrady/vite-plugin-solid/commit/0431ded78484d191b05f733c13ab1a9917aafd0b)]
 
-
 <a name="0.6.0"></a>
+
 ## 0.6.0 (2021-01-04)
 
 ### Added
 
 - ✨ Improved and document the code based on the vue jsx plugin [[531b698](https://github.com/amoutonbrady/vite-plugin-solid/commit/531b698f0636297ff441a703e80c0823127fcd80)]
 
-
 <a name="0.5.0"></a>
+
 ## 0.5.0 (2021-01-02)
 
 ### Added
@@ -603,8 +604,8 @@
 - 📝 Adding disclaimer to readme [[99c2ef7](https://github.com/amoutonbrady/vite-plugin-solid/commit/99c2ef74854eacd18090dee16dbdfb2a5adc4f56)]
 - 📝 Updating readme for vite 2 [[298205f](https://github.com/amoutonbrady/vite-plugin-solid/commit/298205f1037a665969cbc1a213d3042a6c0b4e91)]
 
-
 <a name="0.4.1"></a>
+
 ## 0.4.1 (2020-11-23)
 
 ### Changed
@@ -617,11 +618,11 @@
 
 ### Miscellaneous
 
--  Merge pull request [#1](https://github.com/amoutonbrady/vite-plugin-solid/issues/1) from boogerlad/master [[1261690](https://github.com/amoutonbrady/vite-plugin-solid/commit/1261690d50bb47702f1c46d68ad0985ab8ab0642)]
--  remove redundant textContent &#x3D; &#x27;&#x27; for HMR since as of solid 0.21.0 it&#x27;s handled by dom expressions [[2dfe316](https://github.com/amoutonbrady/vite-plugin-solid/commit/2dfe316f26930e99a9c3dcdc2b48c4e1f73b93e1)]
-
+- Merge pull request [#1](https://github.com/amoutonbrady/vite-plugin-solid/issues/1) from boogerlad/master [[1261690](https://github.com/amoutonbrady/vite-plugin-solid/commit/1261690d50bb47702f1c46d68ad0985ab8ab0642)]
+- remove redundant textContent &#x3D; &#x27;&#x27; for HMR since as of solid 0.21.0 it&#x27;s handled by dom expressions [[2dfe316](https://github.com/amoutonbrady/vite-plugin-solid/commit/2dfe316f26930e99a9c3dcdc2b48c4e1f73b93e1)]
 
 <a name="0.3.0"></a>
+
 ## 0.3.0 (2020-11-06)
 
 ### Changed
@@ -631,18 +632,18 @@
 
 ### Miscellaneous
 
--  Merge branch &#x27;release/0.1.1&#x27; into develop [[cb7698e](https://github.com/amoutonbrady/vite-plugin-solid/commit/cb7698e376a78e5f062c9c4f153cab4b9c97d7b0)]
-
+- Merge branch &#x27;release/0.1.1&#x27; into develop [[cb7698e](https://github.com/amoutonbrady/vite-plugin-solid/commit/cb7698e376a78e5f062c9c4f153cab4b9c97d7b0)]
 
 <a name="0.1.1"></a>
+
 ## 0.1.1 (2020-08-13)
 
 ### Changed
 
 - ⬆️ Update dependencies [[3e04f31](https://github.com/amoutonbrady/vite-plugin-solid/commit/3e04f3158c4ea0c8907c7d3fadea4a30b2bd9f4f)]
 
-
 <a name="0.1.0"></a>
+
 ## 0.1.0 (2020-07-31)
 
 ### Added
@@ -655,12 +656,12 @@
 
 ### Miscellaneous
 
--  Merge branch &#x27;develop&#x27; into main [[fce4c49](https://github.com/amoutonbrady/vite-plugin-solid/commit/fce4c491d63f23d6c1ec51dccce23f29c4901415)]
--  uh [[1dd1989](https://github.com/amoutonbrady/vite-plugin-solid/commit/1dd19895ee9653fd907aaad4a774721a7a0ad9f2)]
--  Merge branch &#x27;release/0.0.4&#x27; into develop [[e7bd88d](https://github.com/amoutonbrady/vite-plugin-solid/commit/e7bd88d23e2c0e082b02a516725ec58a0710d4ba)]
-
+- Merge branch &#x27;develop&#x27; into main [[fce4c49](https://github.com/amoutonbrady/vite-plugin-solid/commit/fce4c491d63f23d6c1ec51dccce23f29c4901415)]
+- uh [[1dd1989](https://github.com/amoutonbrady/vite-plugin-solid/commit/1dd19895ee9653fd907aaad4a774721a7a0ad9f2)]
+- Merge branch &#x27;release/0.0.4&#x27; into develop [[e7bd88d](https://github.com/amoutonbrady/vite-plugin-solid/commit/e7bd88d23e2c0e082b02a516725ec58a0710d4ba)]
 
 <a name="0.0.4"></a>
+
 ## 0.0.4 (2020-07-21)
 
 ### Changed
@@ -670,16 +671,16 @@
 
 ### Miscellaneous
 
--  Merge branch &#x27;release/0.0.4&#x27; into main [[1855560](https://github.com/amoutonbrady/vite-plugin-solid/commit/18555608eeae7a96a4193d2c6e12d6f80b51ec78)]
--  Merge remote-tracking branch &#x27;origin/develop&#x27; into develop [[b852754](https://github.com/amoutonbrady/vite-plugin-solid/commit/b85275415817d0b9402ac6634f8b0d23cd2fcb70)]
+- Merge branch &#x27;release/0.0.4&#x27; into main [[1855560](https://github.com/amoutonbrady/vite-plugin-solid/commit/18555608eeae7a96a4193d2c6e12d6f80b51ec78)]
+- Merge remote-tracking branch &#x27;origin/develop&#x27; into develop [[b852754](https://github.com/amoutonbrady/vite-plugin-solid/commit/b85275415817d0b9402ac6634f8b0d23cd2fcb70)]
 - 📝 Added a troubleshoooting section [[6532b51](https://github.com/amoutonbrady/vite-plugin-solid/commit/6532b51a59a0c248aa9c46e8f4703fb64ccf7002)]
 - 📝 Update quickstart section to include the template [[17684c7](https://github.com/amoutonbrady/vite-plugin-solid/commit/17684c7c47cb2298408900d711b43a973c68bc5f)]
--  Merge branch &#x27;develop&#x27; into main [[0f91383](https://github.com/amoutonbrady/vite-plugin-solid/commit/0f913830893275a88f0096c20838b1e1032a7f5f)]
--  Merge branch &#x27;release/0.0.3&#x27; into main [[bb1c59b](https://github.com/amoutonbrady/vite-plugin-solid/commit/bb1c59bb1650240aa7d65cec4a9b53f1af46a24b)]
--  Merge branch &#x27;release/0.0.2&#x27; into develop [[acd49de](https://github.com/amoutonbrady/vite-plugin-solid/commit/acd49de622408a348e04767563941d57a3f23c87)]
-
+- Merge branch &#x27;develop&#x27; into main [[0f91383](https://github.com/amoutonbrady/vite-plugin-solid/commit/0f913830893275a88f0096c20838b1e1032a7f5f)]
+- Merge branch &#x27;release/0.0.3&#x27; into main [[bb1c59b](https://github.com/amoutonbrady/vite-plugin-solid/commit/bb1c59bb1650240aa7d65cec4a9b53f1af46a24b)]
+- Merge branch &#x27;release/0.0.2&#x27; into develop [[acd49de](https://github.com/amoutonbrady/vite-plugin-solid/commit/acd49de622408a348e04767563941d57a3f23c87)]
 
 <a name="0.0.2"></a>
+
 ## 0.0.2 (2020-07-12)
 
 ### Changed
@@ -688,12 +689,12 @@
 
 ### Miscellaneous
 
--  Merge branch &#x27;release/0.0.2&#x27; into main [[dda3822](https://github.com/amoutonbrady/vite-plugin-solid/commit/dda382268a9384028c1ca85c84c0ba6e25755433)]
--  Merge branch &#x27;main&#x27; into develop [[19cd994](https://github.com/amoutonbrady/vite-plugin-solid/commit/19cd994f7c7fbb490bfe9dc251e7fe1012b29748)]
+- Merge branch &#x27;release/0.0.2&#x27; into main [[dda3822](https://github.com/amoutonbrady/vite-plugin-solid/commit/dda382268a9384028c1ca85c84c0ba6e25755433)]
+- Merge branch &#x27;main&#x27; into develop [[19cd994](https://github.com/amoutonbrady/vite-plugin-solid/commit/19cd994f7c7fbb490bfe9dc251e7fe1012b29748)]
 - 📦 Update package.json for release [[865fc11](https://github.com/amoutonbrady/vite-plugin-solid/commit/865fc119148115d30ffce3b2b45e75c768fe631d)]
 
-
 <a name="0.0.1"></a>
+
 ## 0.0.1 (2020-07-12)
 
 ### Added
@@ -703,5 +704,3 @@
 ### Miscellaneous
 
 - 📝 Improve README [[2de0927](https://github.com/amoutonbrady/vite-plugin-solid/commit/2de09279b63096a9379523fab69860194fc79ed3)]
-
-

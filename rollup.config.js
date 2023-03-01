@@ -10,7 +10,7 @@ const external = [
   '@babel/preset-typescript',
   'babel-preset-solid',
   'solid-refresh',
-  'solid-refresh/babel.js',
+  'solid-refresh/babel',
   'merge-anything',
   'vitefu',
 ];

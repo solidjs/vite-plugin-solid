@@ -263,7 +263,7 @@ function isJestDomInstalled() {
     // attempt to reference a file that will not throw error because expect is missing
     require('@testing-library/jest-dom/dist/utils');
     return true;
-  } catch(e) {
+  } catch (e) {
     return false;
   }
 }
@@ -299,23 +299,23 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
         : [];
 
-      const test = userConfig.mode === 'test'
-        ? {
-            test: {
-              globals: true,
-              ...(options.ssr ? {} : { environment: 'jsdom' }),
-              transformMode : {
-                [options.ssr ? 'ssr' : 'web']: [/\.[jt]sx?$/]
+      const test =
+        userConfig.mode === 'test'
+          ? {
+              test: {
+                globals: true,
+                ...(options.ssr ? {} : { environment: 'jsdom' }),
+                transformMode: {
+                  [options.ssr ? 'ssr' : 'web']: [/\.[jt]sx?$/],
+                },
+                ...(isJestDomInstalled()
+                  ? { setupFiles: ['node_modules/@testing-library/jest-dom/extend-expect.js'] }
+                  : {}),
+                deps: { registerNodeLoader: true },
+                ...(userConfig as UserConfig & { test: Record<string, any> }).test,
               },
-              ...(isJestDomInstalled()
-                ? { setupFiles: ['node_modules/@testing-library/jest-dom/extend-expect.js'] }
-                : {}
-              ),
-              deps: { registerNodeLoader: true },
-              ...(userConfig as UserConfig & { test: Record<string, any>}).test
             }
-          }
-        : {};
+          : {};
 
       return {
         /**
@@ -327,7 +327,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           conditions: [
             'solid',
             ...(replaceDev ? ['development'] : []),
-            ...(userConfig.mode === 'test' && !options.ssr ? ['browser'] : [])
+            ...(userConfig.mode === 'test' && !options.ssr ? ['browser'] : []),
           ],
           dedupe: nestedDeps,
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
@@ -337,7 +337,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           exclude: solidPkgsConfig.optimizeDeps.exclude,
         },
         ssr: solidPkgsConfig.ssr,
-        ...test
+        ...test,
       };
     },
 

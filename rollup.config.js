@@ -6,13 +6,13 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 const extensions = ['.js', '.ts', '.json', '.tsx', '.jsx'];
 
 const external = [
-  "@babel/core",
-  "@babel/preset-typescript",
-  "babel-preset-solid",
-  "solid-refresh",
-  "solid-refresh/babel",
-  "merge-anything",
-  "vitefu"
+  '@babel/core',
+  '@babel/preset-typescript',
+  'babel-preset-solid',
+  'solid-refresh',
+  'solid-refresh/babel',
+  'merge-anything',
+  'vitefu',
 ];
 
 /**

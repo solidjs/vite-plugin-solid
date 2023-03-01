@@ -40,7 +40,7 @@ $ npm run build # builds to /dist
 
 ## Installation
 
-Install `vite`, `vite-plugin-solid` and `babel-preset-solid` as dev dependencies.
+Install `vite`, `vite-plugin-solid` as dev dependencies.
 
 Install `solid-js` as dependency.
 
@@ -48,15 +48,15 @@ You have to install those so that you are in control to which solid version is u
 
 ```bash
 # with npm
-$ npm install -D vite vite-plugin-solid babel-preset-solid
+$ npm install -D vite vite-plugin-solid
 $ npm install solid-js
 
 # with pnpm
-$ pnpm add -D vite vite-plugin-solid babel-preset-solid
+$ pnpm add -D vite vite-plugin-solid
 $ pnpm add solid-js
 
 # with yarn
-$ yarn add -D vite vite-plugin-solid babel-preset-solid
+$ yarn add -D vite vite-plugin-solid
 $ yarn add solid-js
 ```
 

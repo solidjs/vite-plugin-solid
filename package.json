@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-solid",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "solid-js integration plugin for vite 3/4",
   "type": "module",
   "files": [

@@ -46,7 +46,7 @@
     "@types/babel__core": "^7.1.20",
     "babel-preset-solid": "^1.6.3",
     "merge-anything": "^5.1.4",
-    "solid-refresh": "^0.4.1",
+    "solid-refresh": "^0.5.0",
     "vitefu": "^0.2.3"
   },
   "devDependencies": {

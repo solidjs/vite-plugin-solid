@@ -92,6 +92,20 @@ Just use regular `vite` or `vite build` commands
 - Type: Object
 - Default: {}
 
+#### options.include
+
+- Type: (string | RegExp)[] | string | RegExp | null
+- Default: undefined
+
+A [picomatch](https://github.com/micromatch/picomatch) pattern, or array of patterns, which specifies the files the plugin should operate on.
+
+#### options.exclude
+
+- Type: (string | RegExp)[] | string | RegExp | null
+- Default: undefined
+
+A [picomatch](https://github.com/micromatch/picomatch) pattern, or array of patterns, which specifies the files to be ignored by the plugin.
+
 #### options.dev
 
 - Type: Boolean

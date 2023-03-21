@@ -5,7 +5,8 @@ import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
-import type { Alias, AliasOptions, Plugin, UserConfig } from 'vite';
+import { createFilter } from 'vite';
+import type { Alias, AliasOptions, Plugin, UserConfig, FilterPattern } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
 
 const require = createRequire(import.meta.url);
@@ -21,6 +22,16 @@ export interface ExtensionOptions {
 
 /** Configuration options for vite-plugin-solid. */
 export interface Options {
+  /**
+   * A [picomatch](https://github.com/micromatch/picomatch) pattern, or array of patterns, which specifies the files
+   * the plugin should operate on.
+   */
+  include?: FilterPattern
+  /**
+   * A [picomatch](https://github.com/micromatch/picomatch) pattern, or array of patterns, which specifies the files
+   * to be ignored by the plugin.
+   */
+  exclude?: FilterPattern
   /**
    * This will inject solid-js/dev in place of solid-js in dev mode. Has no
    * effect in prod. If set to `false`, it won't inject it in dev. This is
@@ -269,6 +280,8 @@ function isJestDomInstalled() {
 }
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
+  const filter = createFilter(options.include, options.exclude)
+
   let needHmr = false;
   let replaceDev = false;
   let projectRoot = process.cwd();
@@ -363,7 +376,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         typeof extension === 'string' ? extension : extension[0],
       );
 
-      if (!allExtensions.includes(currentFileExtension)) {
+      if (!filter(id) || !allExtensions.includes(currentFileExtension)) {
         return null;
       }
 

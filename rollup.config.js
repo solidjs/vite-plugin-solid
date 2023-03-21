@@ -13,6 +13,7 @@ const external = [
   'solid-refresh/babel',
   'merge-anything',
   'vitefu',
+  'vite'
 ];
 
 /**

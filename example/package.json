@@ -7,10 +7,10 @@
     "build": "vite build"
   },
   "devDependencies": {
-    "vite": "^4.1.1",
+    "vite": "^4.4.1",
     "vite-plugin-solid": "link:.."
   },
   "dependencies": {
-    "solid-js": "^1.4.10"
+    "solid-js": "^1.7.7"
   }
 }

@@ -2,14 +2,14 @@ lockfileVersion: 5.4
 
 specifiers:
   solid-js: ^1.4.10
-  vite: ^4.1.1
+  vite: ^4.1.5
   vite-plugin-solid: link:..
 
 dependencies:
   solid-js: 1.6.11
 
 devDependencies:
-  vite: 4.1.1
+  vite: 4.1.5
   vite-plugin-solid: link:..
 
 packages:
@@ -327,8 +327,8 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /vite/4.1.1:
-    resolution: {integrity: sha512-LM9WWea8vsxhr782r9ntg+bhSFS06FJgCvvB0+8hf8UWtvaiDagKYWXndjfX6kGl74keHJUcpzrQliDXZlF5yg==}
+  /vite/4.1.5:
+    resolution: {integrity: sha512-zJ0RiVkf61kpd7O+VtU6r766xgnTaIknP/lR6sJTZq3HtVJ3HGnTo5DaJhTUtYoTyS/CQwZ6yEVdc/lrmQT7dQ==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:

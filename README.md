@@ -128,7 +128,7 @@ If set to false, it won't inject the runtime in dev.
 - Type: Boolean
 - Default: false
 
-This will force SSR code in the produced files. This is experiemental and mostly not working yet.
+This will force SSR code in the produced files.
 
 #### options.babel
 

@@ -322,7 +322,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
                   [options.ssr ? 'ssr' : 'web']: [/\.[jt]sx?$/],
                 },
                 ...(isJestDomInstalled()
-                  ? { setupFiles: ['node_modules/@testing-library/jest-dom/extend-expect.js'] }
+                  ? { setupFiles: [require.resolve('@testing-library/jest-dom/extend-expect.js')] }
                   : {}),
                 deps: { registerNodeLoader: true },
                 ...(userConfig as UserConfig & { test: Record<string, any> }).test,

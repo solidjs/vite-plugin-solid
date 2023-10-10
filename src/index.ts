@@ -6,7 +6,7 @@ import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
 import { createFilter } from 'vite';
-import type { Alias, AliasOptions, Plugin, UserConfig, FilterPattern } from 'vite';
+import type { Alias, AliasOptions, Plugin, FilterPattern } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
 
 const require = createRequire(import.meta.url);

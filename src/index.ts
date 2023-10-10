@@ -325,7 +325,6 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
                   ? { setupFiles: [require.resolve('@testing-library/jest-dom/extend-expect.js')] }
                   : {}),
                 deps: { registerNodeLoader: true },
-                ...(userConfig as UserConfig & { test: Record<string, any> }).test,
               },
             }
           : {};

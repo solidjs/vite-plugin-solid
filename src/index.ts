@@ -26,12 +26,12 @@ export interface Options {
    * A [picomatch](https://github.com/micromatch/picomatch) pattern, or array of patterns, which specifies the files
    * the plugin should operate on.
    */
-  include?: FilterPattern
+  include?: FilterPattern;
   /**
    * A [picomatch](https://github.com/micromatch/picomatch) pattern, or array of patterns, which specifies the files
    * to be ignored by the plugin.
    */
-  exclude?: FilterPattern
+  exclude?: FilterPattern;
   /**
    * This will inject solid-js/dev in place of solid-js in dev mode. Has no
    * effect in prod. If set to `false`, it won't inject it in dev. This is
@@ -47,6 +47,14 @@ export interface Options {
    * @default false
    */
   ssr: boolean;
+
+  /**
+   * Removed unnecessary closing tags from template strings. More info here: https://github.com/solidjs/solid/blob/main/CHANGELOG.md#smaller-templates
+   *
+   * @default false
+   */
+  omitNestedClosingTags: boolean;
+
   /**
    * This will inject HMR runtime in dev mode. Has no effect in prod. If
    * set to `false`, it won't inject the runtime in dev.
@@ -280,7 +288,7 @@ function isJestDomInstalled() {
 }
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
-  const filter = createFilter(options.include, options.exclude)
+  const filter = createFilter(options.include, options.exclude);
 
   let needHmr = false;
   let replaceDev = false;

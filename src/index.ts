@@ -49,14 +49,6 @@ export interface Options {
   ssr: boolean;
 
   /**
-   * Removed unnecessary closing tags from template strings. More info here: 
-   * https://github.com/solidjs/solid/blob/main/CHANGELOG.md#smaller-templates
-   *
-   * @default false
-   */
-  omitNestedClosingTags: boolean;
-
-  /**
    * This will inject HMR runtime in dev mode. Has no effect in prod. If
    * set to `false`, it won't inject the runtime in dev.
    *
@@ -206,6 +198,16 @@ export interface Options {
    * @default {}
    */
   solid: {
+
+    
+    /**
+     * Removed unnecessary closing tags from template strings. More info here:
+     * https://github.com/solidjs/solid/blob/main/CHANGELOG.md#smaller-templates
+     *
+     * @default false
+     */
+    omitNestedClosingTags: boolean;
+
     /**
      * The name of the runtime module to import the methods from.
      *

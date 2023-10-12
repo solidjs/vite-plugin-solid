@@ -49,7 +49,8 @@ export interface Options {
   ssr: boolean;
 
   /**
-   * Removed unnecessary closing tags from template strings. More info here: https://github.com/solidjs/solid/blob/main/CHANGELOG.md#smaller-templates
+   * Removed unnecessary closing tags from template strings. More info here: 
+   * https://github.com/solidjs/solid/blob/main/CHANGELOG.md#smaller-templates
    *
    * @default false
    */

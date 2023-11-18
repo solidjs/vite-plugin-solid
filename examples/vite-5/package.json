@@ -1,0 +1,16 @@
+{
+  "name": "example",
+  "private": "true",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "vite-plugin-solid": "link:../.."
+  },
+  "dependencies": {
+    "solid-js": "^1.8.5"
+  }
+}

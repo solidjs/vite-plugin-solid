@@ -8,9 +8,9 @@
   },
   "devDependencies": {
     "vite": "^4.1.5",
-    "vite-plugin-solid": "link:.."
+    "vite-plugin-solid": "link:../.."
   },
   "dependencies": {
-    "solid-js": "^1.4.10"
+    "solid-js": "^1.8.5"
   }
 }

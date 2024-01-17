@@ -279,6 +279,20 @@ function containsSolidField(fields: Record<string, any>) {
   return false;
 }
 
+function getJestDomExport(test: { setupFiles: string[] }) {
+  return (test.setupFiles || []).some((path) => /jest-dom/.test(path))
+    ? undefined
+    : ['@testing-library/jest-dom/vitest', '@testing-library/jest-dom/extend-expect'].find(
+        (path) => {
+          try {
+            require(path);
+          } catch (e) {
+            return false;
+          }
+        },
+      );
+}
+
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   const filter = createFilter(options.include, options.exclude);
 
@@ -318,19 +332,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         if (!test.environment && !options.ssr) {
           test.environment = 'jsdom';
         }
-        if (!test.transformMode) {
-          test.transformMode = { [options.ssr ? 'ssr' : 'web']: [/\.[jt]sx?$/] };
-        }
-        const jestDomImport = [
-          '@testing-library/jest-dom/vitest',
-          '@testing-library/jest-dom/extend-expect',
-        ].find((path) => {
-          try {
-            require(path);
-          } catch (e) {
-            return false;
-          }
-        });
+        const jestDomImport = getJestDomExport(test);
         if (jestDomImport) {
           test.setupFiles = [...(test.setupFiles || []), require.resolve(jestDomImport)];
         }

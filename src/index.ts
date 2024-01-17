@@ -198,8 +198,6 @@ export interface Options {
    * @default {}
    */
   solid: {
-
-    
     /**
      * Removed unnecessary closing tags from template strings. More info here:
      * https://github.com/solidjs/solid/blob/main/CHANGELOG.md#smaller-templates
@@ -270,7 +268,7 @@ function getExtension(filename: string): string {
   const index = filename.lastIndexOf('.');
   return index < 0 ? '' : filename.substring(index).replace(/\?.+$/, '');
 }
-function containsSolidField(fields) {
+function containsSolidField(fields: Record<string, any>) {
   const keys = Object.keys(fields);
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
@@ -279,15 +277,6 @@ function containsSolidField(fields) {
       return true;
   }
   return false;
-}
-function isJestDomInstalled() {
-  try {
-    // attempt to reference a file that will not throw error because expect is missing
-    require('@testing-library/jest-dom/dist/utils');
-    return true;
-  } catch (e) {
-    return false;
-  }
 }
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
@@ -323,21 +312,29 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
         : [];
 
-      const test =
-        userConfig.mode === 'test'
-          ? {
-              test: {
-                globals: true,
-                ...(options.ssr ? {} : { environment: 'jsdom' }),
-                transformMode: {
-                  [options.ssr ? 'ssr' : 'web']: [/\.[jt]sx?$/],
-                },
-                ...(isJestDomInstalled()
-                  ? { setupFiles: [require.resolve('@testing-library/jest-dom/extend-expect.js')] }
-                  : {}),
-              },
-            }
-          : {};
+      const test = (userConfig as any).test || {};
+
+      if (userConfig.mode === 'test') {
+        if (!test.environment && !options.ssr) {
+          test.environment = 'jsdom';
+        }
+        if (!test.transformMode) {
+          test.transformMode = { [options.ssr ? 'ssr' : 'web']: [/\.[jt]sx?$/] };
+        }
+        const jestDomImport = [
+          '@testing-library/jest-dom/vitest',
+          '@testing-library/jest-dom/extend-expect',
+        ].find((path) => {
+          try {
+            require(path);
+          } catch (e) {
+            return false;
+          }
+        });
+        if (jestDomImport) {
+          test.setupFiles = [...(test.setupFiles || []), require.resolve(jestDomImport)];
+        }
+      }
 
       return {
         /**
@@ -359,7 +356,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           exclude: solidPkgsConfig.optimizeDeps.exclude,
         },
         ssr: solidPkgsConfig.ssr,
-        ...test,
+        ...(test ? { test } : {}),
       };
     },
 

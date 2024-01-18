@@ -279,8 +279,8 @@ function containsSolidField(fields: Record<string, any>) {
   return false;
 }
 
-function getJestDomExport(test: { setupFiles: string[] }) {
-  return (test.setupFiles || []).some((path) => /jest-dom/.test(path))
+function getJestDomExport(setupFiles: string[]) {
+  return (setupFiles || []).some((path) => /jest-dom/.test(path))
     ? undefined
     : ['@testing-library/jest-dom/vitest', '@testing-library/jest-dom/extend-expect'].find(
         (path) => {
@@ -328,13 +328,19 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       const test = (userConfig as any).test || {};
 
+      // to simplify the processing of the config, we normalize the setupFiles to an array
+      const userSetupFiles: string[] =
+        typeof test.setupFiles === 'string' ? [test.setupFiles] : test.setupFiles || [];
+
       if (userConfig.mode === 'test') {
         if (!test.environment && !options.ssr) {
           test.environment = 'jsdom';
         }
-        const jestDomImport = getJestDomExport(test);
+
+        const jestDomImport = getJestDomExport(userSetupFiles);
+
         if (jestDomImport) {
-          test.setupFiles = [...(test.setupFiles || []), require.resolve(jestDomImport)];
+          test.setupFiles = [...userSetupFiles, require.resolve(jestDomImport)];
         }
       }
 

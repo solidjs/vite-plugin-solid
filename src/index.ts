@@ -328,6 +328,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       const test = (userConfig as any).test || {};
 
+      // to simplify the processing of the config, we normalize the setupFiles to an array
       const userSetupFiles: string[] =
         typeof test.setupFiles === 'string' ? [test.setupFiles] : test.setupFiles || [];
 

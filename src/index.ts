@@ -280,12 +280,13 @@ function containsSolidField(fields: Record<string, any>) {
 }
 
 function getJestDomExport(setupFiles: string[]) {
-  return (setupFiles || []).some((path) => /jest-dom/.test(path))
+  return setupFiles?.some((path) => /jest-dom/.test(path))
     ? undefined
     : ['@testing-library/jest-dom/vitest', '@testing-library/jest-dom/extend-expect'].find(
         (path) => {
           try {
-            require(path);
+            require.resolve(path);
+            return true;
           } catch (e) {
             return false;
           }
@@ -328,19 +329,24 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       const test = (userConfig as any).test || {};
 
-      // to simplify the processing of the config, we normalize the setupFiles to an array
-      const userSetupFiles: string[] =
-        typeof test.setupFiles === 'string' ? [test.setupFiles] : test.setupFiles || [];
-
       if (userConfig.mode === 'test') {
+        // to simplify the processing of the config, we normalize the setupFiles to an array
+        const userSetupFiles: string[] =
+          typeof test.setupFiles === 'string' ? [test.setupFiles] : test.setupFiles || [];
+
         if (!test.environment && !options.ssr) {
           test.environment = 'jsdom';
         }
 
-        const jestDomImport = getJestDomExport(userSetupFiles);
+        test.server = test.server || {};
+        test.server.deps = test.server.deps || {};
+        if (!test.server.deps.inline?.find((item: string | RegExp) => /solid-js/.test(item.toString()))) {
+          test.server.deps.inline = [...(test.server.deps.inline || []), /solid-js/];
+        }
 
+        const jestDomImport = getJestDomExport(userSetupFiles);
         if (jestDomImport) {
-          test.setupFiles = [...userSetupFiles, require.resolve(jestDomImport)];
+          test.setupFiles = [...userSetupFiles, jestDomImport];
         }
       }
 
@@ -364,7 +370,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           exclude: solidPkgsConfig.optimizeDeps.exclude,
         },
         ssr: solidPkgsConfig.ssr,
-        ...(test ? { test } : {}),
+        ...(test.server ? { test } : {}),
       };
     },
 

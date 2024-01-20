@@ -188,7 +188,7 @@ if (import.meta.hot) {
 
 - If one of your dependency spit out React code instead of Solid that means that they don't expose JSX properly. To get around it, you might want to manually exclude it from the [dependencies optimization](https://vitejs.dev/config/dep-optimization-options.html#optimizedeps-exclude)
 
-- If you are trying to make [directives](https://www.solidjs.com/docs/latest/api#use%3A___) work and they somehow don't try setting the `options.typescript.onlyRemoveTypeImports` option to `true`
+- If you are trying to make [directives](https://www.solidjs.com/docs/latest/api#use%3A___) work, and they somehow don't try setting the `options.typescript.onlyRemoveTypeImports` option to `true`
 
 ## Migration from v1
 
@@ -197,6 +197,10 @@ The master branch now target vite 2.
 The main breaking change from previous version is that the package has been renamed from `@amoutonbrady/vite-plugin-solid` to `vite-plugin-solid`.
 
 For other breaking changes, check [the migration guide of vite](https://vitejs.dev/guide/migration.html).
+
+# Testing
+
+If you are using [vitest](https://vitest.dev/), this plugin already injects the necessary configuration for you. It even automatically detects if you have `@testing-library/jest-dom` installed in your project and automatically adds it to the `setupFiles`. All you need to add (if you want) is `globals`, `coverage`, and other testing configuration of your choice. If you can live without those, enjoy using vitest without the need to configure it yourself.
 
 # Credits
 

@@ -21,8 +21,8 @@ dependencies:
     specifier: ^5.1.7
     version: 5.1.7
   solid-refresh:
-    specifier: ^0.7.0
-    version: 0.7.0(solid-js@1.8.5)
+    specifier: ^0.7.1
+    version: 0.7.1(solid-js@1.8.5)
   vitefu:
     specifier: ^0.2.5
     version: 0.2.5(vite@5.0.0)
@@ -2503,8 +2503,8 @@ packages:
       csstype: 3.1.3
       seroval: 0.12.4
 
-  /solid-refresh@0.7.0(solid-js@1.8.5):
-    resolution: {integrity: sha512-npG8PN2M4JBJoao6KCK0UisjDViClW7V/8GoezJyV3W12GXCMPy1okpLWBr9qvbsuwhCRL1s1rKFlPOaQw6XNg==}
+  /solid-refresh@0.7.1(solid-js@1.8.5):
+    resolution: {integrity: sha512-0TNopABT/dfMOdgJg3uaGXz+QzDDV8gDA6ws5PlYyK9C1mOX5YSL2f1J1MbqrGSKyt5jquGctazD3O4B0HLI5A==}
     peerDependencies:
       solid-js: ^1.3
     dependencies:

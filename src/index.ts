@@ -5,7 +5,7 @@ import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
 // TODO use proper path
-import type { Options as RefreshOptions } from 'solid-refresh/dist/types/src/babel/core/types';
+import type { Options as RefreshOptions } from 'solid-refresh/babel';
 import { createFilter } from 'vite';
 import type { Alias, AliasOptions, Plugin, FilterPattern } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';

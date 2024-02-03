@@ -6,8 +6,8 @@ import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
 // TODO use proper path
 import type { Options as RefreshOptions } from 'solid-refresh/babel';
+import type { Alias, AliasOptions, FilterPattern, Plugin } from 'vite';
 import { createFilter } from 'vite';
-import type { Alias, AliasOptions, Plugin, FilterPattern } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
 
 const require = createRequire(import.meta.url);
@@ -312,7 +312,19 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
         return extensionOptions.typescript;
       });
-      const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = ['jsx']
+      const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = [
+        'jsx',
+        // import { example } from 'example' with { example: true };
+        'importAttributes',
+        // () => throw example
+        'throwExpressions',
+        // You know what this is
+        'decorators',
+        // const { #example: example } = this;
+        'destructuringPrivate',
+        // using example = myExample()
+        'explicitResourceManagement',
+      ];
 
       if (shouldBeProcessedWithTypescript) {
         plugins.push('typescript');

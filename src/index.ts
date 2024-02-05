@@ -4,8 +4,10 @@ import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
+// TODO use proper path
+import type { Options as RefreshOptions } from 'solid-refresh/babel';
+import type { Alias, AliasOptions, FilterPattern, Plugin } from 'vite';
 import { createFilter } from 'vite';
-import type { Alias, AliasOptions, Plugin, FilterPattern } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
 
 const require = createRequire(import.meta.url);
@@ -51,6 +53,7 @@ export interface Options {
    * This will inject HMR runtime in dev mode. Has no effect in prod. If
    * set to `false`, it won't inject the runtime in dev.
    *
+   * @deprecated use `refresh` instead
    * @default true
    */
   hot: boolean;
@@ -142,6 +145,8 @@ export interface Options {
      */
     builtIns?: string[];
   };
+
+  refresh: Omit<RefreshOptions & { disabled: boolean }, 'bundler' | 'fixRender'>;
 }
 
 function getExtension(filename: string): string {
@@ -255,7 +260,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     configResolved(config) {
-      needHmr = config.command === 'serve' && config.mode !== 'production' && options.hot !== false;
+      needHmr = config.command === 'serve' && config.mode !== 'production' && (options.hot !== false && !options.refresh?.disabled);
     },
 
     resolveId(id) {
@@ -307,7 +312,19 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
         return extensionOptions.typescript;
       });
-      const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = ['jsx']
+      const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = [
+        'jsx',
+        // import { example } from 'example' with { example: true };
+        'importAttributes',
+        // () => throw example
+        'throwExpressions',
+        // You know what this is
+        'decorators',
+        // const { #example: example } = this;
+        'destructuringPrivate',
+        // using example = myExample()
+        'explicitResourceManagement',
+      ];
 
       if (shouldBeProcessedWithTypescript) {
         plugins.push('typescript');
@@ -318,7 +335,12 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         filename: id,
         sourceFileName: id,
         presets: [[solid, { ...solidOptions, ...(options.solid || {}) }]],
-        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, { bundler: 'vite' }]] : [],
+        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, {
+          bundler: 'vite',
+          fixRender: true,
+          imports: options.refresh.imports,
+          granular: options.refresh.granular,
+        }]] : [],
         ast: false,
         sourceMaps: true,
         configFile: false,

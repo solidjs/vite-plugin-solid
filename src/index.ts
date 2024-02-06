@@ -338,8 +338,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, {
           bundler: 'vite',
           fixRender: true,
-          imports: options.refresh.imports,
-          granular: options.refresh.granular,
+          imports: options.refresh?.imports,
+          granular: options.refresh?.granular,
         }]] : [],
         ast: false,
         sourceMaps: true,

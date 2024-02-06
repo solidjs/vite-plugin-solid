@@ -1,4 +1,5 @@
 import * as babel from '@babel/core';
+// @ts-ignore
 import solid from 'babel-preset-solid';
 import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
@@ -193,7 +194,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     async config(userConfig, { command }) {
       // We inject the dev mode only if the user explicitely wants it or if we are in dev (serve) mode
       replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
-      projectRoot = userConfig.root;
+      projectRoot = userConfig.root || projectRoot;
 
       if (!userConfig.resolve) userConfig.resolve = {};
       userConfig.resolve.alias = normalizeAliases(userConfig.resolve && userConfig.resolve.alias);
@@ -355,7 +356,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       if (options.babel) {
         if (typeof options.babel === 'function') {
-          const babelOptions = options.babel(source, id, isSsr);
+          const babelOptions = options.babel(source, id, !!isSsr);
           babelUserOptions = babelOptions instanceof Promise ? await babelOptions : babelOptions;
         } else {
           babelUserOptions = options.babel;
@@ -364,9 +365,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       const babelOptions = mergeAndConcat(babelUserOptions, opts) as babel.TransformOptions;
 
-      const { code, map } = await babel.transformAsync(source, babelOptions);
-
-      return { code, map };
+      const result = await babel.transformAsync(source, babelOptions);
+      if (!result) {
+        return undefined;
+      }
+      return { code: result.code || '', map: result.map };
     },
   };
 }

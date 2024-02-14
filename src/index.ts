@@ -1,14 +1,11 @@
 import * as babel from '@babel/core';
-// @ts-ignore
 import solid from 'babel-preset-solid';
 import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
-// TODO use proper path
-import type { Options as RefreshOptions } from 'solid-refresh/babel';
-import type { Alias, AliasOptions, FilterPattern, Plugin } from 'vite';
 import { createFilter } from 'vite';
+import type { Alias, AliasOptions, Plugin, FilterPattern } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
 
 const require = createRequire(import.meta.url);
@@ -54,7 +51,6 @@ export interface Options {
    * This will inject HMR runtime in dev mode. Has no effect in prod. If
    * set to `false`, it won't inject the runtime in dev.
    *
-   * @deprecated use `refresh` instead
    * @default true
    */
   hot: boolean;
@@ -146,8 +142,6 @@ export interface Options {
      */
     builtIns?: string[];
   };
-
-  refresh: Omit<RefreshOptions & { disabled: boolean }, 'bundler' | 'fixRender'>;
 }
 
 function getExtension(filename: string): string {
@@ -194,7 +188,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     async config(userConfig, { command }) {
       // We inject the dev mode only if the user explicitely wants it or if we are in dev (serve) mode
       replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
-      projectRoot = userConfig.root || projectRoot;
+      projectRoot = userConfig.root;
 
       if (!userConfig.resolve) userConfig.resolve = {};
       userConfig.resolve.alias = normalizeAliases(userConfig.resolve && userConfig.resolve.alias);
@@ -261,7 +255,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     configResolved(config) {
-      needHmr = config.command === 'serve' && config.mode !== 'production' && (options.hot !== false && !options.refresh?.disabled);
+      needHmr = config.command === 'serve' && config.mode !== 'production' && options.hot !== false;
     },
 
     resolveId(id) {
@@ -313,19 +307,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
         return extensionOptions.typescript;
       });
-      const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = [
-        'jsx',
-        // import { example } from 'example' with { example: true };
-        'importAttributes',
-        // () => throw example
-        'throwExpressions',
-        // You know what this is
-        'decorators',
-        // const { #example: example } = this;
-        'destructuringPrivate',
-        // using example = myExample()
-        'explicitResourceManagement',
-      ];
+      const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = ['jsx']
 
       if (shouldBeProcessedWithTypescript) {
         plugins.push('typescript');
@@ -336,12 +318,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         filename: id,
         sourceFileName: id,
         presets: [[solid, { ...solidOptions, ...(options.solid || {}) }]],
-        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, {
-          bundler: 'vite',
-          fixRender: true,
-          imports: options.refresh?.imports,
-          granular: options.refresh?.granular,
-        }]] : [],
+        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, { bundler: 'vite' }]] : [],
         ast: false,
         sourceMaps: true,
         configFile: false,
@@ -356,7 +333,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       if (options.babel) {
         if (typeof options.babel === 'function') {
-          const babelOptions = options.babel(source, id, !!isSsr);
+          const babelOptions = options.babel(source, id, isSsr);
           babelUserOptions = babelOptions instanceof Promise ? await babelOptions : babelOptions;
         } else {
           babelUserOptions = options.babel;
@@ -365,11 +342,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       const babelOptions = mergeAndConcat(babelUserOptions, opts) as babel.TransformOptions;
 
-      const result = await babel.transformAsync(source, babelOptions);
-      if (!result) {
-        return undefined;
-      }
-      return { code: result.code || '', map: result.map };
+      const { code, map } = await babel.transformAsync(source, babelOptions);
+
+      return { code, map };
     },
   };
 }

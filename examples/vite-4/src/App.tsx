@@ -1,5 +1,4 @@
-/* @refresh granular */
-import { createSignal, onCleanup, onMount } from "solid-js";
+import { onCleanup, onMount } from "solid-js";
 import { CounterProvider, useCounter } from "./CounterContext";
 
 const title = 'Count';

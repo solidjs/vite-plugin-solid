@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.10.1
+
+### Patch Changes
+
+- 1552678: emergency temporary revert of solid-refresh
+
 ## 2.10.0
 
 ### Minor Changes

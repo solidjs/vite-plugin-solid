@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.10.0
+
+### Minor Changes
+
+- 6156811: add changesets, update to solid-refresh 0.7
+
 <a name="2.3.0"></a>
 
 ## 2.3.0 (2022-07-14)

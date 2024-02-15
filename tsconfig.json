@@ -9,7 +9,7 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "node",
-    "strict": false,
+    "strict": true,
     "declaration": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,

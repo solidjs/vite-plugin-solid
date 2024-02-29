@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.0-beta.0
+
+### Minor Changes
+
+- bd4e68f: Fix HMR for SSR with new Refresh
+
 ## 2.10.1
 
 ### Patch Changes

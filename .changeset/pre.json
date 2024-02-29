@@ -4,5 +4,7 @@
   "initialVersions": {
     "vite-plugin-solid": "2.10.1"
   },
-  "changesets": []
+  "changesets": [
+    "short-cobras-add"
+  ]
 }

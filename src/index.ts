@@ -38,14 +38,13 @@ export interface Options {
    *
    * @default true
    */
-  dev: boolean;
+  dev?: boolean;
   /**
-   * This will force SSR code in the produced files. This is experiemental
-   * and mostly not working yet.
+   * This will force SSR code in the produced files.
    *
    * @default false
    */
-  ssr: boolean;
+  ssr?: boolean;
 
   /**
    * This will inject HMR runtime in dev mode. Has no effect in prod. If
@@ -53,7 +52,7 @@ export interface Options {
    *
    * @default true
    */
-  hot: boolean;
+  hot?: boolean;
   /**
    * This registers additional extensions that should be processed by
    * vite-plugin-solid.
@@ -67,7 +66,7 @@ export interface Options {
    *
    * @default {}
    */
-  babel:
+  babel?:
     | babel.TransformOptions
     | ((source: string, id: string, ssr: boolean) => babel.TransformOptions)
     | ((source: string, id: string, ssr: boolean) => Promise<babel.TransformOptions>);
@@ -77,14 +76,14 @@ export interface Options {
    *
    * @default {}
    */
-  solid: {
+  solid?: {
     /**
      * Removed unnecessary closing tags from template strings. More info here:
      * https://github.com/solidjs/solid/blob/main/CHANGELOG.md#smaller-templates
      *
      * @default false
      */
-    omitNestedClosingTags: boolean;
+    omitNestedClosingTags?: boolean;
 
     /**
      * The name of the runtime module to import the methods from.

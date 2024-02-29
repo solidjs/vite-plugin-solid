@@ -1,5 +1,5 @@
 ---
-"vite-plugin-solid": patch
+"vite-plugin-solid": minor
 ---
 
 Fix HMR for SSR

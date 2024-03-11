@@ -219,8 +219,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
         test.server = test.server || {};
         test.server.deps = test.server.deps || {};
-        if (!test.server.deps.inline?.find((item: string | RegExp) => /solid-js/.test(item.toString()))) {
-          test.server.deps.inline = [...(test.server.deps.inline || []), /solid-js/];
+        if (!test.server.deps.external?.find((item: string | RegExp) => /solid-js/.test(item.toString()))) {
+          test.server.deps.external = [...(test.server.deps.external || []), /solid-js/];
         }
 
         const jestDomImport = getJestDomExport(userSetupFiles);

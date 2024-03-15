@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.10.2
+
+### Patch Changes
+
+- e52d554: import solid as external to fix testing with npm
+- 7500d78: update option types
+
 ## 2.10.1
 
 ### Patch Changes

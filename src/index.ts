@@ -272,6 +272,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     async transform(source, id, transformOptions) {
+      if (!filter(id)) {
+        return null;
+      }
+
       const isSsr = transformOptions && transformOptions.ssr;
       const currentFileExtension = getExtension(id);
 
@@ -281,14 +285,14 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         typeof extension === 'string' ? extension : extension[0],
       );
 
-      if (!filter(id) || !(/\.[mc]?[tj]sx$/i.test(id) || allExtensions.includes(currentFileExtension))) {
+      id = id.replace(/\?.+$/, '');
+
+      if (!/\.[mc]?[tj]sx$/i.test(id) && !allExtensions.includes(currentFileExtension)) {
         return null;
       }
 
       const inNodeModules = /node_modules/.test(id);
-
       let solidOptions: { generate: 'ssr' | 'dom'; hydratable: boolean };
-
       if (options.ssr) {
         if (isSsr) {
           solidOptions = { generate: 'ssr', hydratable: true };
@@ -298,8 +302,6 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       } else {
         solidOptions = { generate: 'dom', hydratable: false };
       }
-
-      id = id.replace(/\?.+$/, '');
 
       // We need to know if the current file extension has a typescript options tied to it
       const shouldBeProcessedWithTypescript = /\.[mc]?tsx$/i.test(id) || extensionsToWatch.some((extension) => {

@@ -145,7 +145,7 @@ export interface Options {
 
 function getExtension(filename: string): string {
   const index = filename.lastIndexOf('.');
-  return index < 0 ? '' : filename.substring(index).replace(/\?.+$/, '');
+  return index < 0 ? '' : filename.substring(index).replace(/\?.*$/, '');
 }
 function containsSolidField(fields: Record<string, any>) {
   const keys = Object.keys(fields);
@@ -275,7 +275,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         typeof extension === 'string' ? extension : extension[0],
       );
 
-      if (!filter(id) || !(/\.[mc]?[tj]sx$/i.test(id) || allExtensions.includes(currentFileExtension))) {
+      if (!filter(id) || !(/\.[mc]?[tj]sx(\?.*)?$/i.test(id) || allExtensions.includes(currentFileExtension))) {
         return null;
       }
 

@@ -275,7 +275,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         typeof extension === 'string' ? extension : extension[0],
       );
 
-      if (!filter(id) || !(/\.[mc]?[tj]sx(\?.*)?$/i.test(id) || allExtensions.includes(currentFileExtension))) {
+      if (!filter(id) || !(/^\.[mc]?[tj]sx$/i.test(currentFileExtension) || allExtensions.includes(currentFileExtension))) {
         return null;
       }
 

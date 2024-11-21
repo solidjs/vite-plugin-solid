@@ -258,13 +258,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     // @ts-ignore This hook only works in Vite 6
-    async configEnvironment(_, config, opts) {
+    async configEnvironment(name, config, opts) {
       config.resolve ??= {};
       // Emulate Vite default fallback for `resolve.conditions` if not set
       if (config.resolve.conditions == null) {
         // @ts-ignore These exports only exist in Vite 6
         const { defaultClientConditions, defaultServerConditions } = await import('vite');
-        if (config.consumer === 'client' || opts.isSsrTargetWebworker) {
+        if (config.consumer === 'client' || name === 'client' || opts.isSsrTargetWebworker) {
           config.resolve.conditions = [...defaultClientConditions];
         } else {
           config.resolve.conditions = [...defaultServerConditions];

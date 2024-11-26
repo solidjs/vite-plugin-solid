@@ -46,7 +46,7 @@
     "babel-preset-solid": "^1.8.4",
     "merge-anything": "^5.1.7",
     "solid-refresh": "^0.6.3",
-    "vitefu": "^0.2.5"
+    "vitefu": "^1.0.4"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.23.3",
@@ -62,7 +62,7 @@
     "rollup-plugin-cleaner": "^1.0.0",
     "solid-js": "^1.8.14",
     "typescript": "^5.2.2",
-    "vite": "^5.4.11"
+    "vite": "^6.0.0"
   },
   "peerDependencies": {
     "@testing-library/jest-dom": "^5.16.6 || ^5.17.0 || ^6.*",

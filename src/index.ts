@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
-import { createFilter } from 'vite';
+import { createFilter, version } from 'vite';
 import type { Alias, AliasOptions, Plugin, FilterPattern } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
 
@@ -13,6 +13,8 @@ const require = createRequire(import.meta.url);
 const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
 const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
+
+const isVite6 = version.startsWith('6.');
 
 /** Possible options for the extensions property */
 export interface ExtensionOptions {
@@ -236,11 +238,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
          */
         // esbuild: { include: /\.ts$/ },
         resolve: {
-          conditions: [
-            'solid',
-            ...(replaceDev ? ['development'] : []),
-            ...(userConfig.mode === 'test' && !options.ssr ? ['browser'] : []),
-          ],
+          conditions: isVite6
+            ? undefined
+            : [
+                'solid',
+                ...(replaceDev ? ['development'] : []),
+                ...(userConfig.mode === 'test' && !options.ssr ? ['browser'] : []),
+              ],
           dedupe: nestedDeps,
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
         },
@@ -251,6 +255,22 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         ssr: solidPkgsConfig.ssr,
         ...(test.server ? { test } : {}),
       };
+    },
+
+    // @ts-ignore This hook only works in Vite 6
+    async configEnvironment(name, config, opts) {
+      config.resolve ??= {};
+      // Emulate Vite default fallback for `resolve.conditions` if not set
+      if (config.resolve.conditions == null) {
+        // @ts-ignore These exports only exist in Vite 6
+        const { defaultClientConditions, defaultServerConditions } = await import('vite');
+        if (config.consumer === 'client' || name === 'client' || opts.isSsrTargetWebworker) {
+          config.resolve.conditions = [...defaultClientConditions];
+        } else {
+          config.resolve.conditions = [...defaultServerConditions];
+        }
+      }
+      config.resolve.conditions.push('solid');
     },
 
     configResolved(config) {

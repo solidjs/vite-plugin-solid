@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       solid-js:
-        specifier: ^1.8.14
-        version: 1.8.14
+        specifier: ^1.9.3
+        version: 1.9.3
     devDependencies:
       vite:
         specifier: ^3.2.7
@@ -210,7 +210,7 @@ packages:
     resolution: {integrity: sha512-qQs/N+KfJu83rmszFQaTxcoJoPn6KNUruX4KmnmyD0oZkUoiNvJ1rpdYKDf4YHM05k+HOgCxa3yvf15QbVijGg==}
     engines: {node: '>=10'}
 
-  solid-js@1.8.14:
+  solid-js@1.9.3:
     resolution: {integrity: sha512-kDfgHBm+ROVLDVuqaXh/jYz0ZVJ29TYfVsKsgDPtNcjoyaPtOvDX2l0tVnthjLdEXr7vDTYeqEYFfMkZakDsOQ==}
 
   source-map-js@1.0.2:
@@ -382,7 +382,7 @@ snapshots:
 
   seroval@1.0.4: {}
 
-  solid-js@1.8.14:
+  solid-js@1.9.3:
     dependencies:
       csstype: 3.1.1
       seroval: 1.0.4

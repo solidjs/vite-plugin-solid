@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.11.0
+
+### Minor Changes
+
+- 8a6d81e: Add vite 6 compat
+
+### Patch Changes
+
+- 74c75d0: Support Vite 6's `resolve.conditions` breaking change
+
 ## 2.10.2
 
 ### Patch Changes

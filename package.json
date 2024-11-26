@@ -1,7 +1,7 @@
 {
   "name": "vite-plugin-solid",
   "version": "2.10.2",
-  "description": "solid-js integration plugin for vite 3/4/5",
+  "description": "solid-js integration plugin for vite 3/4/5/6",
   "type": "module",
   "files": [
     "dist"
@@ -37,7 +37,7 @@
   "author": "Alexandre Mouton-Brady <amoutonbrady@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/amoutonbrady/vite-plugin-solid/issues"
+    "url": "https://github.com/solidjs/vite-plugin-solid/issues"
   },
   "homepage": "https://github.com/solidjs/vite-plugin-solid#readme",
   "dependencies": {
@@ -67,7 +67,7 @@
   "peerDependencies": {
     "@testing-library/jest-dom": "^5.16.6 || ^5.17.0 || ^6.*",
     "solid-js": "^1.7.2",
-    "vite": "^3.0.0 || ^4.0.0 || ^5.0.0"
+    "vite": "^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0" 
   },
   "peerDependenciesMeta": {
     "@testing-library/jest-dom": {

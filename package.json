@@ -73,6 +73,5 @@
     "@testing-library/jest-dom": {
       "optional": true
     }
-  },
-  "packageManager": "pnpm@7.18.1"
+  }
 }

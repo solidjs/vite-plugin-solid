@@ -181,6 +181,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let needHmr = false;
   let replaceDev = false;
   let projectRoot = process.cwd();
+  let isTestMode = false;
 
   return {
     name: 'solid',
@@ -190,6 +191,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       // We inject the dev mode only if the user explicitely wants it or if we are in dev (serve) mode
       replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
       projectRoot = userConfig.root;
+      isTestMode = userConfig.mode === 'test';
 
       if (!userConfig.resolve) userConfig.resolve = {};
       userConfig.resolve.alias = normalizeAliases(userConfig.resolve && userConfig.resolve.alias);
@@ -270,7 +272,12 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           config.resolve.conditions = [...defaultServerConditions];
         }
       }
-      config.resolve.conditions.push('solid');
+      config.resolve.conditions = [
+        'solid',
+        ...(replaceDev ? ['development'] : []),
+        ...(isTestMode && !opts.isSsrTargetWebworker ? ['browser'] : []),
+        ...config.resolve.conditions,
+      ];
     },
 
     configResolved(config) {

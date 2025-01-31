@@ -254,8 +254,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           include: [...nestedDeps, ...solidPkgsConfig.optimizeDeps.include],
           exclude: solidPkgsConfig.optimizeDeps.exclude,
         },
-        ssr: solidPkgsConfig.ssr,
-        ...(test.server ? { test } : {}),
+        ssr: solidPkgsConfig.ssr
       };
     },
 

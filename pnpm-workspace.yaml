@@ -1,0 +1,4 @@
+packages:
+  - "examples/*"
+catalog:
+    "solid-js": ^1.9.4

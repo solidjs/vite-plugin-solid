@@ -9,9 +9,9 @@
   },
   "devDependencies": {
     "vite": "^5.1.1",
-    "vite-plugin-solid": "link:../.."
+    "vite-plugin-solid": "workspace:*"
   },
   "dependencies": {
-    "solid-js": "^1.9.3"
+    "solid-js": "catalog:"
   }
 }

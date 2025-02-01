@@ -305,7 +305,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         typeof extension === 'string' ? extension : extension[0],
       );
 
-      if (!filter(id) || !(/\.[mc]?[tj]sx$/i.test(id) || allExtensions.includes(currentFileExtension))) {
+      if (
+        !filter(id) ||
+        !(/\.[mc]?[tj]sx$/i.test(id) || allExtensions.includes(currentFileExtension))
+      ) {
         return null;
       }
 
@@ -326,17 +329,21 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       id = id.replace(/\?.+$/, '');
 
       // We need to know if the current file extension has a typescript options tied to it
-      const shouldBeProcessedWithTypescript = /\.[mc]?tsx$/i.test(id) || extensionsToWatch.some((extension) => {
-        if (typeof extension === 'string') {
-          return extension.includes('tsx');
-        }
+      const shouldBeProcessedWithTypescript =
+        /\.[mc]?tsx$/i.test(id) ||
+        extensionsToWatch.some((extension) => {
+          if (typeof extension === 'string') {
+            return extension.includes('tsx');
+          }
 
-        const [extensionName, extensionOptions] = extension;
-        if (extensionName !== currentFileExtension) return false;
+          const [extensionName, extensionOptions] = extension;
+          if (extensionName !== currentFileExtension) return false;
 
-        return extensionOptions.typescript;
-      });
-      const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = ['jsx']
+          return extensionOptions.typescript;
+        });
+      const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = [
+        'jsx',
+      ];
 
       if (shouldBeProcessedWithTypescript) {
         plugins.push('typescript');

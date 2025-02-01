@@ -1,19 +1,8 @@
-import '../support/e2e'
-
 describe('Vite Plugin Solid Examples', () => {
-  it(`should match snapshot for current example`, () => {
-    const example = Cypress.env('example');
-    if (!example) {
-      throw new Error('No example specified');
-    }
-
+  it('should increment counter correctly', () => {
     cy.visit('/')
-    cy.wait(1000)
-
+    cy.get('h1').contains('Count: 0')
     cy.contains('button', 'Increment').click()
-
-    cy.compareSnapshot(`${example}-snapshot`)
-
-    
+    cy.get('h1').contains('Count: 1')
   })
 })

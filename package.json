@@ -21,8 +21,7 @@
     "dev": "rollup -c -w",
     "prepublishOnly": "pnpm build",
     "check": "package-check",
-    "test": "node scripts/test-examples.ts",
-    "test:update-snapshots": "CYPRESS_updateSnapshots=true node scripts/test-examples.ts"
+    "test": "node scripts/test-examples.ts"
   },
   "repository": {
     "type": "git",

@@ -9,6 +9,8 @@ export default defineConfig({
     screenshotOnRunFailure: false,
     trashAssetsBeforeRuns: true,
     screenshotsFolder: './cypress/snapshots/actual',
+    viewportHeight: 800,
+    viewportWidth: 1200,
     setupNodeEvents(on) {
       on('file:preprocessor', vitePreprocessor())
     },

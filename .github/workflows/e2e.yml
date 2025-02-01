@@ -9,7 +9,7 @@ on:
 
 jobs:
   e2e-tests:
-    name: "E2E Snapshot tests"
+    name: "E2E tests"
     strategy:
       fail-fast: false
 

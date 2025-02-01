@@ -2,6 +2,7 @@ Cypress.Commands.add('compareSnapshot', (name: string) => {
   const updateSnapshots = Cypress.env('updateSnapshots');
   const snapshotsDir = 'cypress/snapshots';
   
+  cy.viewport(1200, 800);
   cy.screenshot(name, { 
     capture: 'viewport',
     overwrite: updateSnapshots 

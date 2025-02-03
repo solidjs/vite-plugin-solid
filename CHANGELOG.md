@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.1
+
+### Patch Changes
+
+- c5ddd03: Fix vite6 environment detection
+
 ## 2.11.0
 
 ### Minor Changes

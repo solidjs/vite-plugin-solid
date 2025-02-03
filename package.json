@@ -20,6 +20,7 @@
     "build": "rollup -c && tsc --emitDeclarationOnly",
     "dev": "rollup -c -w",
     "prepublishOnly": "pnpm build",
+    "release": "pnpm build && changeset publish",
     "check": "package-check"
   },
   "repository": {

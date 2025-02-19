@@ -306,7 +306,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         return null
       }
 
-      id = id.replace(/\?.+$/, '');
+      id = id.replace(/\?.*$/, '');
 
       if (!(/\.[mc]?[tj]sx$/i.test(id) || allExtensions.includes(currentFileExtension))) {
         return null;

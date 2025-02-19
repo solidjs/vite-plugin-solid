@@ -302,9 +302,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         typeof extension === 'string' ? extension : extension[0],
       );
 
-      id = id.replace(/\?.+$/, '');
+      if (!filter(id)) {
+        return null
+      }
 
-      if (!filter(id) || !(/\.[mc]?[tj]sx$/i.test(id) || allExtensions.includes(currentFileExtension))) {
+      id = id.replace(/\?.*$/, '');
+
+      if (!(/\.[mc]?[tj]sx$/i.test(id) || allExtensions.includes(currentFileExtension))) {
         return null;
       }
 

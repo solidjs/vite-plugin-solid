@@ -302,6 +302,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         typeof extension === 'string' ? extension : extension[0],
       );
 
+      id = id.replace(/\?.+$/, '');
+
       if (!filter(id) || !(/\.[mc]?[tj]sx$/i.test(id) || allExtensions.includes(currentFileExtension))) {
         return null;
       }
@@ -319,8 +321,6 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       } else {
         solidOptions = { generate: 'dom', hydratable: false };
       }
-
-      id = id.replace(/\?.+$/, '');
 
       // We need to know if the current file extension has a typescript options tied to it
       const shouldBeProcessedWithTypescript = /\.[mc]?tsx$/i.test(id) || extensionsToWatch.some((extension) => {

@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-solid",
-  "version": "2.11.0",
+  "version": "2.11.2",
   "description": "solid-js integration plugin for vite 3/4/5/6",
   "type": "module",
   "files": [
@@ -20,6 +20,7 @@
     "build": "rollup -c && tsc --emitDeclarationOnly",
     "dev": "rollup -c -w",
     "prepublishOnly": "pnpm build",
+    "release": "pnpm build && changeset publish",
     "check": "package-check"
   },
   "repository": {

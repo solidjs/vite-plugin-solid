@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.11.2
+
+### Patch Changes
+
+- 5003976: handle empty query string
+- 3da707e: Support query string in tsx/jsx files
+
+## 2.11.1
+
+### Patch Changes
+
+- c5ddd03: Fix vite6 environment detection
+
 ## 2.11.0
 
 ### Minor Changes

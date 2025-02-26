@@ -210,26 +210,29 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
         : [];
 
-      const test = (userConfig as any).test || {};
-
+      const userTest = (userConfig as any) ?? {};
+      const test = {} as any;
       if (userConfig.mode === 'test') {
         // to simplify the processing of the config, we normalize the setupFiles to an array
         const userSetupFiles: string[] =
-          typeof test.setupFiles === 'string' ? [test.setupFiles] : test.setupFiles || [];
+          typeof userTest.setupFiles === 'string'
+            ? [userTest.setupFiles]
+            : userTest.setupFiles || [];
 
-        if (!test.environment && !options.ssr) {
+        if (!userTest.environment && !options.ssr) {
           test.environment = 'jsdom';
         }
 
-        test.server = test.server || {};
-        test.server.deps = test.server.deps || {};
-        if (!test.server.deps.external?.find((item: string | RegExp) => /solid-js/.test(item.toString()))) {
-          test.server.deps.external = [...(test.server.deps.external || []), /solid-js/];
+        if (
+          !userTest.server?.deps?.external?.find((item: string | RegExp) =>
+            /solid-js/.test(item.toString()),
+          )
+        ) {
+          test.server = { deps: { external: [/solid-js/] } };
         }
-
         const jestDomImport = getJestDomExport(userSetupFiles);
         if (jestDomImport) {
-          test.setupFiles = [...userSetupFiles, jestDomImport];
+          test.setupFiles = [jestDomImport];
         }
       }
 
@@ -303,7 +306,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       );
 
       if (!filter(id)) {
-        return null
+        return null;
       }
 
       id = id.replace(/\?.*$/, '');
@@ -327,17 +330,21 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       }
 
       // We need to know if the current file extension has a typescript options tied to it
-      const shouldBeProcessedWithTypescript = /\.[mc]?tsx$/i.test(id) || extensionsToWatch.some((extension) => {
-        if (typeof extension === 'string') {
-          return extension.includes('tsx');
-        }
+      const shouldBeProcessedWithTypescript =
+        /\.[mc]?tsx$/i.test(id) ||
+        extensionsToWatch.some((extension) => {
+          if (typeof extension === 'string') {
+            return extension.includes('tsx');
+          }
 
-        const [extensionName, extensionOptions] = extension;
-        if (extensionName !== currentFileExtension) return false;
+          const [extensionName, extensionOptions] = extension;
+          if (extensionName !== currentFileExtension) return false;
 
-        return extensionOptions.typescript;
-      });
-      const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = ['jsx']
+          return extensionOptions.typescript;
+        });
+      const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = [
+        'jsx',
+      ];
 
       if (shouldBeProcessedWithTypescript) {
         plugins.push('typescript');

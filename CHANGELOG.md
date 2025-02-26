@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.4
+
+### Patch Changes
+
+- ff66baf: Adjust path to type declaration
+
 ## 2.11.3
 
 ### Patch Changes

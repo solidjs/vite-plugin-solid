@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 05c0f90: Fix duplicated test setupFiles in resolved vite config
+- d87159b: Fix duplicated test setupFiles in resolved vite config
 
 ## 2.11.2
 

@@ -21,7 +21,8 @@
     "dev": "rollup -c -w",
     "prepublishOnly": "pnpm build",
     "release": "pnpm build && changeset publish",
-    "check": "package-check"
+    "check": "package-check",
+    "test": "node scripts/test-examples.ts"
   },
   "repository": {
     "type": "git",

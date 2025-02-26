@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.3
+
+### Patch Changes
+
+- d87159b: Fix duplicated test setupFiles in resolved vite config
+
 ## 2.11.2
 
 ### Patch Changes

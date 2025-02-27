@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.5
+
+### Patch Changes
+
+- 57cb53a: Update path to type declaration
+
 ## 2.11.4
 
 ### Patch Changes

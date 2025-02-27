@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  vitest:
+    name: 'Vitest'
+    strategy:
+      fail-fast: false
+
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '23'
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.3
+
+      - name: Install project dependencies
+        run: pnpm i
+
+      - name: Install playwright browser
+        working-directory: examples/vite-6
+        run: pnpm exec playwright install chromium
+
+      - name: Run tests
+        working-directory: examples/vite-6
+        run: pnpm run test

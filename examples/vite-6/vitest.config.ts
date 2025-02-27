@@ -1,4 +1,3 @@
-/// <reference types="@vitest/browser/providers/playwright" />
 import { defineConfig } from 'vitest/config';
 import solidPlugin from '../../src/index.js';
 

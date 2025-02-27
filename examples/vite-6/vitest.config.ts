@@ -6,4 +6,12 @@ export default defineConfig({
   resolve: {
     conditions: ['development', 'browser'],
   },
+  test: {
+    environment: 'node',
+    browser: {
+      enabled: true,
+      provider: 'playwright',
+      instances: [{ browser: 'chromium' }],
+    },
+  },
 });

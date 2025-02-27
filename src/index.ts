@@ -4,8 +4,8 @@ import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
+import type { Alias, AliasOptions, FilterPattern, Plugin } from 'vite';
 import { createFilter, version } from 'vite';
-import type { Alias, AliasOptions, Plugin, FilterPattern } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
 
 const require = createRequire(import.meta.url);
@@ -188,7 +188,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     enforce: 'pre',
 
     async config(userConfig, { command }) {
-      // We inject the dev mode only if the user explicitely wants it or if we are in dev (serve) mode
+      // We inject the dev mode only if the user explicitly wants it or if we are in dev (serve) mode
       replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
       projectRoot = userConfig.root;
       isTestMode = userConfig.mode === 'test';
@@ -210,7 +210,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
         : [];
 
-      const userTest = (userConfig as any) ?? {};
+      const userTest = (userConfig as any).test ?? {};
       const test = {} as any;
       if (userConfig.mode === 'test') {
         // to simplify the processing of the config, we normalize the setupFiles to an array
@@ -230,9 +230,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         ) {
           test.server = { deps: { external: [/solid-js/] } };
         }
-        const jestDomImport = getJestDomExport(userSetupFiles);
-        if (jestDomImport) {
-          test.setupFiles = [jestDomImport];
+        if (!userTest.browser?.enabled) {
+          // vitest browser mode already has bundled jest-dom assertions
+          // https://main.vitest.dev/guide/browser/assertion-api.html#assertion-api
+          const jestDomImport = getJestDomExport(userSetupFiles);
+          if (jestDomImport) {
+            test.setupFiles = [jestDomImport];
+          }
         }
       }
 

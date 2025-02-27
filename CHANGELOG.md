@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.6
+
+### Patch Changes
+
+- 14da18d: Fix accessing the wrong user test configuration
+
 ## 2.11.5
 
 ### Patch Changes

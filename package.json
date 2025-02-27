@@ -10,7 +10,7 @@
   "module": "dist/esm/index.mjs",
   "types": "dist/types/src/index.d.ts",
   "exports": {
-    "types": "./dist/types/index.d.ts",
+    "types": "./dist/types/src/index.d.ts",
     "import": "./dist/esm/index.mjs",
     "node": "./dist/cjs/index.cjs",
     "require": "./dist/cjs/index.cjs",

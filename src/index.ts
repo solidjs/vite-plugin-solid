@@ -196,8 +196,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       userConfig.resolve.alias = normalizeAliases(userConfig.resolve && userConfig.resolve.alias);
 
       // Forces "esbuild" to preserve JSX so that we can handle it here
-      // If "esbuild" is not being used I don't need to change anything
-      if (userConfig.esbuild) userConfig.esbuild.jsx ??= 'preserve';
+      // If "esbuild" is not being used, we don't need to change anything
+      if (userConfig.esbuild !== false)
+        userConfig.esbuild = { jsx: 'preserve', ...userConfig.esbuild };
 
       const solidPkgsConfig = await crawlFrameworkPkgs({
         viteUserConfig: userConfig,

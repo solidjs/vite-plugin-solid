@@ -80,12 +80,28 @@ export interface Options {
    */
   solid?: {
     /**
-     * Removed unnecessary closing tags from template strings. More info here:
+     * Remove unnecessary closing tags from template strings. More info here:
      * https://github.com/solidjs/solid/blob/main/CHANGELOG.md#smaller-templates
      *
      * @default false
      */
     omitNestedClosingTags?: boolean;
+
+    /**
+     * Remove the last closing tag from template strings. Enabled by default even when `omitNestedClosingTags` is disabled.
+     * Can be disabled for compatibility for some browser-like environments.
+     *
+     * @default true
+     */
+    omitLastClosingTag?: boolean;
+
+    /**
+     * Remove unnecessary quotes from template strings.
+     * Can be disabled for compatibility for some browser-like environments.
+     *
+     * @default true
+     */
+    omitQuotes?: boolean;
 
     /**
      * The name of the runtime module to import the methods from.

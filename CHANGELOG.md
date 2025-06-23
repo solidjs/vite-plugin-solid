@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.7
+
+### Patch Changes
+
+- f58b288: add new configuration from dom-expressions
+
 ## 2.11.6
 
 ### Patch Changes

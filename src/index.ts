@@ -14,7 +14,7 @@ const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
 const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 
-const isVite6 = version.startsWith('6.');
+const isVite6 = +version.split('.')[0] >= 6;
 
 /** Possible options for the extensions property */
 export interface ExtensionOptions {

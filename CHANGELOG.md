@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.11.8
+
+### Patch Changes
+
+- 94431eb: add support for vite 7 in peerDeps
+- ea5f791: Fix Vite 7+ compatibility.
+
 ## 2.11.7
 
 ### Patch Changes

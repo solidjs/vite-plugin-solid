@@ -45,7 +45,7 @@
   "dependencies": {
     "@babel/core": "^7.23.3",
     "@types/babel__core": "^7.20.4",
-    "babel-preset-solid": "2.0.0-experimental.5",
+    "babel-preset-solid": "2.0.0-experimental.7",
     "merge-anything": "^5.1.7",
     "solid-refresh": "^0.6.3",
     "vitefu": "^1.0.4"

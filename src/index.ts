@@ -298,7 +298,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       config.resolve.conditions = [
         'solid',
         ...(replaceDev ? ['development'] : []),
-        ...(isTestMode && !opts.isSsrTargetWebworker ? ['browser'] : []),
+        ...(isTestMode && !opts.isSsrTargetWebworker && !options.ssr ? ['browser'] : []),
         ...config.resolve.conditions,
       ];
     },

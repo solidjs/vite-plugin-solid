@@ -301,6 +301,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         ...(isTestMode && !opts.isSsrTargetWebworker && !options.ssr ? ['browser'] : []),
         ...config.resolve.conditions,
       ];
+      config.resolve.externalConditions ??= [];
+      config.resolve.externalConditions.push("solid");
+      config.resolve.externalConditions.push("node");
     },
 
     configResolved(config) {

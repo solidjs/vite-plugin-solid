@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.9
+
+### Patch Changes
+
+- ce00b4b: Fix server-side testing with vitest/ssr
+
 ## 2.11.8
 
 ### Patch Changes

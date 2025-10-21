@@ -198,6 +198,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let replaceDev = false;
   let projectRoot = process.cwd();
   let isTestMode = false;
+  let solidPkgsConfig: Awaited<ReturnType<typeof crawlFrameworkPkgs>>;
 
   return {
     name: 'solid',
@@ -212,7 +213,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       if (!userConfig.resolve) userConfig.resolve = {};
       userConfig.resolve.alias = normalizeAliases(userConfig.resolve && userConfig.resolve.alias);
 
-      const solidPkgsConfig = await crawlFrameworkPkgs({
+      solidPkgsConfig = await crawlFrameworkPkgs({
         viteUserConfig: userConfig,
         root: projectRoot || process.cwd(),
         isBuild: command === 'build',
@@ -277,7 +278,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           include: [...nestedDeps, ...solidPkgsConfig.optimizeDeps.include],
           exclude: solidPkgsConfig.optimizeDeps.exclude,
         },
-        ssr: solidPkgsConfig.ssr,
+        ...(!isVite6 ? { ssr: solidPkgsConfig.ssr } : {}),
         ...(test.server ? { test } : {}),
       };
     },
@@ -301,6 +302,21 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         ...(isTestMode && !opts.isSsrTargetWebworker && !options.ssr ? ['browser'] : []),
         ...config.resolve.conditions,
       ];
+
+      // Set resolve.noExternal and resolve.external for SSR environment (Vite 6+)
+      // Only set resolve.external if noExternal is not true (to avoid conflicts with plugins like Cloudflare)
+      if (isVite6 && name === 'ssr' && solidPkgsConfig) {
+        if (config.resolve.noExternal !== true) {
+          config.resolve.noExternal = [
+            ...(Array.isArray(config.resolve.noExternal) ? config.resolve.noExternal : []),
+            ...solidPkgsConfig.ssr.noExternal,
+          ];
+          config.resolve.external = [
+            ...(Array.isArray(config.resolve.external) ? config.resolve.external : []),
+            ...solidPkgsConfig.ssr.external,
+          ];
+        }
+      }
     },
 
     configResolved(config) {

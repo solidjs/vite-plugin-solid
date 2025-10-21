@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.10
+
+### Patch Changes
+
+- b19050a: Fix SSR resolve.external being unconditionally applied in Vite 6+
+
 ## 2.11.9
 
 ### Patch Changes

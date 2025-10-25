@@ -3,7 +3,7 @@ import solid from 'babel-preset-solid';
 import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
-import solidRefresh from 'solid-refresh/babel';
+// import solidRefresh from 'solid-refresh/babel';
 import type { Alias, AliasOptions, FilterPattern, Plugin } from 'vite';
 import { createFilter, version } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
@@ -69,9 +69,9 @@ export interface Options {
    * @default {}
    */
   babel?:
-    | babel.TransformOptions
-    | ((source: string, id: string, ssr: boolean) => babel.TransformOptions)
-    | ((source: string, id: string, ssr: boolean) => Promise<babel.TransformOptions>);
+  | babel.TransformOptions
+  | ((source: string, id: string, ssr: boolean) => babel.TransformOptions)
+  | ((source: string, id: string, ssr: boolean) => Promise<babel.TransformOptions>);
   /**
    * Pass any additional [babel-plugin-jsx-dom-expressions](https://github.com/ryansolid/dom-expressions/tree/main/packages/babel-plugin-jsx-dom-expressions#plugin-options).
    * They will be merged with the defaults sets by [babel-preset-solid](https://github.com/solidjs/solid/blob/main/packages/babel-preset-solid/index.js#L8-L25).
@@ -180,15 +180,15 @@ function getJestDomExport(setupFiles: string[]) {
   return setupFiles?.some((path) => /jest-dom/.test(path))
     ? undefined
     : ['@testing-library/jest-dom/vitest', '@testing-library/jest-dom/extend-expect'].find(
-        (path) => {
-          try {
-            require.resolve(path);
-            return true;
-          } catch (e) {
-            return false;
-          }
-        },
-      );
+      (path) => {
+        try {
+          require.resolve(path);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      },
+    );
 }
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
@@ -224,7 +224,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       // fix for bundling dev in production
       const nestedDeps = replaceDev
-        ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
+        ? ['solid-js']
         : [];
 
       const userTest = (userConfig as any).test ?? {};
@@ -267,10 +267,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           conditions: isVite6
             ? undefined
             : [
-                'solid',
-                ...(replaceDev ? ['development'] : []),
-                ...(userConfig.mode === 'test' && !options.ssr ? ['browser'] : []),
-              ],
+              'solid',
+              ...(replaceDev ? ['development'] : []),
+              ...(userConfig.mode === 'test' && !options.ssr ? ['browser'] : []),
+            ],
           dedupe: nestedDeps,
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
         },
@@ -391,7 +391,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         filename: id,
         sourceFileName: id,
         presets: [[solid, { ...solidOptions, ...(options.solid || {}) }]],
-        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, { bundler: 'vite' }]] : [],
+        plugins: needHmr && !isSsr && !inNodeModules ? [] : [],
         ast: false,
         sourceMaps: true,
         configFile: false,

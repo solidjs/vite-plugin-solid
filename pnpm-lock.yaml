@@ -24,8 +24,8 @@ importers:
         specifier: ^7.20.4
         version: 7.20.5
       babel-preset-solid:
-        specifier: 2.0.0-experimental.11
-        version: 2.0.0-experimental.11(@babel/core@7.26.0)(solid-js@1.9.4)
+        specifier: 2.0.0-experimental.12
+        version: 2.0.0-experimental.12(@babel/core@7.26.0)(solid-js@1.9.4)
       merge-anything:
         specifier: ^5.1.7
         version: 5.1.7
@@ -1904,11 +1904,11 @@ packages:
     peerDependencies:
       '@babel/core': ^7.4.0 || ^8.0.0-0 <8.0.0
 
-  babel-preset-solid@2.0.0-experimental.11:
-    resolution: {integrity: sha512-BVEPtRRqzlh35FgM+86ZJpfnaz3UIaHFWS8SD+xYi4EdAJIhIH+EnZpTnhU+OTxD1uZ3tTuono4kPSH6Djipxg==}
+  babel-preset-solid@2.0.0-experimental.12:
+    resolution: {integrity: sha512-nbcoieGkq/vzlqgQjNRF1WZOYAN1UbnV03yKIq9unfiypARQq1e/Ys9ZQxp0mj9i3kZ1d7slEZ2GA4KizzV8xg==}
     peerDependencies:
       '@babel/core': ^7.0.0
-      solid-js: 2.0.0-experimental.11
+      solid-js: 2.0.0-experimental.12
     peerDependenciesMeta:
       solid-js:
         optional: true
@@ -3686,6 +3686,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -5456,7 +5457,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  babel-preset-solid@2.0.0-experimental.11(@babel/core@7.26.0)(solid-js@1.9.4):
+  babel-preset-solid@2.0.0-experimental.12(@babel/core@7.26.0)(solid-js@1.9.4):
     dependencies:
       '@babel/core': 7.26.0
       babel-plugin-jsx-dom-expressions: 0.41.0-next.0(@babel/core@7.26.0)

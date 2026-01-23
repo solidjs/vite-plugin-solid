@@ -33,8 +33,8 @@ importers:
         specifier: ^0.6.3
         version: 0.6.3(solid-js@1.9.4)
       vitefu:
-        specifier: ^1.0.4
-        version: 1.0.4(vite@6.0.9(@types/node@18.19.66))
+        specifier: ^1.1.1
+        version: 1.1.1(vite@6.0.9(@types/node@18.19.66))
     devDependencies:
       '@babel/preset-env':
         specifier: ^7.23.3
@@ -3839,10 +3839,10 @@ packages:
       yaml:
         optional: true
 
-  vitefu@1.0.4:
-    resolution: {integrity: sha512-y6zEE3PQf6uu/Mt6DTJ9ih+kyJLr4XcSgHR2zUkM8SWDhuixEJxfJ6CZGMHh1Ec3vPLoEA0IHU5oWzVqw8ulow==}
+  vitefu@1.1.1:
+    resolution: {integrity: sha512-B/Fegf3i8zh0yFbpzZ21amWzHmuNlLlmJT6n7bu5e+pCHUKQIfXSYokrqOBGEMMe9UG2sostKQF9mml/vYaWJQ==}
     peerDependencies:
-      vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
+      vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0-beta.0
     peerDependenciesMeta:
       vite:
         optional: true
@@ -3886,6 +3886,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -7469,7 +7470,7 @@ snapshots:
       '@types/node': 18.19.66
       fsevents: 2.3.3
 
-  vitefu@1.0.4(vite@6.0.9(@types/node@18.19.66)):
+  vitefu@1.1.1(vite@6.0.9(@types/node@18.19.66)):
     optionalDependencies:
       vite: 6.0.9(@types/node@18.19.66)
 

@@ -4,6 +4,8 @@ import { readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
+// TODO use proper path
+import type { Options as RefreshOptions } from 'solid-refresh/babel';
 import type { Alias, AliasOptions, FilterPattern, Plugin } from 'vite';
 import { createFilter, version } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
@@ -53,6 +55,7 @@ export interface Options {
    * set to `false`, it won't inject the runtime in dev.
    *
    * @default true
+   * @deprecated use `refresh` instead
    */
   hot?: boolean;
   /**
@@ -159,6 +162,9 @@ export interface Options {
      */
     builtIns?: string[];
   };
+
+
+  refresh: Omit<RefreshOptions & { disabled: boolean }, 'bundler' | 'fixRender' | 'jsx'>;
 }
 
 function getExtension(filename: string): string {
@@ -207,7 +213,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     async config(userConfig, { command }) {
       // We inject the dev mode only if the user explicitly wants it or if we are in dev (serve) mode
       replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
-      projectRoot = userConfig.root;
+      projectRoot = userConfig.root || projectRoot;
       isTestMode = userConfig.mode === 'test';
 
       if (!userConfig.resolve) userConfig.resolve = {};
@@ -320,7 +326,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     configResolved(config) {
-      needHmr = config.command === 'serve' && config.mode !== 'production' && options.hot !== false;
+      needHmr = config.command === 'serve' && config.mode !== 'production' && (options.hot !== false && !options.refresh?.disabled);
     },
 
     resolveId(id) {
@@ -380,6 +386,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         });
       const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = [
         'jsx',
+        'decorators',
       ];
 
       if (shouldBeProcessedWithTypescript) {
@@ -391,7 +398,15 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         filename: id,
         sourceFileName: id,
         presets: [[solid, { ...solidOptions, ...(options.solid || {}) }]],
-        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, { bundler: 'vite' }]] : [],
+        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, {
+          ...(options.refresh || {}),
+          bundler: 'vite',
+          fixRender: true,
+          // TODO unfortunately, even with SSR enabled for refresh
+          // it still doesn't work, so now we have to disable
+          // this config
+          jsx: false,
+        }]] : [],
         ast: false,
         sourceMaps: true,
         configFile: false,
@@ -406,7 +421,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       if (options.babel) {
         if (typeof options.babel === 'function') {
-          const babelOptions = options.babel(source, id, isSsr);
+          const babelOptions = options.babel(source, id, !!isSsr);
           babelUserOptions = babelOptions instanceof Promise ? await babelOptions : babelOptions;
         } else {
           babelUserOptions = options.babel;
@@ -415,9 +430,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       const babelOptions = mergeAndConcat(babelUserOptions, opts) as babel.TransformOptions;
 
-      const { code, map } = await babel.transformAsync(source, babelOptions);
-
-      return { code, map };
+      const result = await babel.transformAsync(source, babelOptions);
+      if (!result) {
+        return undefined;
+      }
+      return { code: result.code || '', map: result.map };
     },
   };
 }

@@ -30,8 +30,8 @@ importers:
         specifier: ^5.1.7
         version: 5.1.7
       solid-refresh:
-        specifier: ^0.6.3
-        version: 0.6.3(solid-js@1.9.4)
+        specifier: ^0.7.5
+        version: 0.7.5(solid-js@1.9.4)
       vitefu:
         specifier: ^1.0.4
         version: 1.0.4(vite@6.0.9(@types/node@18.19.66))
@@ -3408,8 +3408,8 @@ packages:
   solid-js@1.9.4:
     resolution: {integrity: sha512-ipQl8FJ31bFUoBNScDQTG3BjN6+9Rg+Q+f10bUbnO6EOTTf5NGerJeHc7wyu5I4RMHEl/WwZwUmy/PTRgxxZ8g==}
 
-  solid-refresh@0.6.3:
-    resolution: {integrity: sha512-F3aPsX6hVw9ttm5LYlth8Q15x6MlI/J3Dn+o3EQyRTtTxidepSTwAYdozt01/YA+7ObcciagGEyXIopGZzQtbA==}
+  solid-refresh@0.7.5:
+    resolution: {integrity: sha512-ZYMbjWsy7IwSF3+oZCNnReiTYSyCAFRvC7oLUKxxh1wPa6/6YIWqsxa+Ma2kM4F/ypWT69B1c0fmKeZRdLueGw==}
     peerDependencies:
       solid-js: ^1.3
 
@@ -3886,6 +3886,7 @@ packages:
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
     engines: {node: '>=18'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -7202,14 +7203,11 @@ snapshots:
       seroval: 1.2.1
       seroval-plugins: 1.2.1(seroval@1.2.1)
 
-  solid-refresh@0.6.3(solid-js@1.9.4):
+  solid-refresh@0.7.5(solid-js@1.9.4):
     dependencies:
       '@babel/generator': 7.26.2
-      '@babel/helper-module-imports': 7.25.9
       '@babel/types': 7.26.0
       solid-js: 1.9.4
-    transitivePeerDependencies:
-      - supports-color
 
   source-map-js@1.2.1: {}
 

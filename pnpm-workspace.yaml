@@ -1,5 +1,14 @@
 packages:
-  - '.'
-  - "examples/*"
+  - .
+  - examples/*
+
 catalog:
-    "solid-js": ^1.9.4
+  solid-js: ^1.9.4
+
+ignoredBuiltDependencies:
+  - cypress
+
+onlyBuiltDependencies:
+  - cypress
+  - esbuild
+  - msw

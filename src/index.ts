@@ -6,6 +6,8 @@ import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
 // TODO use proper path
 import type { Options as RefreshOptions } from 'solid-refresh/babel';
+import lazyModuleUrl, { LAZY_PLACEHOLDER_PREFIX } from './lazy-module-url.js';
+import path from 'path';
 import type { Alias, AliasOptions, FilterPattern, Plugin } from 'vite';
 import { createFilter, version } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
@@ -161,6 +163,16 @@ export interface Options {
      * @default ["For","Show","Switch","Match","Suspense","SuspenseList","Portal","Index","Dynamic","ErrorBoundary"]
      */
     builtIns?: string[];
+
+    /**
+     * Enable dev-mode compilation output. When true, the compiler emits
+     * additional runtime checks (e.g. hydration mismatch assertions).
+     * Automatically set to true during `vite dev` — override here to
+     * force on or off.
+     *
+     * @default auto (true in dev, false in build)
+     */
+    dev?: boolean;
   };
 
 
@@ -230,7 +242,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       // fix for bundling dev in production
       const nestedDeps = replaceDev
-        ? ['solid-js', 'solid-js/web', 'solid-js/store', 'solid-js/html', 'solid-js/h']
+        ? ['solid-js', '@solidjs/web']
         : [];
 
       const userTest = (userConfig as any).test ?? {};
@@ -397,16 +409,19 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         root: projectRoot,
         filename: id,
         sourceFileName: id,
-        presets: [[solid, { ...solidOptions, ...(options.solid || {}) }]],
-        plugins: needHmr && !isSsr && !inNodeModules ? [[solidRefresh, {
-          ...(options.refresh || {}),
-          bundler: 'vite',
-          fixRender: true,
-          // TODO unfortunately, even with SSR enabled for refresh
-          // it still doesn't work, so now we have to disable
-          // this config
-          jsx: false,
-        }]] : [],
+        presets: [[solid, { ...solidOptions, dev: replaceDev, ...(options.solid || {}) }]],
+        plugins: [
+          [lazyModuleUrl],
+          ...(needHmr && !isSsr && !inNodeModules ? [[solidRefresh, {
+            ...(options.refresh || {}),
+            bundler: 'vite',
+            fixRender: true,
+            // TODO unfortunately, even with SSR enabled for refresh
+            // it still doesn't work, so now we have to disable
+            // this config
+            jsx: false,
+          }]] : []),
+        ],
         ast: false,
         sourceMaps: true,
         configFile: false,
@@ -434,7 +449,32 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       if (!result) {
         return undefined;
       }
-      return { code: result.code || '', map: result.map };
+
+      let code = result.code || '';
+
+      // Resolve lazy() moduleUrl placeholders using Vite's resolver
+      const placeholderRe = new RegExp(
+        '"' + LAZY_PLACEHOLDER_PREFIX + '([^"]+)"',
+        'g',
+      );
+      let match;
+      const resolutions: Array<{ placeholder: string; resolved: string }> = [];
+      while ((match = placeholderRe.exec(code)) !== null) {
+        const specifier = match[1];
+        const resolved = await this.resolve(specifier, id);
+        if (resolved) {
+          const cleanId = resolved.id.split('?')[0];
+          resolutions.push({
+            placeholder: match[0],
+            resolved: '"' + path.relative(projectRoot, cleanId) + '"',
+          });
+        }
+      }
+      for (const { placeholder, resolved } of resolutions) {
+        code = code.replace(placeholder, resolved);
+      }
+
+      return { code, map: result.map };
     },
   };
 }
@@ -449,4 +489,45 @@ function normalizeAliases(alias: AliasOptions = []): Alias[] {
   return Array.isArray(alias)
     ? alias
     : Object.entries(alias).map(([find, replacement]) => ({ find, replacement }));
+}
+
+export type ViteManifest = Record<
+  string,
+  {
+    file: string;
+    css?: string[];
+    isEntry?: boolean;
+    isDynamicEntry?: boolean;
+    imports?: string[];
+  }
+>;
+
+let _manifest: ViteManifest | undefined;
+
+/**
+ * Returns the Vite asset manifest for SSR.
+ * In production, reads and caches the manifest JSON from `manifestPath`.
+ * In development (file not found), returns a proxy that maps each moduleUrl
+ * to its dev server path, so lazy() asset resolution works without a build.
+ */
+export function getManifest(manifestPath?: string): ViteManifest {
+  if (_manifest) return _manifest;
+  if (manifestPath) {
+    try {
+      _manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+      return _manifest!;
+    } catch {
+      // File doesn't exist — dev mode, fall through
+    }
+  }
+  _manifest = new Proxy(
+    {},
+    {
+      get(_, key) {
+        if (typeof key !== 'string') return undefined;
+        return { file: '/' + key };
+      },
+    },
+  ) as ViteManifest;
+  return _manifest;
 }

@@ -1,0 +1,20 @@
+{
+  "name": "example-ssr",
+  "private": "true",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "vite build --outDir dist/client",
+    "build:server": "vite build --ssr src/entry-server.tsx --outDir dist/server",
+    "serve": "NODE_ENV=production node server.js"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0",
+    "vite-plugin-solid": "workspace:*"
+  },
+  "dependencies": {
+    "solid-js": "catalog:",
+    "@solidjs/web": "catalog:"
+  }
+}

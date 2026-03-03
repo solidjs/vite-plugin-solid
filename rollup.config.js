@@ -31,7 +31,7 @@ const config = {
       format: 'cjs',
       file: 'dist/cjs/index.cjs',
       sourcemap: true,
-      exports: 'default',
+      exports: 'named',
     },
   ],
   external,

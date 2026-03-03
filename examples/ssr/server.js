@@ -60,20 +60,28 @@ async function start() {
         html = readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
         html = await vite.transformIndexHtml(url, html);
         const { render } = await vite.ssrLoadModule('/src/entry-server.tsx');
-        const stream = render(manifest);
+        const { stream, hydrationScript } = render(manifest);
 
         res.setHeader('Content-Type', 'text/html');
+        html = html.replace('<!--head-->', hydrationScript);
         const [head, tail] = html.split('<!--app-->');
         res.write(head);
-        stream.pipe(res);
+        stream.pipe({
+          write(chunk) { return res.write(chunk); },
+          end() { res.write(tail); res.end(); }
+        });
       } else {
         const { render } = await import('./dist/server/entry-server.js');
-        const stream = render(manifest);
+        const { stream, hydrationScript } = render(manifest);
 
         res.setHeader('Content-Type', 'text/html');
-        const [head, tail] = template.split('<!--app-->');
+        const fullTemplate = template.replace('<!--head-->', hydrationScript);
+        const [head, tail] = fullTemplate.split('<!--app-->');
         res.write(head);
-        stream.pipe(res);
+        stream.pipe({
+          write(chunk) { return res.write(chunk); },
+          end() { res.write(tail); res.end(); }
+        });
       }
     } catch (e) {
       if (!isProduction) vite.ssrFixStacktrace(e);

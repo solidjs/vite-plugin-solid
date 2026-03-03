@@ -1,6 +1,7 @@
-import { renderToStream } from '@solidjs/web';
+import { renderToStream, generateHydrationScript } from '@solidjs/web';
 import App from './App';
 
 export function render(manifest?: Record<string, any>) {
-  return renderToStream(() => <App />, { manifest });
+  const stream = renderToStream(() => <App />, { manifest });
+  return { stream, hydrationScript: generateHydrationScript() };
 }

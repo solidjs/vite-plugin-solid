@@ -60,7 +60,7 @@ export default function lazyModuleUrlPlugin(): PluginObj {
         if (node.arguments.length >= 2) return;
         if (node.arguments.length !== 1) return;
 
-        const specifier = extractDynamicImportSpecifier(node.arguments[0]);
+        const specifier = extractDynamicImportSpecifier(node.arguments[0] as t.Node);
         if (!specifier) return;
 
         node.arguments.push({

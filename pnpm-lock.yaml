@@ -112,6 +112,9 @@ importers:
 
   examples/vite-3:
     dependencies:
+      '@solidjs/web':
+        specifier: 'catalog:'
+        version: 2.0.0-experimental.16(solid-js@2.0.0-experimental.16)
       solid-js:
         specifier: 'catalog:'
         version: 2.0.0-experimental.16
@@ -125,6 +128,9 @@ importers:
 
   examples/vite-4:
     dependencies:
+      '@solidjs/web':
+        specifier: 'catalog:'
+        version: 2.0.0-experimental.16(solid-js@2.0.0-experimental.16)
       solid-js:
         specifier: 'catalog:'
         version: 2.0.0-experimental.16
@@ -138,6 +144,9 @@ importers:
 
   examples/vite-5:
     dependencies:
+      '@solidjs/web':
+        specifier: 'catalog:'
+        version: 2.0.0-experimental.16(solid-js@2.0.0-experimental.16)
       solid-js:
         specifier: 'catalog:'
         version: 2.0.0-experimental.16
@@ -151,6 +160,9 @@ importers:
 
   examples/vite-6:
     dependencies:
+      '@solidjs/web':
+        specifier: 'catalog:'
+        version: 2.0.0-experimental.16(solid-js@2.0.0-experimental.16)
       solid-js:
         specifier: 'catalog:'
         version: 2.0.0-experimental.16
@@ -182,6 +194,9 @@ importers:
 
   examples/vite-7:
     dependencies:
+      '@solidjs/web':
+        specifier: 'catalog:'
+        version: 2.0.0-experimental.16(solid-js@2.0.0-experimental.16)
       solid-js:
         specifier: 'catalog:'
         version: 2.0.0-experimental.16

@@ -1,11 +1,10 @@
-import { createContext, createSignal, JSX, onCleanup, onMount, useContext } from "solid-js";
+import { createContext, createSignal, JSX, onSettled, useContext } from "solid-js";
 
 interface CounterContext {
   value(): number;
   increment(): void;
   decrement(): void;
 }
-
 
 const CounterContext = createContext<CounterContext>();
 
@@ -27,17 +26,15 @@ export function CounterProvider(props: { children: JSX.Element }) {
   function decrement() {
     setValue((c) => c - 1);
   }
-  onMount(() => {
+  onSettled(() => {
     console.log('Mounted CounterProvider');
-  });
-  onCleanup(() => {
-    console.log('Unmounted CounterProvider');
+    return () => console.log('Unmounted CounterProvider');
   });
 
   return (
-    <CounterContext.Provider value={{ value, increment, decrement }}>
+    <CounterContext value={{ value, increment, decrement }}>
       <h1>Counter</h1>
       {props.children}
-    </CounterContext.Provider>
+    </CounterContext>
   );
 }

@@ -1,15 +1,13 @@
-import { onCleanup, onMount } from "solid-js";
+import { onSettled } from "solid-js";
 import { CounterProvider, useCounter } from "./CounterContext";
 
 const title = 'Count';
 
 function Count() {
   const counter = useCounter();
-  onMount(() => {
+  onSettled(() => {
     console.log('Mounted Count');
-  });
-  onCleanup(() => {
-    console.log('Unmounted Count');
+    return () => console.log('Unmounted Count');
   });
   return (
     <h1>{title}: {counter.value()}</h1>
@@ -18,11 +16,9 @@ function Count() {
 
 function Increment() {
   const counter = useCounter();
-  onMount(() => {
+  onSettled(() => {
     console.log('Mounted Increment');
-  });
-  onCleanup(() => {
-    console.log('Unmounted Increment');
+    return () => console.log('Unmounted Increment');
   });
   return (
     <button onClick={counter.increment}>
@@ -33,11 +29,9 @@ function Increment() {
 
 function Decrement() {
   const counter = useCounter();
-  onMount(() => {
+  onSettled(() => {
     console.log('Mounted Decrement');
-  });
-  onCleanup(() => {
-    console.log('Unmounted Decrement');
+    return () => console.log('Unmounted Decrement');
   });
   return (
     <button onClick={counter.decrement}>
@@ -47,11 +41,9 @@ function Decrement() {
 }
 
 export default function App() {
-  onMount(() => {
+  onSettled(() => {
     console.log('Mounted App');
-  });
-  onCleanup(() => {
-    console.log('Unmounted App');
+    return () => console.log('Unmounted App');
   });
 
   return (

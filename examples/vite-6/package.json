@@ -20,6 +20,7 @@
     "vitest": "^3.0.7"
   },
   "dependencies": {
-    "solid-js": "catalog:"
+    "solid-js": "catalog:",
+    "@solidjs/web": "catalog:"
   }
 }

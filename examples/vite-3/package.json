@@ -12,6 +12,7 @@
     "vite-plugin-solid": "workspace:*"
   },
   "dependencies": {
-    "solid-js": "catalog:"
+    "solid-js": "catalog:",
+    "@solidjs/web": "catalog:"
   }
 }

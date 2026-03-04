@@ -4,7 +4,8 @@
   "description": "solid-js integration plugin for vite 3/4/5/6/7",
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "virtual-solid-manifest.d.ts"
   ],
   "main": "dist/cjs/index.cjs",
   "module": "dist/esm/index.mjs",
@@ -45,9 +46,9 @@
   "dependencies": {
     "@babel/core": "^7.23.3",
     "@types/babel__core": "^7.20.4",
-    "babel-preset-solid": "^2.0.0-beta",
+    "babel-preset-solid": ">=2.0.0-beta.0 <2.0.0",
     "merge-anything": "^5.1.7",
-    "solid-refresh": "^0.8.0-next.1",
+    "solid-refresh": ">=0.8.0-next.2 < 0.8.0",
     "vitefu": "^1.0.4"
   },
   "devDependencies": {
@@ -66,13 +67,13 @@
     "prettier": "^3.1.0",
     "rollup": "^4.5.0",
     "rollup-plugin-cleaner": "^1.0.0",
-    "solid-js": "^2.0.0-beta",
+    "solid-js": "2.0.0-beta.0",
     "typescript": "^5.2.2",
     "vite": "^7.0.0"
   },
   "peerDependencies": {
     "@testing-library/jest-dom": "^5.16.6 || ^5.17.0 || ^6.*",
-    "solid-js": "^2.0.0-beta",
+    "solid-js": ">=2.0.0-beta.0 <2.0.0",
     "vite": "^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0"
   },
   "peerDependenciesMeta": {

@@ -1,6 +1,6 @@
 import * as babel from '@babel/core';
 import solid from 'babel-preset-solid';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
 import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
@@ -19,6 +19,16 @@ const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
 const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 
 const isVite6 = +version.split('.')[0] >= 6;
+
+const VIRTUAL_MANIFEST_ID = 'virtual:solid-manifest';
+const RESOLVED_VIRTUAL_MANIFEST_ID = '\0' + VIRTUAL_MANIFEST_ID;
+
+const DEV_MANIFEST_CODE = `export default new Proxy({}, {
+  get(_, key) {
+    if (typeof key !== "string") return undefined;
+    return { file: "/" + key };
+  }
+});`;
 
 /** Possible options for the extensions property */
 export interface ExtensionOptions {
@@ -216,6 +226,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let replaceDev = false;
   let projectRoot = process.cwd();
   let isTestMode = false;
+  let isBuild = false;
   let solidPkgsConfig: Awaited<ReturnType<typeof crawlFrameworkPkgs>>;
 
   return {
@@ -338,15 +349,26 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     configResolved(config) {
+      isBuild = config.command === 'build';
       needHmr = config.command === 'serve' && config.mode !== 'production' && (options.hot !== false && !options.refresh?.disabled);
     },
 
     resolveId(id) {
       if (id === runtimePublicPath) return id;
+      if (id === VIRTUAL_MANIFEST_ID) return RESOLVED_VIRTUAL_MANIFEST_ID;
     },
 
     load(id) {
       if (id === runtimePublicPath) return runtimeCode;
+      if (id === RESOLVED_VIRTUAL_MANIFEST_ID) {
+        if (!isBuild) return DEV_MANIFEST_CODE;
+        const manifestPath = path.resolve(projectRoot, 'dist/client/.vite/manifest.json');
+        if (existsSync(manifestPath)) {
+          const json = readFileSync(manifestPath, 'utf-8');
+          return `export default ${json};`;
+        }
+        return DEV_MANIFEST_CODE;
+      }
     },
 
     async transform(source, id, transformOptions) {
@@ -501,33 +523,3 @@ export type ViteManifest = Record<
     imports?: string[];
   }
 >;
-
-let _manifest: ViteManifest | undefined;
-
-/**
- * Returns the Vite asset manifest for SSR.
- * In production, reads and caches the manifest JSON from `manifestPath`.
- * In development (file not found), returns a proxy that maps each moduleUrl
- * to its dev server path, so lazy() asset resolution works without a build.
- */
-export function getManifest(manifestPath?: string): ViteManifest {
-  if (_manifest) return _manifest;
-  if (manifestPath) {
-    try {
-      _manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
-      return _manifest!;
-    } catch {
-      // File doesn't exist — dev mode, fall through
-    }
-  }
-  _manifest = new Proxy(
-    {},
-    {
-      get(_, key) {
-        if (typeof key !== 'string') return undefined;
-        return { file: '/' + key };
-      },
-    },
-  ) as ViteManifest;
-  return _manifest;
-}

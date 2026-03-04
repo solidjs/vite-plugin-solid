@@ -2,12 +2,10 @@ import { createServer as createHttpServer } from 'node:http';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { getManifest } from 'vite-plugin-solid';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
 const port = process.env.PORT || 3000;
-const manifest = getManifest(path.resolve(__dirname, 'dist/client/.vite/manifest.json'));
 
 async function start() {
   let vite;
@@ -60,7 +58,7 @@ async function start() {
         html = readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
         html = await vite.transformIndexHtml(url, html);
         const { render } = await vite.ssrLoadModule('/src/entry-server.tsx');
-        const { stream, hydrationScript } = render(manifest);
+        const { stream, hydrationScript } = render();
 
         res.setHeader('Content-Type', 'text/html');
         html = html.replace('<!--head-->', hydrationScript);
@@ -72,7 +70,7 @@ async function start() {
         });
       } else {
         const { render } = await import('./dist/server/entry-server.js');
-        const { stream, hydrationScript } = render(manifest);
+        const { stream, hydrationScript } = render();
 
         res.setHeader('Content-Type', 'text/html');
         const fullTemplate = template.replace('<!--head-->', hydrationScript);

@@ -27,14 +27,14 @@ importers:
         specifier: ^7.20.4
         version: 7.20.5
       babel-preset-solid:
-        specifier: ^2.0.0-beta
-        version: 2.0.0-experimental.16(@babel/core@7.26.0)(solid-js@2.0.0-experimental.16)
+        specifier: '>=2.0.0-beta.0 <2.0.0'
+        version: 2.0.0-experimental.16(@babel/core@7.26.0)(solid-js@2.0.0-beta.0)
       merge-anything:
         specifier: ^5.1.7
         version: 5.1.7
       solid-refresh:
-        specifier: ^0.8.0-next.1
-        version: 0.8.0-next.1(solid-js@2.0.0-experimental.16)
+        specifier: '>=0.8.0-next.2 < 0.8.0'
+        version: 0.8.0-next.2(solid-js@2.0.0-beta.0)
       vitefu:
         specifier: ^1.0.4
         version: 1.0.4(vite@7.0.6(@types/node@18.19.66))
@@ -85,8 +85,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0(rollup@4.27.4)
       solid-js:
-        specifier: ^2.0.0-beta
-        version: 2.0.0-experimental.16
+        specifier: 2.0.0-beta.0
+        version: 2.0.0-beta.0
       typescript:
         specifier: ^5.2.2
         version: 5.7.2
@@ -3323,13 +3323,16 @@ packages:
     resolution: {integrity: sha512-qMCMfhY040cVHT43K9BFygqYbUPFZKHOg7K73mtTWJRb8pyP3fzf4Ixd5SzdEJQ6MRUg/WBnOLxghZtKKurENQ==}
     engines: {node: '>=10'}
 
+  solid-js@2.0.0-beta.0:
+    resolution: {integrity: sha512-SnOAA8QBC+TJ3dwN9xPRDYybCZJ6BSW6gPKnDRtJ0n0r96pg/KcbvSt/T/O6qaWI1pf+CMpYmdOxZfTQr2AhQg==}
+
   solid-js@2.0.0-experimental.16:
     resolution: {integrity: sha512-zZ1dU7cR0EnvLnrYiRLQbCFiDw5blLdlqmofgLzKUYE1TCMWDcisBlSwz0Ez8l4yXB4adbdhtaYCuynH4xSq9A==}
 
-  solid-refresh@0.8.0-next.1:
-    resolution: {integrity: sha512-AVYkmtu3mnwsTgtD79NG+QA9cl0CQnHjfDuttmk5xUaPEAbkZWokXctgcgrdusJ4OkfSaprPgQ3mSiag+I04qA==}
+  solid-refresh@0.8.0-next.2:
+    resolution: {integrity: sha512-fhJ3ZT8QOMvyvtF6KJqaI6vG8OK/EIcarNy9S0EsEmlin7qfh4XndSQWFMQyiyIA22rjbj0w5GXiaAwTLQSLXA==}
     peerDependencies:
-      solid-js: ^2.0.0-beta
+      solid-js: '>=2.0.0-beta.0 <2.0.0'
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -5591,12 +5594,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  babel-preset-solid@2.0.0-experimental.16(@babel/core@7.26.0)(solid-js@2.0.0-experimental.16):
+  babel-preset-solid@2.0.0-experimental.16(@babel/core@7.26.0)(solid-js@2.0.0-beta.0):
     dependencies:
       '@babel/core': 7.26.0
       babel-plugin-jsx-dom-expressions: 0.41.0-next.9(@babel/core@7.26.0)
     optionalDependencies:
-      solid-js: 2.0.0-experimental.16
+      solid-js: 2.0.0-beta.0
 
   balanced-match@1.0.2: {}
 
@@ -7013,6 +7016,13 @@ snapshots:
       astral-regex: 2.0.0
       is-fullwidth-code-point: 3.0.0
 
+  solid-js@2.0.0-beta.0:
+    dependencies:
+      '@solidjs/signals': 0.11.1
+      csstype: 3.1.3
+      seroval: 1.5.0
+      seroval-plugins: 1.5.0(seroval@1.5.0)
+
   solid-js@2.0.0-experimental.16:
     dependencies:
       '@solidjs/signals': 0.11.1
@@ -7020,11 +7030,11 @@ snapshots:
       seroval: 1.5.0
       seroval-plugins: 1.5.0(seroval@1.5.0)
 
-  solid-refresh@0.8.0-next.1(solid-js@2.0.0-experimental.16):
+  solid-refresh@0.8.0-next.2(solid-js@2.0.0-beta.0):
     dependencies:
       '@babel/generator': 7.29.1
       '@babel/types': 7.29.0
-      solid-js: 2.0.0-experimental.16
+      solid-js: 2.0.0-beta.0
 
   source-map-js@1.2.1: {}
 

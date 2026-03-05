@@ -353,6 +353,41 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       needHmr = config.command === 'serve' && config.mode !== 'production' && (options.hot !== false && !options.refresh?.disabled);
     },
 
+    configureServer(server) {
+      if (!needHmr) return;
+      // When a module has a syntax error, Vite sends the error overlay via
+      // WebSocket but the failed import triggers invalidation in solid-refresh.
+      // This propagates up to @refresh reload boundaries (e.g. document-level
+      // App components in SSR), causing a full-reload that overrides the overlay.
+      // We suppress update/full-reload messages that immediately follow an error.
+      const hot = server.hot ?? (server as any).ws;
+      if (!hot) return;
+      let lastErrorTime = 0;
+      const origSend = hot.send.bind(hot);
+      hot.send = function (this: any, ...args: any[]) {
+        const payload = args[0];
+        if (typeof payload === 'object' && payload) {
+          if (payload.type === 'error') {
+            lastErrorTime = Date.now();
+          } else if (lastErrorTime && (payload.type === 'full-reload' || payload.type === 'update')) {
+            if (Date.now() - lastErrorTime < 200) return;
+            lastErrorTime = 0;
+          }
+        }
+        return origSend(...args);
+      } as typeof hot.send;
+    },
+
+    hotUpdate() {
+      // solid-refresh only injects HMR boundaries into client modules, so
+      // non-client environments have no accept handlers. Without this, Vite
+      // would see no boundaries and send full-reload messages that race with
+      // client-side HMR updates.
+      if (this.environment.name !== 'client') {
+        return [];
+      }
+    },
+
     resolveId(id) {
       if (id === runtimePublicPath) return id;
       if (id === VIRTUAL_MANIFEST_ID) return RESOLVED_VIRTUAL_MANIFEST_ID;

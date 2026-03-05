@@ -36,6 +36,13 @@ async function start() {
           vite.middlewares(req, res, () => resolve(false));
         });
         if (handled !== false) return;
+        if (!req.headers.accept?.includes('text/html')) {
+          if (!res.headersSent) {
+            res.statusCode = 404;
+            res.end();
+          }
+          return;
+        }
       }
 
       if (isProduction && url !== '/' && !url.startsWith('/api')) {

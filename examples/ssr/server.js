@@ -7,9 +7,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
 const port = process.env.PORT || 3000;
 
+function getClientEntry() {
+  if (!isProduction) return '/src/entry-client.tsx';
+  const manifest = JSON.parse(
+    readFileSync(path.resolve(__dirname, 'dist/client/.vite/manifest.json'), 'utf-8'),
+  );
+  const entry = manifest['src/entry-client.tsx'];
+  return '/' + entry.file;
+}
+
 async function start() {
   let vite;
-  let template;
 
   if (!isProduction) {
     const { createServer } = await import('vite');
@@ -17,8 +25,6 @@ async function start() {
       server: { middlewareMode: true },
       appType: 'custom',
     });
-  } else {
-    template = readFileSync(path.resolve(__dirname, 'dist/client/index.html'), 'utf-8');
   }
 
   const server = createHttpServer(async (req, res) => {
@@ -32,7 +38,6 @@ async function start() {
         if (handled !== false) return;
       }
 
-      // Serve static files in production
       if (isProduction && url !== '/' && !url.startsWith('/api')) {
         const filePath = path.resolve(__dirname, 'dist/client' + url);
         try {
@@ -52,35 +57,39 @@ async function start() {
         }
       }
 
-      // SSR render
-      let html;
+      let render;
       if (!isProduction) {
-        html = readFileSync(path.resolve(__dirname, 'index.html'), 'utf-8');
-        html = await vite.transformIndexHtml(url, html);
-        const { render } = await vite.ssrLoadModule('/src/entry-server.tsx');
-        const { stream, hydrationScript } = render();
-
-        res.setHeader('Content-Type', 'text/html');
-        html = html.replace('<!--head-->', hydrationScript);
-        const [head, tail] = html.split('<!--app-->');
-        res.write(head);
-        stream.pipe({
-          write(chunk) { return res.write(chunk); },
-          end() { res.write(tail); res.end(); }
-        });
+        ({ render } = await vite.ssrLoadModule('/src/entry-server.tsx'));
       } else {
-        const { render } = await import('./dist/server/entry-server.js');
-        const { stream, hydrationScript } = render();
-
-        res.setHeader('Content-Type', 'text/html');
-        const fullTemplate = template.replace('<!--head-->', hydrationScript);
-        const [head, tail] = fullTemplate.split('<!--app-->');
-        res.write(head);
-        stream.pipe({
-          write(chunk) { return res.write(chunk); },
-          end() { res.write(tail); res.end(); }
-        });
+        ({ render } = await import('./dist/server/entry-server.js'));
       }
+
+      const stream = render();
+      const clientEntry = getClientEntry();
+
+      res.setHeader('Content-Type', 'text/html');
+      res.write('<!DOCTYPE html>');
+
+      stream.pipe({
+        write(chunk) {
+          let html = chunk;
+          // Inject Vite client script for HMR in dev mode
+          if (!isProduction && html.includes('</head>')) {
+            html = html.replace(
+              '</head>',
+              '<script type="module" src="/@vite/client"></script></head>',
+            );
+          }
+          // Replace dev entry path with production asset path
+          if (isProduction && html.includes('/src/entry-client.tsx')) {
+            html = html.replace('/src/entry-client.tsx', clientEntry);
+          }
+          return res.write(html);
+        },
+        end() {
+          res.end();
+        },
+      });
     } catch (e) {
       if (!isProduction) vite.ssrFixStacktrace(e);
       console.error(e);

@@ -227,6 +227,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let projectRoot = process.cwd();
   let isTestMode = false;
   let isBuild = false;
+  let base = '/';
   let solidPkgsConfig: Awaited<ReturnType<typeof crawlFrameworkPkgs>>;
 
   return {
@@ -350,6 +351,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
     configResolved(config) {
       isBuild = config.command === 'build';
+      base = config.base;
       needHmr = config.command === 'serve' && config.mode !== 'production' && (options.hot !== false && !options.refresh?.disabled);
     },
 
@@ -399,8 +401,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         if (!isBuild) return DEV_MANIFEST_CODE;
         const manifestPath = path.resolve(projectRoot, 'dist/client/.vite/manifest.json');
         if (existsSync(manifestPath)) {
-          const json = readFileSync(manifestPath, 'utf-8');
-          return `export default ${json};`;
+          const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+          manifest._base = base;
+          return `export default ${JSON.stringify(manifest)};`;
         }
         return DEV_MANIFEST_CODE;
       }
@@ -557,4 +560,6 @@ export type ViteManifest = Record<
     isDynamicEntry?: boolean;
     imports?: string[];
   }
->;
+> & {
+  _base?: string;
+};

@@ -19,14 +19,6 @@ function getClientEntry() {
 async function start() {
   let vite;
 
-  if (!isProduction) {
-    const { createServer } = await import('vite');
-    vite = await createServer({
-      server: { middlewareMode: true },
-      appType: 'custom',
-    });
-  }
-
   const server = createHttpServer(async (req, res) => {
     const url = req.url || '/';
 
@@ -104,6 +96,14 @@ async function start() {
       res.end(e.message);
     }
   });
+
+  if (!isProduction) {
+    const { createServer } = await import('vite');
+    vite = await createServer({
+      server: { middlewareMode: true, hmr: { server } },
+      appType: 'custom',
+    });
+  }
 
   server.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

@@ -34,7 +34,7 @@ export default function App() {
             </Loading>
           </Show>
         </main>
-        <script type="module" src="/src/entry-client.tsx" />
+        <script type="module" src="/src/entry-client.tsx" async />
       </body>
     </html>
   );

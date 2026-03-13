@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- 7f39675: allow vite >=3 in peer deps
+- 7f39675: Add vite 8 in peer deps
 
 ## 2.11.10
 

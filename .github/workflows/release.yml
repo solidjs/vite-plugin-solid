@@ -7,6 +7,11 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
 jobs:
   release:
     name: Release
@@ -21,9 +26,10 @@ jobs:
           version: 9.15.3
 
       - name: Setup Node.js 24.x
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 24.x
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install Dependencies
         run: pnpm i --frozen-lockfile

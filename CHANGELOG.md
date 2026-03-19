@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.0-next.3
+
+### Patch Changes
+
+- 824f72c: allow vite 8 in peerDeps
+
 ## 2.11.10
 
 ### Patch Changes

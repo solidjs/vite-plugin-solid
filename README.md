@@ -8,9 +8,9 @@ A simple integration to run [solid-js](https://github.com/solidjs/solid) with [v
 
 <img alt="HMR gif demonstrationdemodemodemo" src=".github/hmr.gif">
 
-# Got a question? / Need help?
+# Have a question? / Need help?
 
-Join [solid discord](https://discord.com/invite/solidjs) and check the [troubleshooting section](#troubleshooting) to see if your question hasn't been already answered.
+Join [solid discord](https://discord.com/invite/solidjs) and check the [troubleshooting section](#troubleshooting) to see if your question has already been answered.
 
 ## Features
 
@@ -24,7 +24,7 @@ Join [solid discord](https://discord.com/invite/solidjs) and check the [troubles
 
 This module 100% ESM compatible and requires NodeJS `14.18.0` or later.
 
-You can check your current version of NodeJS by typing `node -v` in your terminal. If your version is below that one version I'd encourage you to either do an update globally or use a NodeJS version management tool such as [Volta](https://volta.sh/) or [nvm](https://github.com/nvm-sh/nvm).
+You can check your current version of NodeJS by typing `node -v` in your terminal. If your version is below that one version we encourage you to either do an update globally or use a NodeJS version management tool such as [Volta](https://volta.sh/) or [nvm](https://github.com/nvm-sh/nvm).
 
 ## Quickstart
 
@@ -158,20 +158,20 @@ Pass any additional [@babel/preset-typescript](https://babeljs.io/docs/en/babel-
 - Default: []
 
 An array of custom extension that will be passed through the solid compiler.
-By default, the plugin only transform `jsx` and `tsx` files.
+By default, the plugin only transforms `jsx` and `tsx` files.
 This is useful if you want to transform `mdx` files for example.
 
 ## Note on HMR
 
-Starting from version `1.1.0`, this plugin handle automatic HMR via [solid-refresh](https://github.com/solidjs/solid-refresh).
+Starting from version `1.1.0`, this plugin handles automatic HMR via [solid-refresh](https://github.com/solidjs/solid-refresh).
 
-At this stage it's still early work but provide basic HMR. In order to get the best out of it there are couple of things to keep in mind:
+At this stage it's still early work but basic HMR is provided. In order to get the best out of it there are couple of things to keep in mind:
 
 - When you modify a file every state below this component will be reset to default state (including the current file). The state in parent component is preserved.
 
 - The entrypoint can't benefit from HMR yet and will force a hard reload of the entire app. This is still really fast thanks to browser caching.
 
-If at least one of this point is blocking to you, you can revert to the old behavior by [opting out the automatic HMR](#options) and placing the following snippet in your entry point:
+If at least one of these points is blocking for you, you can revert to the old behavior by [opting out the automatic HMR](#options) and placing the following snippet in your entry point:
 
 ```jsx
 const dispose = render(() => <App />, document.body);
@@ -184,23 +184,23 @@ if (import.meta.hot) {
 
 # Troubleshooting
 
-- It appears that Webstorm generate some weird triggers when saving a file. In order to prevent that you can follow [this thread](https://intellij-support.jetbrains.com/hc/en-us/community/posts/360000154544-I-m-having-a-huge-problem-with-Webstorm-and-react-hot-loader-) and disable the **"Safe Write"** option in **"Settings | Appearance & Behavior | System Settings"**.
+- It appears that Webstorm generates some weird triggers when saving a file. In order to prevent that you can follow [this thread](https://intellij-support.jetbrains.com/hc/en-us/community/posts/360000154544-I-m-having-a-huge-problem-with-Webstorm-and-react-hot-loader-) and disable the **"Safe Write"** option in **"Settings | Appearance & Behavior | System Settings"**.
 
-- If one of your dependency spit out React code instead of Solid that means that they don't expose JSX properly. To get around it, you might want to manually exclude it from the [dependencies optimization](https://vitejs.dev/config/dep-optimization-options.html#optimizedeps-exclude)
+- If one of your dependencies ouputs React code instead of Solid that means that it doesn't expose JSX properly. To get around it, you might want to manually exclude it from the [dependencies optimization](https://vitejs.dev/config/dep-optimization-options.html#optimizedeps-exclude)
 
-- If you are trying to make [directives](https://www.solidjs.com/docs/latest/api#use%3A___) work, and they somehow don't try setting the `options.typescript.onlyRemoveTypeImports` option to `true`
+- If you are trying to make [directives](https://www.solidjs.com/docs/latest/api#use%3A___) work — and they somehow don't — try setting the `options.typescript.onlyRemoveTypeImports` option to `true`
 
 ## Migration from v1
 
-The master branch now target vite 2.
+The main branch now targets vite 2.
 
-The main breaking change from previous version is that the package has been renamed from `@amoutonbrady/vite-plugin-solid` to `vite-plugin-solid`.
+The primary breaking change from the previous version is that the package has been renamed from `@amoutonbrady/vite-plugin-solid` to `vite-plugin-solid`.
 
 For other breaking changes, check [the migration guide of vite](https://vitejs.dev/guide/migration.html).
 
 # Testing
 
-If you are using [vitest](https://vitest.dev/), this plugin already injects the necessary configuration for you. It even automatically detects if you have `@testing-library/jest-dom` installed in your project and automatically adds it to the `setupFiles`. All you need to add (if you want) is `globals`, `coverage`, and other testing configuration of your choice. If you can live without those, enjoy using vitest without the need to configure it yourself.
+If you are using [vitest](https://vitest.dev/), this plugin already injects the necessary configuration for you. It even automatically detects if you have `@testing-library/jest-dom` installed in your project and automatically adds it to the `setupFiles`. You can optionally add `globals`, `coverage`, and other testing configurations of your choice. If you can live without those, enjoy using vitest without the need to configure it yourself.
 
 # Credits
 

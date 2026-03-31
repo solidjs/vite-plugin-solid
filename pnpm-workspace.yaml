@@ -3,8 +3,8 @@ packages:
   - examples/*
 
 catalog:
-  solid-js: ^2.0.0-experimental.16
-  "@solidjs/web": ^2.0.0-experimental.16
+  solid-js: ">=2.0.0-beta.0 <2.0.0-experimental.0"
+  "@solidjs/web": ">=2.0.0-beta.0 <2.0.0-experimental.0"
 
 ignoredBuiltDependencies:
   - cypress

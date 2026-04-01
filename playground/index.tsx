@@ -1,13 +1,10 @@
-import { createSignal, lazy } from 'solid-js';
-import { MetaProvider } from 'solid-meta';
-import { createApp } from 'solid-utils';
-import { Router, useRoutes, Link } from 'solid-app-router';
-import type { RouteDefinition } from 'solid-app-router';
+import { createSignal, type ParentComponent, lazy } from 'solid-js';
+import { render } from '@solidjs/web';
+import { MetaProvider } from '@solidjs/meta';
+import { Router, type RouteDefinition } from '@solidjs/router';
 
 import test from '@@/test.txt?raw';
 import Home from '@/index';
-// @ts-ignore
-import Hello from './hello.mdx';
 
 const json = await fetch('https://jsonplaceholder.typicode.com/todos/1').then((response) =>
   response.json(),
@@ -29,20 +26,25 @@ const routes: RouteDefinition[] = [
   },
 ];
 
-const App = () => {
+const App: ParentComponent = (props) => {
   const [count, setCount] = createSignal(0);
-  const Route = useRoutes(routes);
 
   return (
     <>
-      <Link href="/">Home</Link>
-      <Link href="/about">About</Link>
+      <a href="/">Home</a>
+      <a href="/about">About</a>
       <hr />
-      <Route />
+      {props.children}
       <button onClick={() => setCount(count() + 1)}>{count()}</button>
-      <Hello />
     </>
   );
 };
 
-createApp(App).use(MetaProvider).use(Router).mount('#app');
+render(
+  () => (
+    <MetaProvider>
+      <Router root={App}>{routes}</Router>
+    </MetaProvider>
+  ),
+  document.getElementById('app') as HTMLElement,
+);

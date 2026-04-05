@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.12
+
+### Patch Changes
+
+- 9e46d91: fix: preserve jsx for rolldown dep scan
+
 ## 2.11.11
 
 ### Patch Changes

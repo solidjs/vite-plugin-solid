@@ -18,7 +18,9 @@ const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
 const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 
-const isVite6 = +version.split('.')[0] >= 6;
+const viteVersionMajor = +version.split('.')[0];
+const isVite6 = viteVersionMajor >= 6;
+const isVite8 = viteVersionMajor >= 8;
 
 const VIRTUAL_MANIFEST_ID = 'virtual:solid-manifest';
 const RESOLVED_VIRTUAL_MANIFEST_ID = '\0' + VIRTUAL_MANIFEST_ID;
@@ -307,6 +309,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         optimizeDeps: {
           include: [...nestedDeps, ...solidPkgsConfig.optimizeDeps.include],
           exclude: solidPkgsConfig.optimizeDeps.exclude,
+          // Vite 8+ uses Rolldown for dependency scanning. Rolldown defaults to
+          // React's automatic JSX runtime for .tsx files, injecting a
+          // react/jsx-dev-runtime import. Tell it to preserve JSX as-is since
+          // this plugin handles JSX transformation via babel-preset-solid.
+          ...(isVite8
+            ? { rolldownOptions: { transform: { jsx: 'preserve' as const } } }
+            : {}),
         },
         ...(!isVite6 ? { ssr: solidPkgsConfig.ssr } : {}),
         ...(test.server ? { test } : {}),

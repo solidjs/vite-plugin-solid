@@ -5,6 +5,7 @@
     "vite-plugin-solid": "3.0.0-next.2"
   },
   "changesets": [
-    "empty-dragons-grow"
+    "empty-dragons-grow",
+    "six-lions-joke"
   ]
 }

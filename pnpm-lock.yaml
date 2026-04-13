@@ -36,8 +36,8 @@ importers:
         specifier: ^5.1.7
         version: 5.1.7
       solid-refresh:
-        specifier: '>=0.8.0-next.2 < 0.8.0'
-        version: 0.8.0-next.2(solid-js@2.0.0-beta.0)
+        specifier: '>=0.8.0-next.6 < 0.8.0'
+        version: 0.8.0-next.6(solid-js@2.0.0-beta.0)
       vitefu:
         specifier: ^1.0.4
         version: 1.0.4(vite@7.0.6(@types/node@18.19.66)(lightningcss@1.32.0))
@@ -3421,8 +3421,8 @@ packages:
   solid-js@2.0.0-beta.0:
     resolution: {integrity: sha512-SnOAA8QBC+TJ3dwN9xPRDYybCZJ6BSW6gPKnDRtJ0n0r96pg/KcbvSt/T/O6qaWI1pf+CMpYmdOxZfTQr2AhQg==}
 
-  solid-refresh@0.8.0-next.2:
-    resolution: {integrity: sha512-fhJ3ZT8QOMvyvtF6KJqaI6vG8OK/EIcarNy9S0EsEmlin7qfh4XndSQWFMQyiyIA22rjbj0w5GXiaAwTLQSLXA==}
+  solid-refresh@0.8.0-next.6:
+    resolution: {integrity: sha512-QXLGvNH4P29BAmT1nysg5/sImrXY6daR07juJVw2dinJSISIjyC0qIaZSSUK0M/zN6sJmtFtCAdMmubj+zTQ1A==}
     peerDependencies:
       solid-js: '>=2.0.0-beta.0 <2.0.0'
 
@@ -4687,7 +4687,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.26.0
       '@babel/helper-plugin-utils': 7.25.9
-      '@babel/types': 7.26.0
+      '@babel/types': 7.29.0
       esutils: 2.0.3
 
   '@babel/preset-typescript@7.26.0(@babel/core@7.26.0)':
@@ -5221,7 +5221,7 @@ snapshots:
     dependencies:
       '@jridgewell/set-array': 1.2.1
       '@jridgewell/sourcemap-codec': 1.5.0
-      '@jridgewell/trace-mapping': 0.3.25
+      '@jridgewell/trace-mapping': 0.3.31
 
   '@jridgewell/resolve-uri@3.1.2': {}
 
@@ -7274,7 +7274,7 @@ snapshots:
       seroval: 1.5.0
       seroval-plugins: 1.5.0(seroval@1.5.0)
 
-  solid-refresh@0.8.0-next.2(solid-js@2.0.0-beta.0):
+  solid-refresh@0.8.0-next.6(solid-js@2.0.0-beta.0):
     dependencies:
       '@babel/generator': 7.29.1
       '@babel/types': 7.29.0
@@ -7587,7 +7587,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 18.19.66
-      '@vitest/browser': 3.0.7(@types/node@18.19.66)(playwright@1.50.1)(typescript@5.7.2)(vite@6.2.0(@types/node@18.19.66)(lightningcss@1.32.0))(vitest@3.0.7)
+      '@vitest/browser': 3.0.7(@types/node@18.19.66)(playwright@1.50.1)(typescript@5.7.2)(vite@7.0.6(@types/node@18.19.66)(lightningcss@1.32.0))(vitest@3.0.7)
       jsdom: 26.0.0
     transitivePeerDependencies:
       - jiti

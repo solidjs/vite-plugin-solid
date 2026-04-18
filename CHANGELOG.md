@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.0-next.5
+
+### Patch Changes
+
+- ff60d98: Bump solid-refresh to latest version
+
 ## 3.0.0-next.4
 
 ### Patch Changes

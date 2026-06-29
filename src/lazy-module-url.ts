@@ -3,6 +3,18 @@ import type { PluginObj, types as t } from '@babel/core';
 export const LAZY_PLACEHOLDER_PREFIX = '__SOLID_LAZY_MODULE__:';
 
 /**
+ * Normalize a resolved lazy() module path to a POSIX-style string.
+ *
+ * The path is built with `path.relative`, which yields OS-native separators.
+ * It is then embedded back into JS source as the 2nd argument to `lazy()`, so
+ * on Windows the backslashes (`"src\components\App.tsx"`) become invalid escape
+ * sequences that break the parse. Always use forward slashes.
+ */
+export function normalizeLazyModulePath(relativePath: string): string {
+  return relativePath.replace(/\\/g, '/');
+}
+
+/**
  * Detects whether a CallExpression argument is `() => import("specifier")`
  * and returns the specifier string if so.
  */

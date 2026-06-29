@@ -21,6 +21,21 @@ function cleanup() {
 process.on('SIGTERM', cleanup);
 process.on('SIGINT', cleanup);
 
+// Run the node:test unit suites (test/**/*.test.ts) in a child process so their
+// TAP output streams through and a failure aborts the whole run.
+async function runUnitTests() {
+  console.log('Running unit tests...');
+  await new Promise<void>((resolve, reject) => {
+    const proc = spawn('node', ['--test', 'test/**/*.test.ts'], { stdio: 'inherit' });
+    activeProcesses.add(proc);
+    proc.on('error', reject);
+    proc.on('exit', (code: number | null) => {
+      activeProcesses.delete(proc);
+      code === 0 ? resolve() : reject(new Error(`Unit tests failed (exit code ${code})`));
+    });
+  });
+}
+
 async function runExample(example) {
   console.log(`Testing ${example}...`);
   const examplePath = `examples/${example}`;
@@ -59,6 +74,14 @@ async function runExample(example) {
 }
 
 async function runAll() {
+  try {
+    await runUnitTests();
+  } catch (error) {
+    console.error(error);
+    cleanup();
+    process.exit(1);
+  }
+
   for (const example of examples) {
     try {
       await runExample(example);

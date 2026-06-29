@@ -6,7 +6,7 @@ import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
 // TODO use proper path
 import type { Options as RefreshOptions } from 'solid-refresh/babel';
-import lazyModuleUrl, { LAZY_PLACEHOLDER_PREFIX } from './lazy-module-url.js';
+import lazyModuleUrl, { LAZY_PLACEHOLDER_PREFIX, normalizeLazyModulePath } from './lazy-module-url.js';
 import path from 'path';
 import type { Alias, AliasOptions, FilterPattern, Plugin } from 'vite';
 import { createFilter, version } from 'vite';
@@ -535,7 +535,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           const cleanId = resolved.id.split('?')[0];
           resolutions.push({
             placeholder: match[0],
-            resolved: '"' + path.relative(projectRoot, cleanId) + '"',
+            resolved: '"' + normalizeLazyModulePath(path.relative(projectRoot, cleanId)) + '"',
           });
         }
       }

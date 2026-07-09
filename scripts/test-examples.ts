@@ -2,19 +2,20 @@ import { spawn, exec, ChildProcess } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
-const examples = ['vite-3', 'vite-4', 'vite-5', 'vite-6'];
+const examples = ['vite-6', 'vite-7', 'vite-8'];
 const PORT = 4173;
 const TEST_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+const cypressEnv = { ...process.env, ELECTRON_RUN_AS_NODE: undefined };
 
 // Track active processes for cleanup
 const activeProcesses = new Set<ChildProcess>();
 
 // Cleanup function
-function cleanup() {
+function cleanup(exitCode = 0) {
   for (const proc of activeProcesses) {
     proc.kill('SIGTERM');
   }
-  process.exit(0);
+  process.exit(exitCode);
 }
 
 // Handle termination signals
@@ -43,7 +44,10 @@ async function runExample(example) {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Run Cypress tests with timeout
-    const testPromise = execAsync(`pnpm exec cypress run --config-file cypress.config.ts --env example=${example}`);
+    const testPromise = execAsync(
+      `pnpm exec cypress run --config-file cypress.config.ts --env example=${example}`,
+      { env: cypressEnv },
+    );
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error(`Test timeout for ${example}`)), TEST_TIMEOUT)
     );
@@ -64,8 +68,7 @@ async function runAll() {
       await runExample(example);
     } catch (error) {
       console.error(`Error testing ${example}:`, error);
-      cleanup();
-      process.exit(1);
+      cleanup(1);
     }
   }
   process.exit(0);
@@ -73,6 +76,5 @@ async function runAll() {
 
 runAll().catch(error => {
   console.error('Unexpected error:', error);
-  cleanup();
-  process.exit(1);
+  cleanup(1);
 });

@@ -2,12 +2,23 @@ packages:
   - .
   - examples/*
 
+allowBuilds:
+  cypress: true
+  esbuild: true
+  msw: true
+
 catalog:
-  solid-js: ">=2.0.0-beta.0 <2.0.0-experimental.0"
-  "@solidjs/web": ">=2.0.0-beta.0 <2.0.0-experimental.0"
+  solid-js: ">=2.0.0-beta.16 <2.0.0-experimental.0"
+  "@solidjs/web": ">=2.0.0-beta.16 <2.0.0-experimental.0"
 
 ignoredBuiltDependencies:
   - cypress
+
+minimumReleaseAgeExclude:
+  - '@solidjs/signals@2.0.0-beta.16'
+  - '@solidjs/web@2.0.0-beta.16'
+  - babel-preset-solid@2.0.0-beta.16
+  - solid-js@2.0.0-beta.16
 
 onlyBuiltDependencies:
   - cypress

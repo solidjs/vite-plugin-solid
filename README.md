@@ -130,6 +130,23 @@ If set to false, it won't inject the runtime in dev.
 
 This will force SSR code in the produced files.
 
+#### options.compiler
+
+- Type: `"babel" | "native"`
+- Default: `"babel"`
+
+Choose the JSX compiler backend. `"babel"` keeps using `babel-preset-solid`.
+`"native"` uses the native compiler from `@dom-expressions/jsx-compiler`.
+
+```ts
+import { defineConfig } from 'vite';
+import solidPlugin from 'vite-plugin-solid';
+
+export default defineConfig({
+  plugins: [solidPlugin({ compiler: 'native' })],
+});
+```
+
 #### options.babel
 
 - Type: Babel.TransformOptions
@@ -139,11 +156,13 @@ Pass any additional [babel transform options](https://babeljs.io/docs/en/options
 
 #### options.solid
 
-- Type: [babel-plugin-jsx-dom-expressions](https://github.com/ryansolid/dom-expressions/tree/main/packages/babel-plugin-jsx-dom-expressions#plugin-options)
+- Type: [@dom-expressions/jsx-compiler](https://github.com/ryansolid/dom-expressions/tree/main/packages/jsx-compiler#options) / [@dom-expressions/babel-plugin-jsx](https://github.com/ryansolid/dom-expressions/tree/main/packages/babel-plugin-jsx#plugin-options)
 - Default: {}
 
-Pass any additional [babel-plugin-jsx-dom-expressions](https://github.com/ryansolid/dom-expressions/tree/main/packages/babel-plugin-jsx-dom-expressions#plugin-options).
-They will be merged with the defaults sets by [babel-preset-solid](https://github.com/solidjs/solid/blob/main/packages/babel-preset-solid/index.js#L8-L25).
+Pass additional DOM Expressions JSX compiler options. They will be merged with
+Solid's defaults (`moduleName: "@solidjs/web"`, Solid built-ins, custom-element
+context, and conditional wrapping) and applied to whichever compiler backend is
+selected.
 
 #### options.typescript
 

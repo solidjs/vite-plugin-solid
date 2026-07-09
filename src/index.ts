@@ -1,4 +1,8 @@
 import * as babel from '@babel/core';
+import {
+  transformAsync as transformJsxAsync,
+  type TransformOptions as JsxCompilerOptions,
+} from '@dom-expressions/jsx-compiler';
 import solid from 'babel-preset-solid';
 import { existsSync, readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
@@ -32,10 +36,26 @@ const DEV_MANIFEST_CODE = `export default new Proxy({}, {
   }
 });`;
 
+const SOLID_BUILT_INS = [
+  'For',
+  'Show',
+  'Switch',
+  'Match',
+  'Loading',
+  'Reveal',
+  'Portal',
+  'Repeat',
+  'Dynamic',
+  'Errored',
+];
+
 /** Possible options for the extensions property */
 export interface ExtensionOptions {
   typescript?: boolean;
 }
+
+export type Compiler = 'babel' | 'native';
+export type SolidOptions = Omit<JsxCompilerOptions, 'filename' | 'sourceMap'>;
 
 /** Configuration options for vite-plugin-solid. */
 export interface Options {
@@ -63,6 +83,13 @@ export interface Options {
    * @default false
    */
   ssr?: boolean;
+
+  /**
+   * JSX compiler backend to use.
+   *
+   * @default "babel"
+   */
+  compiler?: Compiler;
 
   /**
    * This will inject HMR runtime in dev mode. Has no effect in prod. If
@@ -95,97 +122,7 @@ export interface Options {
    *
    * @default {}
    */
-  solid?: {
-    /**
-     * Remove unnecessary closing tags from template strings. More info here:
-     * https://github.com/solidjs/solid/blob/main/CHANGELOG.md#smaller-templates
-     *
-     * @default false
-     */
-    omitNestedClosingTags?: boolean;
-
-    /**
-     * Remove the last closing tag from template strings. Enabled by default even when `omitNestedClosingTags` is disabled.
-     * Can be disabled for compatibility for some browser-like environments.
-     *
-     * @default true
-     */
-    omitLastClosingTag?: boolean;
-
-    /**
-     * Remove unnecessary quotes from template strings.
-     * Can be disabled for compatibility for some browser-like environments.
-     *
-     * @default true
-     */
-    omitQuotes?: boolean;
-
-    /**
-     * The name of the runtime module to import the methods from.
-     *
-     * @default "solid-js/web"
-     */
-    moduleName?: string;
-
-    /**
-     * The output mode of the compiler.
-     * Can be:
-     * - "dom" is standard output
-     * - "ssr" is for server side rendering of strings.
-     * - "universal" is for using custom renderers from solid-js/universal
-     *
-     * @default "dom"
-     */
-    generate?: 'ssr' | 'dom' | 'universal';
-
-    /**
-     * Indicate whether the output should contain hydratable markers.
-     *
-     * @default false
-     */
-    hydratable?: boolean;
-
-    /**
-     * Boolean to indicate whether to enable automatic event delegation on camelCase.
-     *
-     * @default true
-     */
-    delegateEvents?: boolean;
-
-    /**
-     * Boolean indicates whether smart conditional detection should be used.
-     * This optimizes simple boolean expressions and ternaries in JSX.
-     *
-     * @default true
-     */
-    wrapConditionals?: boolean;
-
-    /**
-     * Boolean indicates whether to set current render context on Custom Elements and slots.
-     * Useful for seemless Context API with Web Components.
-     *
-     * @default true
-     */
-    contextToCustomElements?: boolean;
-
-    /**
-     * Array of Component exports from module, that aren't included by default with the library.
-     * This plugin will automatically import them if it comes across them in the JSX.
-     *
-     * @default ["For","Show","Switch","Match","Suspense","SuspenseList","Portal","Index","Dynamic","ErrorBoundary"]
-     */
-    builtIns?: string[];
-
-    /**
-     * Enable dev-mode compilation output. When true, the compiler emits
-     * additional runtime checks (e.g. hydration mismatch assertions).
-     * Automatically set to true during `vite dev` — override here to
-     * force on or off.
-     *
-     * @default auto (true in dev, false in build)
-     */
-    dev?: boolean;
-  };
+  solid?: SolidOptions;
 
 
   refresh: Omit<RefreshOptions & { disabled: boolean }, 'bundler' | 'fixRender' | 'jsx'>;
@@ -219,6 +156,48 @@ function getJestDomExport(setupFiles: string[]) {
           }
         },
       );
+}
+
+function getSolidOptions(options: Partial<Options>, isSsr: boolean, dev: boolean): SolidOptions {
+  let solidOptions: Pick<SolidOptions, 'generate' | 'hydratable'>;
+
+  if (options.ssr) {
+    if (isSsr) {
+      solidOptions = { generate: 'ssr', hydratable: true };
+    } else {
+      solidOptions = { generate: 'dom', hydratable: true };
+    }
+  } else {
+    solidOptions = { generate: 'dom', hydratable: false };
+  }
+
+  return {
+    moduleName: '@solidjs/web',
+    builtIns: SOLID_BUILT_INS,
+    contextToCustomElements: true,
+    wrapConditionals: true,
+    ...solidOptions,
+    dev,
+    ...(options.solid || {}),
+  };
+}
+
+async function getBabelUserOptions(
+  options: Partial<Options>,
+  source: string,
+  id: string,
+  isSsr: boolean,
+) {
+  if (!options.babel) return {};
+  if (typeof options.babel !== 'function') return options.babel;
+
+  const babelOptions = options.babel(source, id, isSsr);
+  return babelOptions instanceof Promise ? await babelOptions : babelOptions;
+}
+
+function normalizeSourceMap(map: string | babel.TransformOptions['inputSourceMap'] | null | undefined) {
+  if (typeof map === 'string') return JSON.parse(map);
+  return map || null;
 }
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
@@ -439,18 +418,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       }
 
       const inNodeModules = /node_modules/.test(id);
-
-      let solidOptions: { generate: 'ssr' | 'dom'; hydratable: boolean };
-
-      if (options.ssr) {
-        if (isSsr) {
-          solidOptions = { generate: 'ssr', hydratable: true };
-        } else {
-          solidOptions = { generate: 'dom', hydratable: true };
-        }
-      } else {
-        solidOptions = { generate: 'dom', hydratable: false };
-      }
+      const solidOptions = getSolidOptions(options, !!isSsr, replaceDev);
 
       // We need to know if the current file extension has a typescript options tied to it
       const shouldBeProcessedWithTypescript =
@@ -474,11 +442,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         plugins.push('typescript');
       }
 
-      const opts: babel.TransformOptions = {
+      const babelSupportOptions: babel.TransformOptions = {
         root: projectRoot,
         filename: id,
         sourceFileName: id,
-        presets: [[solid, { ...solidOptions, dev: replaceDev, ...(options.solid || {}) }]],
         plugins: [
           [lazyModuleUrl],
           ...(needHmr && !isSsr && !inNodeModules ? [[solidRefresh, {
@@ -500,17 +467,55 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         },
       };
 
-      // Default value for babel user options
-      let babelUserOptions: babel.TransformOptions = {};
+      const babelUserOptions = await getBabelUserOptions(options, source, id, !!isSsr);
 
-      if (options.babel) {
-        if (typeof options.babel === 'function') {
-          const babelOptions = options.babel(source, id, !!isSsr);
-          babelUserOptions = babelOptions instanceof Promise ? await babelOptions : babelOptions;
-        } else {
-          babelUserOptions = options.babel;
+      if (options.compiler === 'native') {
+        const supportOptions = mergeAndConcat(
+          babelUserOptions,
+          babelSupportOptions,
+        ) as babel.TransformOptions;
+        const supportResult = await babel.transformAsync(source, supportOptions);
+        if (!supportResult) {
+          return undefined;
         }
+
+        const result = await transformJsxAsync(supportResult.code || '', {
+          ...solidOptions,
+          filename: id,
+          sourceMap: true,
+        });
+
+        let code = result.code || '';
+
+        // Resolve lazy() moduleUrl placeholders using Vite's resolver
+        const placeholderRe = new RegExp(
+          '"' + LAZY_PLACEHOLDER_PREFIX + '([^"]+)"',
+          'g',
+        );
+        let match;
+        const resolutions: Array<{ placeholder: string; resolved: string }> = [];
+        while ((match = placeholderRe.exec(code)) !== null) {
+          const specifier = match[1];
+          const resolved = await this.resolve(specifier, id);
+          if (resolved) {
+            const cleanId = resolved.id.split('?')[0];
+            resolutions.push({
+              placeholder: match[0],
+              resolved: '"' + path.relative(projectRoot, cleanId) + '"',
+            });
+          }
+        }
+        for (const { placeholder, resolved } of resolutions) {
+          code = code.replace(placeholder, resolved);
+        }
+
+        return { code, map: normalizeSourceMap(result.map) };
       }
+
+      const opts: babel.TransformOptions = {
+        ...babelSupportOptions,
+        presets: [[solid, solidOptions]],
+      };
 
       const babelOptions = mergeAndConcat(babelUserOptions, opts) as babel.TransformOptions;
 

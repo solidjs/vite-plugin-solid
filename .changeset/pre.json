@@ -6,6 +6,8 @@
   },
   "changesets": [
     "empty-dragons-grow",
+    "lazy-manifest-robustness",
+    "native-compiler-option",
     "six-lions-joke",
     "true-boxes-arrive"
   ]

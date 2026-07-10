@@ -6,6 +6,7 @@
   },
   "changesets": [
     "empty-dragons-grow",
+    "lazy-load-native-compiler",
     "lazy-manifest-robustness",
     "native-compiler-option",
     "six-lions-joke",

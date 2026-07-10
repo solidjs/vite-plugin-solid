@@ -200,6 +200,28 @@ function normalizeSourceMap(map: string | babel.TransformOptions['inputSourceMap
   return map || null;
 }
 
+/**
+ * Chunks emitted for lazy() targets are marked `isEntry` by Rollup even
+ * though they are semantically dynamic entries. Reclassify any entry that is
+ * dynamically imported by another chunk so the runtime's entry-asset
+ * detection (which keys off `isEntry`) can't pick a lazy facade instead of
+ * the real client entry.
+ */
+function normalizeEmittedLazyEntries(manifest: Record<string, any>) {
+  const dynamicKeys = new Set<string>();
+  for (const key in manifest) {
+    const imports: string[] | undefined = manifest[key].dynamicImports;
+    if (imports) for (const dep of imports) dynamicKeys.add(dep);
+  }
+  for (const key of dynamicKeys) {
+    const entry = manifest[key];
+    if (entry && entry.isEntry) {
+      delete entry.isEntry;
+      entry.isDynamicEntry = true;
+    }
+  }
+}
+
 export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   const filter = createFilter(options.include, options.exclude);
 
@@ -208,8 +230,58 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   let projectRoot = process.cwd();
   let isTestMode = false;
   let isBuild = false;
+  let isSsrBuild = false;
   let base = '/';
   let solidPkgsConfig: Awaited<ReturnType<typeof crawlFrameworkPkgs>>;
+
+  // Dynamically imported project modules in the client build. Each is
+  // emitted as an explicit chunk so it always gets its own manifest entry
+  // keyed by source path — even when manualChunks or dual static/dynamic
+  // imports would otherwise fold it facade-less into a shared chunk (which
+  // would break resolveAssets lookups and hydration module preloading).
+  // Driven from moduleParsed so it covers every lazy() target, including
+  // import.meta.glob entries that never pass through the moduleUrl transform.
+  const emittedLazyChunks = new Set<string>();
+
+  /**
+   * Replaces lazy() moduleUrl placeholders injected by the babel plugin with
+   * project-relative module paths resolved through Vite's resolver.
+   */
+  async function resolveLazyModuleUrls(ctx: any, code: string, importer: string): Promise<string> {
+    const placeholderRe = new RegExp('"' + LAZY_PLACEHOLDER_PREFIX + '([^"]+)"', 'g');
+    let match;
+    const resolutions: Array<{ placeholder: string; resolved: string }> = [];
+    while ((match = placeholderRe.exec(code)) !== null) {
+      const specifier = match[1];
+      const resolved = await ctx.resolve(specifier, importer);
+      if (resolved) {
+        const cleanId = resolved.id.split('?')[0];
+        const relativeId = path.relative(projectRoot, cleanId).split(path.sep).join('/');
+        resolutions.push({
+          placeholder: match[0],
+          resolved: '"' + relativeId + '"',
+        });
+      }
+    }
+    for (const { placeholder, resolved } of resolutions) {
+      code = code.replace(placeholder, resolved);
+    }
+    return code;
+  }
+
+  /**
+   * SSR transforms append a `$$moduleUrl` export carrying the module's
+   * client-manifest key (project-relative source path). Server-side `lazy()`
+   * reads it off the resolved module when the callsite has no static import
+   * specifier to transform — e.g. `lazy` over an `import.meta.glob` entry —
+   * so asset resolution and hydration preloading still work. Client builds
+   * are untouched.
+   */
+  function injectSsrModuleId(code: string, id: string, isSsr: boolean): string {
+    if (!isSsr || /node_modules/.test(id) || code.includes('$$moduleUrl')) return code;
+    const relativeId = path.relative(projectRoot, id).split(path.sep).join('/');
+    return code + `\nexport const $$moduleUrl = ${JSON.stringify(relativeId)};\n`;
+  }
 
   return {
     name: 'solid',
@@ -339,6 +411,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
     configResolved(config) {
       isBuild = config.command === 'build';
+      isSsrBuild = !!config.build.ssr;
       base = config.base;
       needHmr = config.command === 'serve' && config.mode !== 'production' && (options.hot !== false && !options.refresh?.disabled);
     },
@@ -383,6 +456,23 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       if (id === VIRTUAL_MANIFEST_ID) return RESOLVED_VIRTUAL_MANIFEST_ID;
     },
 
+    moduleParsed(info) {
+      // SSR-mode client builds only: give every dynamically imported project
+      // module its own facade chunk (exports-only preserves `default`
+      // re-exports) so it keeps a manifest entry keyed by its source path
+      // even when chunk grouping would otherwise absorb it. Plain SPA builds
+      // have no manifest lookups to protect.
+      if (!isBuild || !options.ssr || isSsrBuild) return;
+      for (const depId of info.dynamicallyImportedIds || []) {
+        const cleanId = depId.split('?')[0];
+        if (/node_modules/.test(cleanId) || cleanId.startsWith('\0')) continue;
+        if (!/\.[mc]?[tj]sx?$/i.test(cleanId)) continue;
+        if (emittedLazyChunks.has(depId)) continue;
+        emittedLazyChunks.add(depId);
+        this.emitFile({ type: 'chunk', id: depId, preserveSignature: 'exports-only' });
+      }
+    },
+
     load(id) {
       if (id === runtimePublicPath) return runtimeCode;
       if (id === RESOLVED_VIRTUAL_MANIFEST_ID) {
@@ -390,6 +480,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         const manifestPath = path.resolve(projectRoot, 'dist/client/.vite/manifest.json');
         if (existsSync(manifestPath)) {
           const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+          normalizeEmittedLazyEntries(manifest);
           manifest._base = base;
           return `export default ${JSON.stringify(manifest)};`;
         }
@@ -485,29 +576,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           sourceMap: true,
         });
 
-        let code = result.code || '';
-
-        // Resolve lazy() moduleUrl placeholders using Vite's resolver
-        const placeholderRe = new RegExp(
-          '"' + LAZY_PLACEHOLDER_PREFIX + '([^"]+)"',
-          'g',
+        const code = injectSsrModuleId(
+          await resolveLazyModuleUrls(this, result.code || '', id),
+          id,
+          !!isSsr,
         );
-        let match;
-        const resolutions: Array<{ placeholder: string; resolved: string }> = [];
-        while ((match = placeholderRe.exec(code)) !== null) {
-          const specifier = match[1];
-          const resolved = await this.resolve(specifier, id);
-          if (resolved) {
-            const cleanId = resolved.id.split('?')[0];
-            resolutions.push({
-              placeholder: match[0],
-              resolved: '"' + path.relative(projectRoot, cleanId) + '"',
-            });
-          }
-        }
-        for (const { placeholder, resolved } of resolutions) {
-          code = code.replace(placeholder, resolved);
-        }
 
         return { code, map: normalizeSourceMap(result.map) };
       }
@@ -524,29 +597,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
         return undefined;
       }
 
-      let code = result.code || '';
-
-      // Resolve lazy() moduleUrl placeholders using Vite's resolver
-      const placeholderRe = new RegExp(
-        '"' + LAZY_PLACEHOLDER_PREFIX + '([^"]+)"',
-        'g',
+      const code = injectSsrModuleId(
+        await resolveLazyModuleUrls(this, result.code || '', id),
+        id,
+        !!isSsr,
       );
-      let match;
-      const resolutions: Array<{ placeholder: string; resolved: string }> = [];
-      while ((match = placeholderRe.exec(code)) !== null) {
-        const specifier = match[1];
-        const resolved = await this.resolve(specifier, id);
-        if (resolved) {
-          const cleanId = resolved.id.split('?')[0];
-          resolutions.push({
-            placeholder: match[0],
-            resolved: '"' + path.relative(projectRoot, cleanId) + '"',
-          });
-        }
-      }
-      for (const { placeholder, resolved } of resolutions) {
-        code = code.replace(placeholder, resolved);
-      }
 
       return { code, map: result.map };
     },

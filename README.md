@@ -137,6 +137,9 @@ This will force SSR code in the produced files.
 
 Choose the JSX compiler backend. `"babel"` keeps using `babel-preset-solid`.
 `"native"` uses the native compiler from `@dom-expressions/jsx-compiler`.
+The native compiler requires native Node addon support, so environments that
+disable native addons (for example StackBlitz WebContainers) should use the
+default `"babel"` compiler.
 
 ```ts
 import { defineConfig } from 'vite';

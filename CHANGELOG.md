@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.0-next.7
+
+### Patch Changes
+
+- f718828: Lazy-load the native JSX compiler so environments without native addon support can still use the default Babel compiler.
+
 ## 3.0.0-next.6
 
 ### Minor Changes

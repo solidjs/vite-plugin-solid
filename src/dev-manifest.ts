@@ -1,0 +1,180 @@
+import path from 'path';
+import type { DevEnvironment, EnvironmentModuleNode, ViteDevServer } from 'vite';
+
+/**
+ * Dev-mode asset resolution: the `virtual:solid-manifest` module exports a
+ * resolver function in dev (instead of the static object a build produces),
+ * and the runtime installs it as `context.resolveAssets` verbatim. When
+ * server-side `lazy()` resolves a module key, the resolver walks the SSR
+ * environment's live module graph collecting transitively imported CSS and
+ * answers with inline-style descriptors — SSR'd `<style data-vite-dev-id>`
+ * tags that Vite's HMR client adopts on startup, so dev CSS is styled from
+ * the first streamed byte without fighting Vite's own style injection.
+ *
+ * The walk design follows SolidStart's collect-styles (by @katywings): crawl
+ * `transformResult.deps` on the SSR environment (the client environment's
+ * transform results don't list CSS deps), skipping dynamic imports since
+ * dynamically imported modules register their own styles when they render.
+ */
+
+export type ResolvedAssets = {
+  js: string[];
+  css: (string | { id: string; content: string; attrs?: Record<string, string> })[];
+};
+
+export type DevAssetResolver = {
+  resolve: (key: string) => Promise<ResolvedAssets | null>;
+  /**
+   * Synchronous fast path used by sync consumers (a lazy component's
+   * `moduleUrl` getter for islands): the module's dev URL is knowable
+   * without the async CSS graph walk.
+   */
+  resolveSync: (key: string) => ResolvedAssets;
+};
+
+// The resolver is created plugin-side (it closes over the dev server) but is
+// called from the SSR module runner, which only shares `globalThis` with the
+// plugin when it runs in-process (the default). The bridge is a
+// `Symbol.for`-keyed registry mapping project roots to resolvers; isolated
+// runners (workers) simply won't find it and fall back to js-only resolution.
+export const DEV_MANIFEST_REGISTRY_KEY = 'vite-plugin-solid:dev-manifest';
+
+export function registerDevAssetResolver(root: string, resolver: DevAssetResolver): void {
+  const key = Symbol.for(DEV_MANIFEST_REGISTRY_KEY);
+  const registry: Record<string, DevAssetResolver> = ((globalThis as any)[key] ??= {});
+  registry[root] = resolver;
+}
+
+// https://github.com/vitejs/vite/blob/main/packages/vite/src/node/constants.ts
+const cssFileRegExp = /\.(css|less|sass|scss|styl|stylus|pcss|postcss|sss)$/;
+// Queried css imports (?url, ?inline, ?raw) are not ambient styles — the
+// importer controls them — so they must not be SSR'd as style tags.
+const nonAmbientQueryRegExp = /[?&](url|inline|raw)\b/;
+
+const NULL_BYTE_PLACEHOLDER = '/@id/__x00__';
+
+// Per Vite's convention virtual module ids are prefixed with `\0`, which
+// cannot appear in an HTML attribute (the parser replaces it). Serialize the
+// same placeholder form Vite's own URLs use. Adoption of virtual-module
+// styles additionally needs `devStylePatch` (below) to run client-side;
+// fs-backed CSS (the overwhelmingly common case) adopts without it.
+function wrapId(id: string): string {
+  return id.replace(/^\0/, NULL_BYTE_PLACEHOLDER);
+}
+
+/**
+ * Inline dev script reconciling SSR'd style tags with Vite's HMR client.
+ * Frameworks that server-render whole documents should inline this in dev,
+ * in `<head>` before any module script. It does two things, via a
+ * MutationObserver so styles appended by streamed boundaries are handled as
+ * they arrive (Vite's client seeds its stylesheet registry from the DOM only
+ * once, when its module evaluates):
+ *
+ * - Rewrites serialized virtual-module ids (`/@id/__x00__…`) back to Vite's
+ *   null-byte form so seeding matches (a raw `\0` can't survive HTML).
+ * - Dedupes twins: a style tag that streams in after Vite's client has
+ *   seeded is missed by the scan, so the CSS module injects its own copy
+ *   client-side. Whenever two style tags share a `data-vite-dev-id`, the
+ *   SSR'd one (marked `data-asset`) is removed in favor of the Vite-owned
+ *   one, which is the tag HMR updates.
+ *
+ * Observation is two-phase to stay cheap: a document-wide subtree observer
+ * only for the streaming window (SSR tags can only arrive while the parser
+ * is consuming the stream; DOMContentLoaded marks its end), then a
+ * childList-only observer on `document.head` for the page lifetime — Vite
+ * injects twins into the head during hydration, which continues past
+ * DOMContentLoaded, and a non-subtree head observer never fires on app DOM
+ * churn, only on head insertions.
+ *
+ * Descends from SolidStart's PatchVirtualDevStyles (by @katywings); this
+ * belongs in Vite itself eventually.
+ */
+export const devStylePatch = `(function(){var P=${JSON.stringify(
+  NULL_BYTE_PLACEHOLDER,
+)};var handle=function(el){var v=el.getAttribute("data-vite-dev-id");if(!v)return;if(v.indexOf(P)===0){v="\\0"+v.slice(P.length);el.setAttribute("data-vite-dev-id",v)}var all=document.querySelectorAll("style[data-vite-dev-id]");for(var i=0;i<all.length;i++){var o=all[i];if(o!==el&&o.getAttribute("data-vite-dev-id")===v){var ssr=o.hasAttribute("data-asset")?o:el.hasAttribute("data-asset")?el:null;if(ssr)ssr.remove();break}}};var scan=function(n){if(n.nodeType!==1)return;if(n.tagName==="STYLE")handle(n);else if(n.querySelectorAll)n.querySelectorAll("style[data-vite-dev-id]").forEach(handle)};var onMuts=function(muts){for(var i=0;i<muts.length;i++)muts[i].addedNodes.forEach(scan)};var headPhase=function(){scan(document.documentElement);new MutationObserver(onMuts).observe(document.head,{childList:true})};scan(document.documentElement);if(document.readyState==="loading"){var mo=new MutationObserver(onMuts);mo.observe(document.documentElement,{childList:true,subtree:true});document.addEventListener("DOMContentLoaded",function(){mo.disconnect();headPhase()})}else headPhase()})();`;
+
+async function getModuleNode(
+  env: DevEnvironment,
+  file: string,
+  importer?: string,
+): Promise<EnvironmentModuleNode | undefined> {
+  try {
+    const resolved = await env.fetchModule(file, importer);
+    if (!('id' in resolved)) return;
+    return env.moduleGraph.getModuleById(resolved.id);
+  } catch {
+    return;
+  }
+}
+
+async function collectModuleDeps(
+  env: DevEnvironment,
+  file: string,
+  deps: Set<EnvironmentModuleNode>,
+  crawled: Set<string>,
+  importer?: string,
+): Promise<void> {
+  crawled.add(file);
+  const node = await getModuleNode(env, file, importer);
+  if (!node?.id || deps.has(node)) return;
+  deps.add(node);
+
+  if (cssFileRegExp.test(node.url.split('?')[0]) || node.id.includes('node_modules')) return;
+
+  if (!node.transformResult) {
+    await env.transformRequest(node.url).catch(() => {});
+  }
+  const directDeps = node.transformResult?.deps;
+  if (!directDeps) return;
+
+  // transformResult.deps (unlike importedModules) separates static imports
+  // from dynamicDeps — dynamic imports load their own styles when rendered.
+  for (const dep of directDeps) {
+    if (crawled.has(dep)) continue;
+    await collectModuleDeps(env, dep, deps, crawled, node.id);
+  }
+}
+
+function injectQuery(url: string, query: string): string {
+  return url.includes('?') ? `${url}&${query}` : `${url}?${query}`;
+}
+
+export function createDevAssetResolver(server: ViteDevServer): DevAssetResolver {
+  const resolve = async function resolveDevAssets(key: string): Promise<ResolvedAssets | null> {
+    const ssrEnv = server.environments?.ssr;
+    const clientEnv = server.environments?.client;
+    // The module's dev URL doubles as its client entry: modulepreload hint
+    // and hydration module-map value.
+    const js = ['/' + key];
+    if (!ssrEnv || !clientEnv) return { js, css: [] };
+
+    const absolute = path.resolve(server.config.root, key);
+    const deps = new Set<EnvironmentModuleNode>();
+    await collectModuleDeps(ssrEnv, absolute, deps, new Set());
+
+    const css: ResolvedAssets['css'] = [];
+    for (const node of deps) {
+      if (!node.id) continue;
+      const cleanUrl = node.url.split('?')[0];
+      if (!cssFileRegExp.test(cleanUrl) || nonAmbientQueryRegExp.test(node.url)) continue;
+      // `?direct` yields the compiled stylesheet text (what Vite serves for
+      // <link> requests) — through the client environment, whose css
+      // pipeline matches what the browser will run for HMR updates.
+      const result = await clientEnv
+        .transformRequest(injectQuery(node.url, 'direct'))
+        .catch(() => null);
+      if (result?.code == null) continue;
+      const id = wrapId(node.id);
+      css.push({
+        id,
+        content: result.code,
+        attrs: { 'data-vite-dev-id': id },
+      });
+    }
+    return { js, css };
+  };
+  return {
+    resolve,
+    resolveSync: (key: string) => ({ js: ['/' + key], css: [] }),
+  };
+}

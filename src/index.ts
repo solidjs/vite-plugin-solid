@@ -8,6 +8,22 @@ import solidRefresh from 'solid-refresh/babel';
 // TODO use proper path
 import type { Options as RefreshOptions } from 'solid-refresh/babel';
 import lazyModuleUrl, { LAZY_PLACEHOLDER_PREFIX } from './lazy-module-url.js';
+import {
+  createDevAssetResolver,
+  registerDevAssetResolver,
+  DEV_MANIFEST_REGISTRY_KEY,
+} from './dev-manifest.js';
+import {
+  CLIENT_MANIFEST_ID,
+  RESOLVED_CLIENT_MANIFEST_ID,
+  CLIENT_MANIFEST_PLACEHOLDER,
+  buildClientAssetMap,
+  buildClientAssetMapFromManifest,
+  substituteClientManifest,
+} from './client-manifest.js';
+
+export { devStylePatch } from './dev-manifest.js';
+export type { ClientAssetMap } from './client-manifest.js';
 import path from 'path';
 import type { Alias, AliasOptions, FilterPattern, Plugin } from 'vite';
 import { createFilter, version } from 'vite';
@@ -26,12 +42,17 @@ const isVite8 = viteVersionMajor >= 8;
 const VIRTUAL_MANIFEST_ID = 'virtual:solid-manifest';
 const RESOLVED_VIRTUAL_MANIFEST_ID = '\0' + VIRTUAL_MANIFEST_ID;
 
-const DEV_MANIFEST_CODE = `export default new Proxy({}, {
-  get(_, key) {
-    if (typeof key !== "string") return undefined;
-    return { file: "/" + key };
-  }
-});`;
+// In dev the virtual manifest exports a `{ resolve, resolveSync }` resolver:
+// lazy modules resolve to their dev URL plus transitively imported CSS as
+// inline-style descriptors collected from the live module graph. The resolver
+// itself lives plugin-side (it closes over the dev server) and is reached
+// through a global registry; isolated module runners that don't share globals
+// fall back to js-only resolution, which matches the previous dev behavior.
+const devManifestCode = (root: string) => `const registry = globalThis[Symbol.for(${JSON.stringify(
+  DEV_MANIFEST_REGISTRY_KEY,
+)})];
+const fallback = key => ({ js: ["/" + key], css: [] });
+export default (registry && registry[${JSON.stringify(root)}]) || { resolve: fallback, resolveSync: fallback };`;
 
 const SOLID_BUILT_INS = [
   'For',
@@ -257,6 +278,18 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
   // import.meta.glob entries that never pass through the moduleUrl transform.
   const emittedLazyChunks = new Set<string>();
 
+  // Whether the current hook invocation belongs to a client (browser) build.
+  // Builder-mode builds (e.g. SolidStart's nitro plugin) run the client and
+  // ssr environments through one Vite process with shared plugins, so the
+  // process-wide isSsrBuild flag from configResolved can't tell them apart —
+  // the per-environment consumer can. Classic two-invocation builds
+  // (`vite build` / `vite build --ssr`) fall back to the flag.
+  function isClientBuild(ctx: { environment?: { config?: { consumer?: string } } }): boolean {
+    const consumer = ctx.environment?.config?.consumer;
+    if (consumer) return consumer === 'client';
+    return !isSsrBuild;
+  }
+
   /**
    * Replaces lazy() moduleUrl placeholders injected by the babel plugin with
    * project-relative module paths resolved through Vite's resolver.
@@ -427,10 +460,17 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       isBuild = config.command === 'build';
       isSsrBuild = !!config.build.ssr;
       base = config.base;
+      projectRoot = config.root;
       needHmr = config.command === 'serve' && config.mode !== 'production' && (options.hot !== false && !options.refresh?.disabled);
     },
 
     configureServer(server) {
+      // Dev asset resolution for SSR: the virtual manifest module (evaluated
+      // in the SSR environment) picks this resolver up through the global
+      // registry keyed by project root.
+      if (options.ssr) {
+        registerDevAssetResolver(server.config.root, createDevAssetResolver(server));
+      }
       if (!needHmr) return;
       // When a module has a syntax error, Vite sends the error overlay via
       // WebSocket but the failed import triggers invalidation in solid-refresh.
@@ -468,6 +508,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     resolveId(id) {
       if (id === runtimePublicPath) return id;
       if (id === VIRTUAL_MANIFEST_ID) return RESOLVED_VIRTUAL_MANIFEST_ID;
+      if (id === CLIENT_MANIFEST_ID) return RESOLVED_CLIENT_MANIFEST_ID;
     },
 
     moduleParsed(info) {
@@ -476,7 +517,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       // re-exports) so it keeps a manifest entry keyed by its source path
       // even when chunk grouping would otherwise absorb it. Plain SPA builds
       // have no manifest lookups to protect.
-      if (!isBuild || !options.ssr || isSsrBuild) return;
+      if (!isBuild || !options.ssr || !isClientBuild(this)) return;
       for (const depId of info.dynamicallyImportedIds || []) {
         const cleanId = depId.split('?')[0];
         if (/node_modules/.test(cleanId) || cleanId.startsWith('\0')) continue;
@@ -490,7 +531,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     load(id) {
       if (id === runtimePublicPath) return runtimeCode;
       if (id === RESOLVED_VIRTUAL_MANIFEST_ID) {
-        if (!isBuild) return DEV_MANIFEST_CODE;
+        if (!isBuild) return devManifestCode(projectRoot);
         const manifestPath = path.resolve(projectRoot, 'dist/client/.vite/manifest.json');
         if (existsSync(manifestPath)) {
           const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
@@ -498,8 +539,53 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           manifest._base = base;
           return `export default ${JSON.stringify(manifest)};`;
         }
-        return DEV_MANIFEST_CODE;
+        // SSR build before the client build produced a manifest: bake in the
+        // dev-shaped fallback (registry miss degrades to js-only resolution).
+        return devManifestCode(projectRoot);
       }
+      if (id === RESOLVED_CLIENT_MANIFEST_ID) {
+        // Client-side flavor: dynamic-entry source keys → resolved client
+        // asset URLs, for routers managing route CSS/preloads on navigation.
+        // Dev exports an empty map (Vite's client owns dev CSS lifecycle).
+        if (!isBuild) return 'export default {};';
+        if (isClientBuild(this)) {
+          // The map is only known once the client bundle exists; emit a
+          // placeholder that generateBundle substitutes.
+          return `export default ${JSON.stringify(CLIENT_MANIFEST_PLACEHOLDER)};`;
+        }
+        const manifestPath = path.resolve(projectRoot, 'dist/client/.vite/manifest.json');
+        if (existsSync(manifestPath)) {
+          const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+          normalizeEmittedLazyEntries(manifest);
+          return `export default ${JSON.stringify(buildClientAssetMapFromManifest(manifest, base))};`;
+        }
+        return 'export default {};';
+      }
+    },
+
+    augmentChunkHash(chunkInfo) {
+      // The client-manifest chunk's final content (substituted in
+      // generateBundle, after hashing) is a function of every css source and
+      // the dynamic-import graph. Fold those inputs into the hash so a
+      // content change can't hide under an unchanged filename.
+      if (!isBuild || !isClientBuild(this) || !chunkInfo.moduleIds?.includes(RESOLVED_CLIENT_MANIFEST_ID)) {
+        return;
+      }
+      let acc = '';
+      for (const id of this.getModuleIds()) {
+        const info = this.getModuleInfo(id);
+        if (/\.(css|less|sass|scss|styl|stylus|pcss|postcss|sss)$/.test(id.split('?')[0])) {
+          acc += id + '\0' + (info?.code || '');
+        } else if (info?.dynamicallyImportedIds?.length) {
+          acc += id + '>' + info.dynamicallyImportedIds.join(',') + '\0';
+        }
+      }
+      return acc;
+    },
+
+    generateBundle(_options, bundle) {
+      if (!isBuild || !isClientBuild(this)) return;
+      substituteClientManifest(bundle, buildClientAssetMap(bundle, projectRoot, base));
     },
 
     async transform(source, id, transformOptions) {

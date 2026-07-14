@@ -1,0 +1,8 @@
+body {
+  /* Known default so "css absent" assertions are unambiguous. */
+  color: rgb(0, 0, 0);
+}
+
+.app-probe {
+  color: rgb(10, 20, 30);
+}

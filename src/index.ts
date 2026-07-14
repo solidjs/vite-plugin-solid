@@ -240,7 +240,9 @@ function normalizeSourceMap(map: string | babel.TransformOptions['inputSourceMap
  * though they are semantically dynamic entries. Reclassify any entry that is
  * dynamically imported by another chunk so the runtime's entry-asset
  * detection (which keys off `isEntry`) can't pick a lazy facade instead of
- * the real client entry.
+ * the real client entry. Works on both the Vite manifest.json shape and the
+ * raw Rollup output bundle — both key entries by name and expose
+ * `dynamicImports` / `isEntry` with the same meaning.
  */
 function normalizeEmittedLazyEntries(manifest: Record<string, any>) {
   const dynamicKeys = new Set<string>();
@@ -585,6 +587,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
     generateBundle(_options, bundle) {
       if (!isBuild || !isClientBuild(this)) return;
+      // Reclassify emitted lazy facade chunks in the raw bundle (not just the
+      // serialized manifest read back later) so downstream plugins inspecting
+      // the bundle don't mistake them for application entries. Must precede
+      // the client asset map build, which keys off dynamic entries.
+      if (options.ssr) normalizeEmittedLazyEntries(bundle);
       substituteClientManifest(bundle, buildClientAssetMap(bundle, projectRoot, base));
     },
 

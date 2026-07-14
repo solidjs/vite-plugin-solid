@@ -292,6 +292,17 @@ async function runMode(mode) {
         sharedChunks.size === 1,
         `expected 1 shared chunk, saw ${sharedChunks.size} (${[...sharedChunks].join(', ')})`,
       );
+      // Emitted lazy facade chunks must be reclassified as dynamic entries in
+      // the output bundle itself — downstream plugins (and this manifest,
+      // which Vite generates from the bundle) must see exactly one real entry.
+      const entries = Object.keys(manifest).filter((k) => manifest[k].isEntry);
+      record(
+        mode,
+        'ssr',
+        'single application entry in client manifest',
+        entries.length === 1 && entries[0] === 'src/entry-client.tsx',
+        `entries: ${entries.join(', ')}`,
+      );
     }
 
     // ---- Phase 2: browser ------------------------------------------------

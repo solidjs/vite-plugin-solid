@@ -5,10 +5,13 @@
     "vite-plugin-solid": "3.0.0-next.2"
   },
   "changesets": [
+    "clean-lazy-entries",
+    "dev-css-and-client-manifest",
     "empty-dragons-grow",
     "lazy-load-native-compiler",
     "lazy-manifest-robustness",
     "native-compiler-option",
+    "server-functions-compiler",
     "six-lions-joke",
     "true-boxes-arrive"
   ]

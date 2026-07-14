@@ -487,6 +487,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       }
     },
 
+    generateBundle(_options, bundle) {
+      normalizeEmittedLazyEntries(bundle);
+    },
+
     load(id) {
       if (id === runtimePublicPath) return runtimeCode;
       if (id === RESOLVED_VIRTUAL_MANIFEST_ID) {

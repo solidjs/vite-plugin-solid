@@ -22,8 +22,13 @@ import {
   substituteClientManifest,
 } from './client-manifest.js';
 
+import { serverFunctions, type ServerFunctionsOptions } from './server-functions/index.js';
+
 export { devStylePatch } from './dev-manifest.js';
 export type { ClientAssetMap } from './client-manifest.js';
+export { serverFunctions };
+export type { ServerFunctionsOptions };
+export type { ServerFunctionsFilter } from './server-functions/index.js';
 import path from 'path';
 import type { Alias, AliasOptions, FilterPattern, Plugin } from 'vite';
 import { createFilter, version } from 'vite';
@@ -159,6 +164,16 @@ export interface Options {
    */
   solid?: SolidOptions;
 
+  /**
+   * Enable `"use server"` server function compilation (experimental). The
+   * directive transform sub-plugins are emitted ahead of the JSX transform in
+   * the returned plugin array. Meta-frameworks that need to control plugin
+   * ordering themselves (e.g. relative to a file-system router) should use
+   * the standalone `serverFunctions()` export instead.
+   *
+   * @default undefined
+   */
+  serverFunctions?: ServerFunctionsOptions;
 
   refresh: Omit<RefreshOptions & { disabled: boolean }, 'bundler' | 'fixRender' | 'jsx'>;
 }
@@ -259,7 +274,7 @@ function normalizeEmittedLazyEntries(manifest: Record<string, any>) {
   }
 }
 
-export default function solidPlugin(options: Partial<Options> = {}): Plugin {
+export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   const filter = createFilter(options.include, options.exclude);
 
   let needHmr = false;
@@ -332,7 +347,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     return code + `\nexport const $$moduleUrl = ${JSON.stringify(relativeId)};\n`;
   }
 
-  return {
+  const mainPlugin: Plugin = {
     name: 'solid',
     enforce: 'pre',
 
@@ -714,6 +729,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
       return { code, map: result.map };
     },
   };
+
+  // The directive transform must run before the JSX transform (it operates
+  // on raw directives, and client-mode module-level extraction must happen
+  // before templates are generated), so its sub-plugins go first.
+  return options.serverFunctions
+    ? [...serverFunctions(options.serverFunctions), mainPlugin]
+    : [mainPlugin];
 }
 
 /**

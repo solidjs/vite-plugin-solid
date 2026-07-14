@@ -3,3 +3,7 @@ declare module "virtual:solid-manifest" {
   const manifest: ViteManifest;
   export default manifest;
 }
+
+// Side-effect module: importing it loads every module containing server
+// functions so their registrations exist before requests are dispatched.
+declare module "virtual:solid-server-function-manifest" {}

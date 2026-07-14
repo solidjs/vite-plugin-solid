@@ -1,0 +1,23 @@
+// Hoisted from solid-start (packages/start/src/directives/generate-unique-name.ts).
+import type * as babel from '@babel/core';
+import { types as t } from '@babel/core';
+
+export function generateUniqueName(path: babel.NodePath, name: string): t.Identifier {
+  let uid: string;
+  let i = 1;
+  do {
+    uid = name + '_' + i;
+    i++;
+  } while (
+    path.scope.hasLabel(uid) ||
+    path.scope.hasBinding(uid) ||
+    path.scope.hasGlobal(uid) ||
+    path.scope.hasReference(uid)
+  );
+
+  const program = path.scope.getProgramParent();
+  program.references[uid] = true;
+  program.uids[uid] = true;
+
+  return t.identifier(uid);
+}

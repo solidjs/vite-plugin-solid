@@ -1,5 +1,70 @@
 # Changelog
 
+## 3.0.0-next.8
+
+### Patch Changes
+
+- 36428cb: Reclassify emitted lazy facade chunks as dynamic entries in the raw output bundle so downstream plugins do not mistake them for application entries.
+- 3c33a9a: Dev SSR CSS collection and a client-side asset manifest:
+
+  - In dev, `virtual:solid-manifest` now exports an asset resolver
+    `{ resolve, resolveSync }` instead of a stub object. When server-side
+    `lazy()` resolves a module, `resolve` walks Vite's SSR module graph and
+    returns its transitively imported CSS as inline-style descriptors, so dev
+    SSR streams fully styled markup (no FOUC) as `<style data-vite-dev-id>`
+    tags that Vite's HMR client adopts; `resolveSync` answers with the dev js
+    URL so islands keep a synchronous client-loadable `moduleUrl`. Requires
+    `solid-js` ≥ 2.0.0-beta.18. A `devStylePatch` export (inline script for the
+    document `<head>`) reconciles SSR'd style tags with Vite's client:
+    it rewrites virtual-module ids to their null-byte form and removes the
+    SSR'd twin when a late-streamed style arrives after Vite's client has
+    seeded its registry — recommended for any streaming-SSR document in dev.
+  - New `virtual:solid-manifest/client` module: a pruned map of dynamic-entry
+    source keys (e.g. `src/routes/About.tsx`) to resolved client asset URLs
+    `{ js, css }`, with entry-owned CSS excluded — for routers that manage
+    route stylesheets and preloads around client-side navigation. Exports an
+    empty map in dev where Vite owns the CSS lifecycle.
+  - Build-side hooks (lazy facade-chunk emission, client manifest generation)
+    now detect the client build through the per-environment `consumer` config
+    when available. Builder-mode builds that run the client and ssr
+    environments in one Vite process (e.g. SolidStart's nitro plugin) were
+    misclassified by the process-wide `--ssr` flag, so dynamically imported
+    modules folded into shared chunks lost their manifest entries and their
+    CSS/preloads were dropped from SSR output.
+
+- c3c49e8: `"use server"` server function compilation (experimental), hoisted from
+  SolidStart 2.0 alpha's directive compiler. Enable it through the new
+  `serverFunctions` option on the main plugin, or compose the standalone
+  `serverFunctions(options)` export for full control over plugin ordering
+  (e.g. relative to a file-system router). To support emitting the transform
+  sub-plugins, `solid()` now returns `Plugin[]` instead of a single `Plugin` —
+  transparent at the Vite config level, where plugin arrays flatten.
+
+  - Both directive forms are supported: function-level (first statement of a
+    function body) and module-level (every export becomes a server function).
+    Server builds register the original function via `createServerReference`
+    and reference it with `cloneServerReference`; client builds compile to
+    ID-only references with the function bodies — and everything only they
+    used, including module-level server-only code — removed.
+  - The runtime is bring-your-own: compiled output imports the two reference
+    functions from the module specifiers in `options.runtime.{server,client}`,
+    so SolidStart's runtime, or a minimal custom one (see the
+    `examples/server-functions` fixture built on `@solidjs/web/serialization`), can
+    satisfy the ABI. Works identically under the Babel and native compiler
+    backends since the transform runs as its own pre-pass (server functions
+    live in plain `.ts`/`.js` files the JSX pass never sees).
+  - A virtual manifest module (default `virtual:solid-server-function-manifest`)
+    imports every module containing server functions; import it for side
+    effects in the server entry so registrations exist before dispatch. Server
+    functions referenced only from client-side code (e.g. event handlers,
+    which the SSR JSX compile drops) are discovered by the client transform
+    and fed into the server manifest — across the classic two-invocation build
+    via `dist/client/.vite/solid-server-functions.json`.
+  - Divergences from the SolidStart source: function IDs hash the
+    project-relative path (reproducible across machines while still agreeing
+    between the client and server builds) and modules without the directive
+    substring skip the Babel parse entirely.
+
 ## 3.0.0-next.7
 
 ### Patch Changes

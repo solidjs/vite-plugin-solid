@@ -6,6 +6,7 @@
   },
   "changesets": [
     "clean-lazy-entries",
+    "client-manifest-outdir",
     "dev-css-and-client-manifest",
     "empty-dragons-grow",
     "lazy-load-native-compiler",

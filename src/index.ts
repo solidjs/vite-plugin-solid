@@ -268,7 +268,7 @@ function normalizeEmittedLazyEntries(manifest: Record<string, any>) {
   for (const key of dynamicKeys) {
     const entry = manifest[key];
     if (entry && entry.isEntry) {
-      delete entry.isEntry;
+      entry.isEntry = false;
       entry.isDynamicEntry = true;
     }
   }

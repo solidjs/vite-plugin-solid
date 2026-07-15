@@ -268,7 +268,11 @@ function normalizeEmittedLazyEntries(manifest: Record<string, any>) {
   for (const key of dynamicKeys) {
     const entry = manifest[key];
     if (entry && entry.isEntry) {
-      delete entry.isEntry;
+      // Assign rather than delete: rolldown-vite materializes bundle chunks
+      // as proxies whose set trap syncs changes back to the native bundle,
+      // while a delete is swallowed by the proxy's read cache and never
+      // reaches it (or downstream plugins).
+      entry.isEntry = false;
       entry.isDynamicEntry = true;
     }
   }

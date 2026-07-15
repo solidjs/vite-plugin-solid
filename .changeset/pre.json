@@ -9,6 +9,7 @@
     "client-manifest-outdir",
     "dev-css-and-client-manifest",
     "empty-dragons-grow",
+    "lazy-entry-rolldown-reclassify",
     "lazy-load-native-compiler",
     "lazy-manifest-robustness",
     "native-compiler-option",

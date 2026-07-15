@@ -284,7 +284,23 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   let isBuild = false;
   let isSsrBuild = false;
   let base = '/';
+  let clientOutDir: string | null = null;
   let solidPkgsConfig: Awaited<ReturnType<typeof crawlFrameworkPkgs>>;
+
+  // The client build's manifest, read back by SSR builds. In builder-mode
+  // (single process, e.g. SolidStart's nitro plugin) the client build runs
+  // first and generateBundle records its actual outDir — authoritative, since
+  // such setups relocate it. Two-invocation builds (`vite build --outDir
+  // dist/client` then `vite build --ssr`) run in separate processes, so the
+  // SSR process falls back to the `dist/client` convention.
+  function clientManifestPath(): string | null {
+    for (const dir of [clientOutDir, 'dist/client']) {
+      if (!dir) continue;
+      const manifestPath = path.resolve(projectRoot, dir, '.vite/manifest.json');
+      if (existsSync(manifestPath)) return manifestPath;
+    }
+    return null;
+  }
 
   // Dynamically imported project modules in the client build. Each is
   // emitted as an explicit chunk so it always gets its own manifest entry
@@ -549,8 +565,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       if (id === runtimePublicPath) return runtimeCode;
       if (id === RESOLVED_VIRTUAL_MANIFEST_ID) {
         if (!isBuild) return devManifestCode(projectRoot);
-        const manifestPath = path.resolve(projectRoot, 'dist/client/.vite/manifest.json');
-        if (existsSync(manifestPath)) {
+        const manifestPath = clientManifestPath();
+        if (manifestPath) {
           const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
           normalizeEmittedLazyEntries(manifest);
           manifest._base = base;
@@ -570,8 +586,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
           // placeholder that generateBundle substitutes.
           return `export default ${JSON.stringify(CLIENT_MANIFEST_PLACEHOLDER)};`;
         }
-        const manifestPath = path.resolve(projectRoot, 'dist/client/.vite/manifest.json');
-        if (existsSync(manifestPath)) {
+        const manifestPath = clientManifestPath();
+        if (manifestPath) {
           const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
           normalizeEmittedLazyEntries(manifest);
           return `export default ${JSON.stringify(buildClientAssetMapFromManifest(manifest, base))};`;
@@ -600,8 +616,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       return acc;
     },
 
-    generateBundle(_options, bundle) {
+    generateBundle(outputOptions, bundle) {
       if (!isBuild || !isClientBuild(this)) return;
+      clientOutDir = outputOptions.dir ?? null;
       // Reclassify emitted lazy facade chunks in the raw bundle (not just the
       // serialized manifest read back later) so downstream plugins inspecting
       // the bundle don't mistake them for application entries. Must precede

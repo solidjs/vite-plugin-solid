@@ -7,6 +7,7 @@
   "changesets": [
     "clean-lazy-entries",
     "client-manifest-outdir",
+    "compiler-package-rename",
     "dev-css-and-client-manifest",
     "empty-dragons-grow",
     "lazy-entry-eliminated-importers",

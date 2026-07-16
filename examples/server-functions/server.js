@@ -38,18 +38,19 @@ async function start() {
     const url = req.url || '/';
 
     try {
-      // Server function endpoint: adapt the node request to a web Request and
-      // hand it to the runtime's handler inside the SSR module graph (so it
-      // shares the registry with the rendered app).
-      if (url.startsWith('/_server')) {
-        const { handleServerFunction } = await loadEntryServer();
+      // Server function endpoint, production only: mount the SSR bundle's
+      // turnkey handler (re-exported from virtual:solid-server-function-handler
+      // in entry-server). In dev this branch never runs — the plugin's dev
+      // middleware inside vite.middlewares handles the endpoint end to end.
+      if (isProduction && url.startsWith('/_server')) {
+        const { handleServerFunctionRequest } = await loadEntryServer();
         const body = await readBody(req);
         const request = new Request(`http://localhost:${port}${url}`, {
           method: req.method,
           headers: req.headers,
           body: req.method === 'GET' || req.method === 'HEAD' ? undefined : body,
         });
-        const response = await handleServerFunction(request);
+        const response = await handleServerFunctionRequest(request);
         res.statusCode = response.status;
         response.headers.forEach((value, key) => res.setHeader(key, value));
         res.end(await response.text());

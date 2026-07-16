@@ -7,10 +7,17 @@
 //     browser through the /_server endpoint (seroval JSON codec),
 //   - getRequestEvent() works inside a dispatched server function,
 //   - the respond() helper's envelope unwraps transparently on the client,
-//   - server-only module code (the secret) never reaches any client asset.
+//   - server-only module code (the secret) never reaches any client asset,
+//   - the turnkey path: dev requests are handled by the plugin's middleware
+//     with zero wiring (including cold dispatch before any SSR render, which
+//     exercises the function-ID → module manifest mapping), prod by the
+//     one-line virtual:solid-server-function-handler mount whose manifest
+//     import keeps registrations in the SSR bundle,
+//   - the `endpoint` option threads through middleware and runtime configure
+//     calls (separate dev server, no browser).
 //
 // Requires the plugin built (pnpm build at the repo root) and Google Chrome.
-// Usage: node test/run.mjs [dev|prod]   (default: both)
+// Usage: node test/run.mjs [dev|prod|endpoint]   (default: all)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -143,6 +150,16 @@ function record(mode, phase, name, ok, detail = '') {
   console.log(`  [${mode}/${phase}] ${status} ${name}${detail && !ok ? ` — ${detail}` : ''}`);
 }
 
+// Dev function IDs are `hash-count-name`; pull the one for `name` out of the
+// client-transformed module so the endpoint can be hit directly.
+function extractFunctionId(transformedCode, name) {
+  // The import identifier may be aliased (e.g. createServerReference_1).
+  const match = transformedCode.match(
+    new RegExp(`createServerReference\\w*\\("([^"]*-${name})"\\)`),
+  );
+  return match ? match[1] : null;
+}
+
 async function runMode(mode) {
   console.log(`\n=== ${mode.toUpperCase()} ===`);
   const isProd = mode === 'prod';
@@ -163,7 +180,52 @@ async function runMode(mode) {
   server.stderr.on('data', (d) => (serverLog += d));
 
   try {
-    await waitForHttp(origin + '/', 30000, { headers: { accept: 'text/html' } });
+    // In dev, wait on a plain module transform instead of `/` so nothing has
+    // touched the SSR environment before the cold turnkey checks below.
+    await waitForHttp(
+      isProd ? origin + '/' : origin + '/src/api.ts',
+      30000,
+      isProd ? { headers: { accept: 'text/html' } } : undefined,
+    );
+
+    // ---- Phase 0: turnkey endpoint, no wiring ----------------------------
+    if (isProd) {
+      // The virtual handler's manifest import must keep the registrations in
+      // the SSR bundle even though the render graph also reaches them.
+      const serverBundle = readFileSync(
+        path.join(exampleDir, 'dist/server/entry-server.js'),
+        'utf-8',
+      );
+      record(
+        mode,
+        'turnkey',
+        'registrations bundled eagerly in SSR build',
+        serverBundle.includes('registerServerReference'),
+      );
+      const bogus = await fetch(origin + '/_server?id=bogus-0');
+      record(mode, 'turnkey', 'prod mount rejects unknown id', bogus.status === 404);
+    } else {
+      // Cold dispatch: the SSR environment has rendered nothing yet, so the
+      // middleware must map the function ID to its module via the compiler
+      // manifest and load it before dispatching.
+      const clientModule = await (await fetch(origin + '/src/api.ts')).text();
+      const functionId = extractFunctionId(clientModule, 'getServerMessage');
+      const cold = functionId
+        ? await fetch(
+            `${origin}/_server?id=${encodeURIComponent(functionId)}&args=${encodeURIComponent('["turnkey"]')}`,
+          )
+        : null;
+      const coldText = cold ? await cold.text() : '';
+      record(
+        mode,
+        'turnkey',
+        'cold dispatch before any SSR render',
+        coldText === 'hello turnkey from the server',
+        functionId ? `got ${JSON.stringify(coldText)}` : 'could not extract function id',
+      );
+      const bogus = await fetch(origin + '/_server?id=bogus-0');
+      record(mode, 'turnkey', 'dev middleware rejects unknown id', bogus.status === 404);
+    }
 
     // ---- Phase 1: SSR + client-asset leak checks -------------------------
     const html = await (await fetch(origin + '/', { headers: { accept: 'text/html' } })).text();
@@ -239,9 +301,86 @@ async function runMode(mode) {
   }
 }
 
+// Endpoint override: a separate dev server with `serverFunctions.endpoint`
+// set, asserting the option threads through the middleware and the runtime
+// configure call appended to compiled client modules. No browser needed —
+// the endpoint is exercised over plain HTTP.
+async function runEndpointMode() {
+  const mode = 'endpoint';
+  console.log(`\n=== ${mode.toUpperCase()} ===`);
+  const port = 3142;
+  const origin = `http://localhost:${port}`;
+  const endpoint = '/custom-fn-endpoint';
+
+  const server = startProcess('node', ['server.js'], {
+    cwd: exampleDir,
+    env: {
+      ...process.env,
+      PORT: String(port),
+      NODE_ENV: 'development',
+      SERVER_FN_ENDPOINT: endpoint,
+    },
+  });
+  let serverLog = '';
+  server.stdout.on('data', (d) => (serverLog += d));
+  server.stderr.on('data', (d) => (serverLog += d));
+
+  try {
+    await waitForHttp(origin + '/src/api.ts', 30000);
+
+    const clientModule = await (await fetch(origin + '/src/api.ts')).text();
+    record(
+      mode,
+      'config',
+      'client module configures the custom endpoint',
+      clientModule.includes('configureServerFunctionsClient') && clientModule.includes(endpoint),
+    );
+
+    const functionId = extractFunctionId(clientModule, 'getServerMessage');
+    const custom = functionId
+      ? await fetch(
+          `${origin}${endpoint}?id=${encodeURIComponent(functionId)}&args=${encodeURIComponent('["endpoint"]')}`,
+        )
+      : null;
+    const customText = custom ? await custom.text() : '';
+    record(
+      mode,
+      'rpc',
+      'middleware serves the custom endpoint',
+      customText === 'hello endpoint from the server',
+      functionId ? `got ${JSON.stringify(customText)}` : 'could not extract function id',
+    );
+
+    const fallback = await fetch(`${origin}/_server?id=${encodeURIComponent(functionId || '')}`);
+    record(
+      mode,
+      'rpc',
+      'default endpoint no longer handled',
+      fallback.status !== 200,
+      `status ${fallback.status}`,
+    );
+  } catch (e) {
+    record(mode, 'run', 'mode completed', false, String(e) + (serverLog ? `\nserver: ${serverLog.slice(-2000)}` : ''));
+  } finally {
+    try {
+      process.kill(-server.pid, 'SIGTERM');
+    } catch {}
+  }
+}
+
 const arg = process.argv[2];
-const modes = arg === 'dev' ? ['dev'] : arg === 'prod' ? ['prod'] : ['dev', 'prod'];
-for (const mode of modes) await runMode(mode);
+const modes =
+  arg === 'dev'
+    ? ['dev']
+    : arg === 'prod'
+      ? ['prod']
+      : arg === 'endpoint'
+        ? ['endpoint']
+        : ['dev', 'prod', 'endpoint'];
+for (const mode of modes) {
+  if (mode === 'endpoint') await runEndpointMode();
+  else await runMode(mode);
+}
 
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} assertions passed`);

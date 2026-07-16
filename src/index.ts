@@ -169,9 +169,19 @@ export interface Options {
    * `true` for the defaults (runtime from @solidjs/web/server-functions) or
    * an options object to customize. The directive transform sub-plugins are
    * emitted ahead of the JSX transform in the returned plugin array.
+   *
+   * Turnkey setup: in dev, a middleware on the Vite server handles the
+   * endpoint (default `/_server`, joined with `base`) end to end — no
+   * server-function code needed in the server entry. For production SSR
+   * builds, import `virtual:solid-server-function-handler` in the server
+   * entry and mount its `handleServerFunctionRequest(request)` export on the
+   * endpoint; it eagerly imports every module containing server functions so
+   * registrations survive tree-shaking.
+   *
    * Meta-frameworks that need to control plugin ordering themselves (e.g.
-   * relative to a file-system router) should use the standalone
-   * `serverFunctions()` export instead.
+   * relative to a file-system router) and dispatch requests through their
+   * own server should use the standalone `serverFunctions()` export instead,
+   * which never installs the dev middleware.
    *
    * @default undefined
    */
@@ -775,7 +785,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   // before templates are generated), so its sub-plugins go first.
   return options.serverFunctions
     ? [
-        ...serverFunctions(options.serverFunctions === true ? {} : options.serverFunctions),
+        ...serverFunctions(options.serverFunctions === true ? {} : options.serverFunctions, {
+          devMiddleware: true,
+        }),
         mainPlugin,
       ]
     : [mainPlugin];

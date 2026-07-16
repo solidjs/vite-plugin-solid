@@ -9,6 +9,8 @@
 // that contract can be swapped in through `options.runtime` (SolidStart's,
 // or your own).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { Readable } from 'node:stream';
 import path from 'path';
 import {
   createFilter,
@@ -18,6 +20,7 @@ import {
   type ViteDevServer,
 } from 'vite';
 import { compile, type CompileOptions } from './compile.js';
+import xxHash32 from './xxhash32.js';
 
 export interface ServerFunctionsFilter {
   include?: FilterPattern;
@@ -50,6 +53,18 @@ export interface ServerFunctionsOptions {
    * @default "use server"
    */
   directive?: string;
+  /**
+   * Path the server-function transport posts to. Joined with Vite `base`.
+   * Threaded to the turnkey dev middleware, the
+   * `virtual:solid-server-function-handler` module, and — whenever the
+   * resolved path differs from the runtime default (`/_server`) — runtime
+   * `configureServerFunctions{Client,Server}` calls appended to compiled
+   * modules (so custom runtimes used with a custom endpoint must export
+   * those).
+   *
+   * @default "/_server"
+   */
+  endpoint?: string;
 }
 
 const DEFAULT_INCLUDE = 'src/**/*.{jsx,tsx,ts,js,mjs,cjs}';
@@ -57,6 +72,13 @@ const DEFAULT_EXCLUDE = 'node_modules/**/*.{jsx,tsx,ts,js,mjs,cjs}';
 const DEFAULT_MANIFEST = 'virtual:solid-server-function-manifest';
 const DEFAULT_DIRECTIVE = 'use server';
 const DEFAULT_RUNTIME = '@solidjs/web/server-functions';
+// Must match the runtime's built-in default — when the resolved endpoint
+// equals it, no configure calls need to be emitted at all.
+const DEFAULT_ENDPOINT = '/_server';
+const STORAGE_SOURCE = '@solidjs/web/storage';
+// Server-only turnkey handler: importing it wires the endpoint in one line
+// (registrations via the manifest, request-event scoping, endpoint config).
+const HANDLER_ID = 'virtual:solid-server-function-handler';
 
 // Server functions referenced only from client-side code (e.g. event
 // handlers, which the SSR JSX compile drops) never get imported — or even
@@ -183,7 +205,79 @@ function invalidateModules(
   }
 }
 
-export function serverFunctions(options: ServerFunctionsOptions = {}): Plugin[] {
+function joinBase(base: string, endpoint: string): string {
+  // Absolute-URL or relative bases (CDN deploys, './') don't prefix
+  // same-origin server paths.
+  if (!base.startsWith('/')) return endpoint;
+  return (base.endsWith('/') ? base.slice(0, -1) : base) + endpoint;
+}
+
+function webRequestFromNode(req: IncomingMessage): Request {
+  const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (value === undefined) continue;
+    if (Array.isArray(value)) {
+      for (const item of value) headers.append(key, item);
+    } else {
+      headers.append(key, value);
+    }
+  }
+  const method = req.method || 'GET';
+  const body =
+    method === 'GET' || method === 'HEAD'
+      ? undefined
+      : (Readable.toWeb(req) as unknown as ReadableStream);
+  return new Request(url, {
+    method,
+    headers,
+    body,
+    // undici requires half-duplex for streamed request bodies.
+    ...(body ? { duplex: 'half' } : {}),
+  } as RequestInit);
+}
+
+async function sendWebResponse(res: ServerResponse, response: Response): Promise<void> {
+  res.statusCode = response.status;
+  // set-cookie is the one header that must not be comma-joined.
+  const cookies: string[] | undefined = (response.headers as any).getSetCookie?.();
+  response.headers.forEach((value, key) => {
+    if (key !== 'set-cookie') res.setHeader(key, value);
+  });
+  if (cookies && cookies.length) res.setHeader('set-cookie', cookies);
+  if (!response.body) {
+    res.end();
+    return;
+  }
+  const reader = response.body.getReader();
+  res.on('close', () => {
+    reader.cancel().catch(() => {});
+  });
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!res.write(value)) {
+        await new Promise((resolve) => res.once('drain', resolve));
+      }
+    }
+    res.end();
+  } catch {
+    res.destroy();
+  }
+}
+
+/**
+ * The second parameter is internal wiring for the main plugin's
+ * `serverFunctions` option: the turnkey dev middleware is only installed
+ * through that path, so meta-frameworks composing this factory directly
+ * (and dispatching to `handleServerFunctionRequest` themselves) never race
+ * it for the endpoint.
+ */
+export function serverFunctions(
+  options: ServerFunctionsOptions = {},
+  internal: { devMiddleware?: boolean } = {},
+): Plugin[] {
   const filter = createFilter(
     options.filter?.include || DEFAULT_INCLUDE,
     options.filter?.exclude || DEFAULT_EXCLUDE,
@@ -191,12 +285,17 @@ export function serverFunctions(options: ServerFunctionsOptions = {}): Plugin[] 
   const manifestId = options.manifest || DEFAULT_MANIFEST;
   const directive = options.directive || DEFAULT_DIRECTIVE;
   const runtime = options.runtime || { server: DEFAULT_RUNTIME, client: DEFAULT_RUNTIME };
+  const endpointOption = options.endpoint || DEFAULT_ENDPOINT;
+  const endpoint = endpointOption.startsWith('/') ? endpointOption : '/' + endpointOption;
 
   let env: CompileOptions['env'];
   let root = process.cwd();
   let isBuild = false;
   let isSsrBuild = false;
   let outDir = 'dist';
+  // Endpoint with Vite `base` applied; final after configResolved, which
+  // runs before every transform/load/middleware that reads it.
+  let resolvedEndpoint = endpoint;
 
   const manifest = createManifest();
 
@@ -237,6 +336,128 @@ export function serverFunctions(options: ServerFunctionsOptions = {}): Plugin[] 
     },
   };
 
+  // A non-default endpoint (custom option, or Vite `base` prefixing the
+  // default) must reach the runtime on both sides — the client transport
+  // reads it for every fetch, the server for rendered reference `.url`s.
+  // References are only reachable through compiled modules, so appending the
+  // configure call to each guarantees it runs before any reference is used.
+  // The default endpoint appends nothing, keeping compiled output byte-
+  // identical for setups that wire the runtime themselves.
+  function endpointConfigureSnippet(mode: CompileOptions['mode']): string {
+    if (resolvedEndpoint === DEFAULT_ENDPOINT) return '';
+    const name =
+      mode === 'server' ? 'configureServerFunctionsServer' : 'configureServerFunctionsClient';
+    const source = mode === 'server' ? runtime.server : runtime.client;
+    return (
+      `\nimport { ${name} as $$configureServerFunctions } from ${JSON.stringify(source)};` +
+      `\n$$configureServerFunctions({ endpoint: ${JSON.stringify(resolvedEndpoint)} });\n`
+    );
+  }
+
+  // Dev omits the manifest import: the middleware loads the referenced
+  // module on demand instead (importing the debounced manifest would stall
+  // the first request and eagerly SSR-load every server-function module).
+  // Builds import it so tree-shaking can't drop registrations for functions
+  // only client code references.
+  function handlerModuleCode(includeManifest: boolean): string {
+    return [
+      ...(includeManifest ? [`import ${JSON.stringify(manifestId)};`] : []),
+      `import { handleServerFunctionRequest as handle, configureServerFunctionsServer } from ${JSON.stringify(runtime.server)};`,
+      `import { provideRequestEvent } from ${JSON.stringify(STORAGE_SOURCE)};`,
+      `configureServerFunctionsServer({ provideEvent: provideRequestEvent, endpoint: ${JSON.stringify(resolvedEndpoint)} });`,
+      `export const endpoint = ${JSON.stringify(resolvedEndpoint)};`,
+      `export function handleServerFunctionRequest(request, options) {`,
+      `  return handle(request, { provideEvent: provideRequestEvent, ...options });`,
+      `}`,
+    ].join('\n');
+  }
+
+  // Function IDs are `xxHash32(root-relative path)-<count>` (see compile.ts),
+  // so the hash segment maps an incoming ID back to its module. Rebuilt
+  // whenever a transform has grown the manifest.
+  const hashIndex = new Map<string, string>();
+  let hashIndexSize = -1;
+  function moduleForFunctionId(functionId: string): string | undefined {
+    if (manifest.server.size !== hashIndexSize) {
+      hashIndex.clear();
+      for (const entry of manifest.server) {
+        const relative = path.relative(root, entry).split(path.sep).join('/');
+        hashIndex.set(xxHash32(relative).toString(16), entry);
+      }
+      hashIndexSize = manifest.server.size;
+    }
+    return hashIndex.get(functionId.split('-', 1)[0]!);
+  }
+
+  function moduleDevUrl(entry: string): string {
+    const relative = path.relative(root, entry).split(path.sep).join('/');
+    return relative.startsWith('..') ? '/@fs/' + entry : '/' + relative;
+  }
+
+  const turnkeyPlugins: Plugin[] = [
+    {
+      name: 'solid:server-functions/handler',
+      enforce: 'pre',
+      resolveId(source, _importer, opts) {
+        if (source === HANDLER_ID) {
+          if (!opts?.ssr) {
+            this.error(
+              `${HANDLER_ID} is server-only; import it from your server entry (SSR build).`,
+            );
+          }
+          return { id: HANDLER_ID, moduleSideEffects: true };
+        }
+        return null;
+      },
+      load(id, opts) {
+        if (id === HANDLER_ID && opts?.ssr) {
+          return handlerModuleCode(isBuild);
+        }
+        return null;
+      },
+    },
+  ];
+
+  if (internal.devMiddleware) {
+    turnkeyPlugins.push({
+      name: 'solid:server-functions/dev-middleware',
+      apply: 'serve',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          const url = new URL(req.url || '/', 'http://localhost');
+          // Match with and without `base` — middleware-mode hosts may mount
+          // vite.middlewares below the base themselves.
+          if (url.pathname !== resolvedEndpoint && url.pathname !== endpoint) {
+            return next();
+          }
+          (async () => {
+            // Make sure the referenced module has been evaluated in the SSR
+            // environment so its registration exists — functions only client
+            // code references are never loaded by the SSR render itself.
+            const headerId = req.headers['x-server-function-id'];
+            const functionId =
+              (typeof headerId === 'string' ? headerId.split('#')[0] : undefined) ||
+              url.searchParams.get('id');
+            if (functionId) {
+              const entry = moduleForFunctionId(functionId);
+              if (entry) await server.ssrLoadModule(moduleDevUrl(entry));
+            }
+            // Dispatch through a module evaluated in the SSR environment so
+            // the handler shares the registry instance with the app modules.
+            const handler = await server.ssrLoadModule(HANDLER_ID);
+            const response: Response = await handler.handleServerFunctionRequest(
+              webRequestFromNode(req),
+            );
+            await sendWebResponse(res, response);
+          })().catch((error) => {
+            if (error instanceof Error) server.ssrFixStacktrace(error);
+            next(error);
+          });
+        });
+      },
+    });
+  }
+
   return [
     {
       name: 'solid:server-functions/setup',
@@ -247,6 +468,7 @@ export function serverFunctions(options: ServerFunctionsOptions = {}): Plugin[] 
         isBuild = config.command === 'build';
         isSsrBuild = !!config.build.ssr;
         outDir = config.build.outDir;
+        resolvedEndpoint = joinBase(config.base, endpoint);
         if (isBuild && isSsrBuild) {
           // Classic two-invocation build: pick up the modules the client
           // build discovered so the server manifest registers them even when
@@ -328,12 +550,16 @@ export function serverFunctions(options: ServerFunctionsOptions = {}): Plugin[] 
           );
 
           return {
-            code: result.code || '',
+            // Appended (not prepended) so the source map for the compiled
+            // module stays valid; imports hoist and the endpoint is only
+            // read at call time, never during module evaluation.
+            code: (result.code || '') + endpointConfigureSnippet(mode),
             map: result.map,
           };
         }
         return null;
       },
     },
+    ...turnkeyPlugins,
   ];
 }

@@ -21,7 +21,7 @@ import { getImportIdentifier } from './get-import-identifier.js';
 import { getRootStatementPath } from './get-root-statement-path.js';
 import { isStatementTopLevel } from './is-statement-top-level.js';
 import { isPathValid, unwrapPath } from './paths.js';
-import { removeUnusedVariables } from './remove-unused-variables.js';
+import { collectReferencedNames, removeUnusedVariables } from './remove-unused-variables.js';
 import type { ImportDefinition } from './types.js';
 
 export interface StateContext {
@@ -32,6 +32,11 @@ export interface StateContext {
   count: number;
   imports: Map<string, t.Identifier>;
   valid: boolean;
+  /**
+   * Bindings referenced from subtrees the client rewrite replaced — the only
+   * bindings the post-transform shake is allowed to remove (plus cascades).
+   */
+  orphans: Set<string>;
 
   definitions: {
     register: ImportDefinition;
@@ -54,10 +59,7 @@ function isDirectiveValid(ctx: StateContext, directives: t.Directive[]) {
   return false;
 }
 
-function cleanDirectives(
-  path: babel.NodePath<t.BlockStatement | t.Program>,
-  target: string,
-): void {
+function cleanDirectives(path: babel.NodePath<t.BlockStatement | t.Program>, target: string): void {
   const newDirectives: t.Directive[] = [];
   for (let i = 0, len = path.node.directives.length; i < len; i++) {
     const current = path.node.directives[i]!;
@@ -135,6 +137,10 @@ function transformFunction(
       t.callExpression(getImportIdentifier(ctx.imports, path, ctx.definitions.create), [sourceID]),
     );
   } else {
+    // The function subtree is about to be discarded: whatever it referenced
+    // may now be orphaned, and only those bindings are eligible for the
+    // post-transform shake.
+    collectReferencedNames(path, ctx.orphans);
     // Otherwise, build the callable from the function's ID
     path.replaceWith(
       t.callExpression(getImportIdentifier(ctx.imports, path, ctx.definitions.create), [
@@ -396,7 +402,10 @@ export function directivesPlugin(): babel.PluginObj<State> {
 
           if (ctx.opts.count > 0) {
             ctx.opts.valid = true;
-            removeUnusedVariables(program);
+            removeUnusedVariables(program, {
+              orphans: ctx.opts.orphans,
+              env: ctx.opts.env,
+            });
           }
         }
       },

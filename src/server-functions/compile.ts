@@ -10,7 +10,10 @@ export interface CompileResult {
   map: babel.BabelFileResult['map'];
 }
 
-export type CompileOptions = Omit<StateContext, 'count' | 'hash' | 'imports' | 'valid'> & {
+export type CompileOptions = Omit<
+  StateContext,
+  'count' | 'hash' | 'imports' | 'valid' | 'orphans'
+> & {
   /** Project root; function IDs hash the root-relative path. */
   root: string;
 };
@@ -33,6 +36,7 @@ export async function compile(
     hash: xxHash32(relativeId).toString(16),
     count: 0,
     imports: new Map(),
+    orphans: new Set(),
   };
   const pluginOption = [directivesPlugin, context];
   const plugins: NonNullable<NonNullable<babel.TransformOptions['parserOpts']>['plugins']> = [

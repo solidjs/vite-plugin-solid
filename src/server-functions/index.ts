@@ -2,12 +2,12 @@
 //
 // Standalone `"use server"` support for Vite. The compiler half of server
 // functions lives here; the runtime half (registration on the server, a
-// transport on the client) is intentionally not part of this plugin — the
-// compiled output imports `createServerReference` / `cloneServerReference`
-// from the module specifiers given in `options.runtime`, so any runtime that
-// satisfies that contract works (SolidStart's, or your own — see
-// examples/server-functions for a minimal one built on
-// @solidjs/web/serialization).
+// transport on the client) is @solidjs/web/server-functions by default —
+// the compiled output imports `registerServerReference` /
+// `createServerReference` from that specifier and the package's export
+// conditions resolve the right half per environment. Any runtime satisfying
+// that contract can be swapped in through `options.runtime` (SolidStart's,
+// or your own).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import path from 'path';
 import {
@@ -27,10 +27,13 @@ export interface ServerFunctionsFilter {
 export interface ServerFunctionsOptions {
   /**
    * Module specifiers the compiled output imports the runtime from.
-   * Each must export `createServerReference(id, fn)` (server) and
-   * `cloneServerReference(...)` (both sides).
+   * Each must export `registerServerReference(id, fn)` (server) and
+   * `createServerReference(...)` (both sides).
+   *
+   * @default "@solidjs/web/server-functions" for both (the package's export
+   * conditions resolve the client or server half per environment)
    */
-  runtime: {
+  runtime?: {
     server: string;
     client: string;
   };
@@ -53,6 +56,7 @@ const DEFAULT_INCLUDE = 'src/**/*.{jsx,tsx,ts,js,mjs,cjs}';
 const DEFAULT_EXCLUDE = 'node_modules/**/*.{jsx,tsx,ts,js,mjs,cjs}';
 const DEFAULT_MANIFEST = 'virtual:solid-server-function-manifest';
 const DEFAULT_DIRECTIVE = 'use server';
+const DEFAULT_RUNTIME = '@solidjs/web/server-functions';
 
 // Server functions referenced only from client-side code (e.g. event
 // handlers, which the SSR JSX compile drops) never get imported — or even
@@ -179,13 +183,14 @@ function invalidateModules(
   }
 }
 
-export function serverFunctions(options: ServerFunctionsOptions): Plugin[] {
+export function serverFunctions(options: ServerFunctionsOptions = {}): Plugin[] {
   const filter = createFilter(
     options.filter?.include || DEFAULT_INCLUDE,
     options.filter?.exclude || DEFAULT_EXCLUDE,
   );
   const manifestId = options.manifest || DEFAULT_MANIFEST;
   const directive = options.directive || DEFAULT_DIRECTIVE;
+  const runtime = options.runtime || { server: DEFAULT_RUNTIME, client: DEFAULT_RUNTIME };
 
   let env: CompileOptions['env'];
   let root = process.cwd();
@@ -206,13 +211,13 @@ export function serverFunctions(options: ServerFunctionsOptions): Plugin[] {
     definitions: {
       register: {
         kind: 'named',
-        name: 'createServerReference',
-        source: options.runtime.client,
+        name: 'registerServerReference',
+        source: runtime.client,
       },
-      clone: {
+      create: {
         kind: 'named',
-        name: 'cloneServerReference',
-        source: options.runtime.client,
+        name: 'createServerReference',
+        source: runtime.client,
       },
     },
   };
@@ -221,13 +226,13 @@ export function serverFunctions(options: ServerFunctionsOptions): Plugin[] {
     definitions: {
       register: {
         kind: 'named',
-        name: 'createServerReference',
-        source: options.runtime.server,
+        name: 'registerServerReference',
+        source: runtime.server,
       },
-      clone: {
+      create: {
         kind: 'named',
-        name: 'cloneServerReference',
-        source: options.runtime.server,
+        name: 'createServerReference',
+        source: runtime.server,
       },
     },
   };

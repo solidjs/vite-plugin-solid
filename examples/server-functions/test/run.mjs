@@ -1,10 +1,12 @@
 // Server functions fixture test: proves the "use server" compiler in
-// vite-plugin-solid works against plain Vite with a bring-your-own runtime —
-// no SolidStart. Asserts, in both dev and production:
+// vite-plugin-solid works against plain Vite with the default runtime
+// (@solidjs/web/server-functions) — no SolidStart. Asserts, in both dev and
+// production:
 //   - SSR renders the app,
 //   - module-level and function-level server functions round-trip from the
 //     browser through the /_server endpoint (seroval JSON codec),
 //   - getRequestEvent() works inside a dispatched server function,
+//   - the respond() helper's envelope unwraps transparently on the client,
 //   - server-only module code (the secret) never reaches any client asset.
 //
 // Requires the plugin built (pnpm build at the repo root) and Google Chrome.
@@ -26,6 +28,7 @@ const CALLS = [
   { name: 'function-level fn (double)', button: '#call-double', target: '#doubled', expected: '42' },
   { name: 'getRequestEvent in fn (method)', button: '#call-method', target: '#method', expected: 'POST' },
   { name: 'server-only secret usable (secret)', button: '#call-secret', target: '#secret', expected: 'true' },
+  { name: 'respond() helper round-trip (greeting)', button: '#call-respond', target: '#greeting', expected: 'hi client' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -182,7 +185,7 @@ async function runMode(mode) {
         mode,
         'dce',
         'client module compiled to references',
-        transformed.includes('cloneServerReference'),
+        transformed.includes('createServerReference'),
       );
     }
 

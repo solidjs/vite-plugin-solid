@@ -1,12 +1,13 @@
 import { createSignal } from 'solid-js';
 import { HydrationScript } from '@solidjs/web';
-import { getServerMessage, hasSecret, requestMethod } from './api';
+import { getServerMessage, greet, hasSecret, requestMethod } from './api';
 
 export default function App() {
   const [message, setMessage] = createSignal('');
   const [doubled, setDoubled] = createSignal('');
   const [method, setMethod] = createSignal('');
   const [secret, setSecret] = createSignal('');
+  const [greeting, setGreeting] = createSignal('');
 
   // Function-level directive inside a component: the compiler hoists the body
   // to a module-level registration on the server and swaps in a reference on
@@ -38,10 +39,23 @@ export default function App() {
         <button id="call-secret" onClick={async () => setSecret(String(await hasSecret()))}>
           secret
         </button>
+        <button
+          id="call-respond"
+          onClick={async () => {
+            // The transport unwraps respond()'s envelope: the caller receives
+            // the carried value, not the ResponseEnvelope the source signature
+            // declares.
+            const result = (await greet('client')) as unknown as { greeting: string };
+            setGreeting(result.greeting);
+          }}
+        >
+          respond
+        </button>
         <p id="message">{message()}</p>
         <p id="doubled">{doubled()}</p>
         <p id="method">{method()}</p>
         <p id="secret">{secret()}</p>
+        <p id="greeting">{greeting()}</p>
         <script type="module" src="/src/entry-client.tsx" async />
       </body>
     </html>

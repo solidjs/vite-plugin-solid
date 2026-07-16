@@ -165,15 +165,17 @@ export interface Options {
   solid?: SolidOptions;
 
   /**
-   * Enable `"use server"` server function compilation (experimental). The
-   * directive transform sub-plugins are emitted ahead of the JSX transform in
-   * the returned plugin array. Meta-frameworks that need to control plugin
-   * ordering themselves (e.g. relative to a file-system router) should use
-   * the standalone `serverFunctions()` export instead.
+   * Enable `"use server"` server function compilation (experimental). Pass
+   * `true` for the defaults (runtime from @solidjs/web/server-functions) or
+   * an options object to customize. The directive transform sub-plugins are
+   * emitted ahead of the JSX transform in the returned plugin array.
+   * Meta-frameworks that need to control plugin ordering themselves (e.g.
+   * relative to a file-system router) should use the standalone
+   * `serverFunctions()` export instead.
    *
    * @default undefined
    */
-  serverFunctions?: ServerFunctionsOptions;
+  serverFunctions?: boolean | ServerFunctionsOptions;
 
   refresh: Omit<RefreshOptions & { disabled: boolean }, 'bundler' | 'fixRender' | 'jsx'>;
 }
@@ -751,7 +753,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   // on raw directives, and client-mode module-level extraction must happen
   // before templates are generated), so its sub-plugins go first.
   return options.serverFunctions
-    ? [...serverFunctions(options.serverFunctions), mainPlugin]
+    ? [
+        ...serverFunctions(options.serverFunctions === true ? {} : options.serverFunctions),
+        mainPlugin,
+      ]
     : [mainPlugin];
 }
 

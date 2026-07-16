@@ -4,7 +4,7 @@
 //
 // - Function-level `"use server"` (first statement of a function body): the
 //   function is registered on the server (`register`) and replaced on both
-//   sides by a reference (`clone`) addressed by a build-stable ID.
+//   sides by a callable reference (`create`) addressed by a build-stable ID.
 // - Module-level `"use server"` (first statement of the module): every
 //   exported function becomes a server function. The client build's module
 //   body is replaced entirely by reference exports, so server-only code never
@@ -35,7 +35,7 @@ export interface StateContext {
 
   definitions: {
     register: ImportDefinition;
-    clone: ImportDefinition;
+    create: ImportDefinition;
   };
 }
 
@@ -130,14 +130,14 @@ function transformFunction(
       t.variableDeclaration('const', [t.variableDeclarator(sourceID, sourceReference)]),
     );
 
-    // Clone the source function to replace the server function
+    // Replace the server function with a callable built from the reference
     path.replaceWith(
-      t.callExpression(getImportIdentifier(ctx.imports, path, ctx.definitions.clone), [sourceID]),
+      t.callExpression(getImportIdentifier(ctx.imports, path, ctx.definitions.create), [sourceID]),
     );
   } else {
-    // Otherwise, clone the function based on its ID
+    // Otherwise, build the callable from the function's ID
     path.replaceWith(
-      t.callExpression(getImportIdentifier(ctx.imports, path, ctx.definitions.clone), [
+      t.callExpression(getImportIdentifier(ctx.imports, path, ctx.definitions.create), [
         t.stringLiteral(fnID),
       ]),
     );
@@ -338,7 +338,7 @@ function transformModuleLevelDirective(ctx: StateContext, program: babel.NodePat
           declarations.push(
             t.variableDeclarator(
               currentIdentifier,
-              t.callExpression(getImportIdentifier(ctx.imports, program, ctx.definitions.clone), [
+              t.callExpression(getImportIdentifier(ctx.imports, program, ctx.definitions.create), [
                 t.stringLiteral(fnID),
               ]),
             ),

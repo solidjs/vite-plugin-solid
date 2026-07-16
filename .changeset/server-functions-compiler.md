@@ -12,8 +12,8 @@ transparent at the Vite config level, where plugin arrays flatten.
 
 - Both directive forms are supported: function-level (first statement of a
   function body) and module-level (every export becomes a server function).
-  Server builds register the original function via `createServerReference`
-  and reference it with `cloneServerReference`; client builds compile to
+  Server builds register the original function via `registerServerReference`
+  and reference it with `createServerReference`; client builds compile to
   ID-only references with the function bodies — and everything only they
   used, including module-level server-only code — removed.
 - The runtime is bring-your-own: compiled output imports the two reference

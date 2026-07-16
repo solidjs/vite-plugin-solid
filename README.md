@@ -136,7 +136,7 @@ This will force SSR code in the produced files.
 - Default: `"babel"`
 
 Choose the JSX compiler backend. `"babel"` keeps using `babel-preset-solid`.
-`"native"` uses the native compiler from `@dom-expressions/jsx-compiler`.
+`"native"` uses the native compiler from `@dom-expressions/compiler`.
 The native compiler requires native Node addon support, so environments that
 disable native addons (for example StackBlitz WebContainers) should use the
 default `"babel"` compiler.
@@ -159,7 +159,7 @@ Pass any additional [babel transform options](https://babeljs.io/docs/en/options
 
 #### options.solid
 
-- Type: [@dom-expressions/jsx-compiler](https://github.com/ryansolid/dom-expressions/tree/main/packages/jsx-compiler#options) / [@dom-expressions/babel-plugin-jsx](https://github.com/ryansolid/dom-expressions/tree/main/packages/babel-plugin-jsx#plugin-options)
+- Type: [@dom-expressions/compiler](https://github.com/ryansolid/dom-expressions/tree/main/packages/compiler#options) / [@dom-expressions/babel-plugin-jsx](https://github.com/ryansolid/dom-expressions/tree/main/packages/babel-plugin-jsx#plugin-options)
 - Default: {}
 
 Pass additional DOM Expressions JSX compiler options. They will be merged with

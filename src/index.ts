@@ -1,5 +1,5 @@
 import * as babel from '@babel/core';
-import type { TransformOptions as JsxCompilerOptions } from '@dom-expressions/jsx-compiler';
+import type { TransformOptions as JsxCompilerOptions } from '@dom-expressions/compiler';
 import solid from 'babel-preset-solid';
 import { existsSync, readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
@@ -79,12 +79,12 @@ export interface ExtensionOptions {
 
 export type Compiler = 'babel' | 'native';
 export type SolidOptions = Omit<JsxCompilerOptions, 'filename' | 'sourceMap'>;
-type NativeCompiler = typeof import('@dom-expressions/jsx-compiler');
+type NativeCompiler = typeof import('@dom-expressions/compiler');
 let nativeCompilerPromise: Promise<NativeCompiler> | undefined;
 
 async function loadNativeCompiler() {
   try {
-    return await (nativeCompilerPromise ??= import('@dom-expressions/jsx-compiler'));
+    return await (nativeCompilerPromise ??= import('@dom-expressions/compiler'));
   } catch (error) {
     nativeCompilerPromise = undefined;
     const reason = error instanceof Error ? `\n\nCause: ${error.message}` : '';

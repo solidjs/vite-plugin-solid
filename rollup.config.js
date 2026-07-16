@@ -7,7 +7,7 @@ const extensions = ['.js', '.ts', '.json', '.tsx', '.jsx'];
 
 const external = [
   '@babel/core',
-  '@dom-expressions/jsx-compiler',
+  '@dom-expressions/compiler',
   '@babel/preset-typescript',
   'babel-preset-solid',
   'solid-refresh',

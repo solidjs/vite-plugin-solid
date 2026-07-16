@@ -341,7 +341,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     async transform(source, id, transformOptions) {
-      const isSsr = isVite6OrNewer
+      const isSsr = this.environment
         ? this.environment.config.consumer === 'server'
         : Boolean(transformOptions?.ssr);
       const currentFileExtension = getExtension(id);

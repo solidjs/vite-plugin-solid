@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.0-next.12
+
+### Patch Changes
+
+- 7b2a3ba: Follow the native compiler package rename: `@dom-expressions/jsx-compiler` is
+  now `@dom-expressions/compiler` (the binary is growing beyond the JSX
+  transform, so the name no longer singles out one pass). No option or behavior
+  changes — `jsx: "native"` works exactly as before.
+
 ## 3.0.0-next.11
 
 ### Patch Changes

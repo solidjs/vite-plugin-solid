@@ -9,11 +9,13 @@
     "client-manifest-outdir",
     "dev-css-and-client-manifest",
     "empty-dragons-grow",
+    "lazy-entry-eliminated-importers",
     "lazy-entry-rolldown-reclassify",
     "lazy-load-native-compiler",
     "lazy-manifest-robustness",
     "native-compiler-option",
     "server-functions-compiler",
+    "server-functions-default-runtime",
     "six-lions-joke",
     "true-boxes-arrive"
   ]

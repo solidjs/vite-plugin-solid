@@ -310,6 +310,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   // Driven from moduleParsed so it covers every lazy() target, including
   // import.meta.glob entries that never pass through the moduleUrl transform.
   const emittedLazyChunks = new Set<string>();
+  // Keep the emitted references because a lazy module's importer may be
+  // removed from the final bundle, leaving no dynamic-import edge to identify
+  // its facade chunk during generateBundle.
+  const emittedLazyChunkRefs: string[] = [];
 
   // Whether the current hook invocation belongs to a client (browser) build.
   // Builder-mode builds (e.g. SolidStart's nitro plugin) run the client and
@@ -557,7 +561,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
         if (!/\.[mc]?[tj]sx?$/i.test(cleanId)) continue;
         if (emittedLazyChunks.has(depId)) continue;
         emittedLazyChunks.add(depId);
-        this.emitFile({ type: 'chunk', id: depId, preserveSignature: 'exports-only' });
+        emittedLazyChunkRefs.push(
+          this.emitFile({ type: 'chunk', id: depId, preserveSignature: 'exports-only' }),
+        );
       }
     },
 
@@ -623,7 +629,22 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       // serialized manifest read back later) so downstream plugins inspecting
       // the bundle don't mistake them for application entries. Must precede
       // the client asset map build, which keys off dynamic entries.
-      if (options.ssr) normalizeEmittedLazyEntries(bundle);
+      if (options.ssr) {
+        for (const ref of emittedLazyChunkRefs) {
+          let fileName: string;
+          try {
+            fileName = this.getFileName(ref);
+          } catch {
+            // Ignore references retained from a previous watch build.
+            continue;
+          }
+          const chunk = bundle[fileName];
+          if (!chunk || chunk.type !== 'chunk') continue;
+          chunk.isEntry = false;
+          chunk.isDynamicEntry = true;
+        }
+        normalizeEmittedLazyEntries(bundle);
+      }
       substituteClientManifest(bundle, buildClientAssetMap(bundle, projectRoot, base));
     },
 

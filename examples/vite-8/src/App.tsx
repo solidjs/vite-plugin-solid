@@ -1,7 +1,6 @@
 import { onSettled } from "solid-js";
 import { CounterProvider, useCounter } from "./CounterContext";
-
-const title = 'Counter';
+import { title } from './UnusedLazyImporter';
 
 function Count() {
   const counter = useCounter();

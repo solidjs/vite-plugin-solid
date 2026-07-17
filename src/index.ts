@@ -1,5 +1,6 @@
 import * as babel from '@babel/core';
 import type { TransformOptions as JsxCompilerOptions } from '@dom-expressions/compiler';
+import remapping from '@ampproject/remapping';
 import solid from 'babel-preset-solid';
 import { existsSync, readFileSync } from 'fs';
 import { mergeAndConcat } from 'merge-anything';
@@ -7,7 +8,6 @@ import { createRequire } from 'module';
 import solidRefresh from 'solid-refresh/babel';
 // TODO use proper path
 import type { Options as RefreshOptions } from 'solid-refresh/babel';
-import lazyModuleUrl, { LAZY_PLACEHOLDER_PREFIX } from './lazy-module-url.js';
 import {
   createDevAssetResolver,
   registerDevAssetResolver,
@@ -35,6 +35,16 @@ import { createFilter, version } from 'vite';
 import { crawlFrameworkPkgs } from 'vitefu';
 
 const require = createRequire(import.meta.url);
+
+/**
+ * The `lazy()` module-URL placeholder contract, shared with the native
+ * compiler's `transformLazy` pass: `lazy(() => import("spec"))` calls gain a
+ * second string-literal argument of the form
+ * `"__SOLID_LAZY_MODULE__:" + spec`, which `resolveLazyModuleUrls` swaps for
+ * the project-relative resolved module path. The prefix and shape are FROZEN
+ * — the emitting side lives in @dom-expressions/compiler and must match.
+ */
+const LAZY_PLACEHOLDER_PREFIX = '__SOLID_LAZY_MODULE__:';
 
 const runtimePublicPath = '/@solid-refresh';
 const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
@@ -150,6 +160,11 @@ export interface Options {
    * Pass any additional babel transform options. They will be merged with
    * the transformations required by Solid.
    *
+   * Note: with `compiler: "native"` the plugin is normally fully Babel-free
+   * (native lazy/refresh/JSX passes). Supplying custom babel options
+   * reintroduces a Babel support pass ahead of the native JSX transform to
+   * host them.
+   *
    * @default {}
    */
   babel?:
@@ -260,6 +275,21 @@ async function getBabelUserOptions(
 function normalizeSourceMap(map: string | babel.TransformOptions['inputSourceMap'] | null | undefined) {
   if (typeof map === 'string') return JSON.parse(map);
   return map || null;
+}
+
+type ChainableMap = string | babel.TransformOptions['inputSourceMap'] | null | undefined;
+
+/**
+ * Merges the sourcemaps of sequential whole-file transforms (given in
+ * application order, earliest first) into one map tracing back to the
+ * original source.
+ */
+function combineSourcemaps(maps: ChainableMap[]) {
+  const chain = maps.filter((map): map is NonNullable<ChainableMap> => !!map);
+  if (chain.length === 0) return null;
+  if (chain.length === 1) return normalizeSourceMap(chain[0]);
+  // remapping expects most-recent-first.
+  return JSON.parse(remapping(chain.reverse() as any, () => null).toString());
 }
 
 /**
@@ -454,7 +484,19 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
           alias: [{ find: /^solid-refresh$/, replacement: runtimePublicPath }],
         },
         optimizeDeps: {
-          include: [...nestedDeps, ...solidPkgsConfig.optimizeDeps.include],
+          include: [
+            ...nestedDeps,
+            // Native-mode dev emits refresh wrappers importing
+            // solid-js/refresh; pre-bundle it up front so its discovery
+            // doesn't trigger a re-optimize + full reload on first use.
+            ...(options.compiler === 'native' &&
+            command === 'serve' &&
+            options.hot !== false &&
+            !options.refresh?.disabled
+              ? ['solid-js/refresh']
+              : []),
+            ...solidPkgsConfig.optimizeDeps.include,
+          ],
           exclude: solidPkgsConfig.optimizeDeps.exclude,
           // Vite 8+ uses Rolldown for dependency scanning. Rolldown defaults to
           // React's automatic JSX runtime for .tsx files, injecting a
@@ -705,22 +747,21 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
         plugins.push('typescript');
       }
 
+      const needRefresh = needHmr && !isSsr && !inNodeModules;
+
       const babelSupportOptions: babel.TransformOptions = {
         root: projectRoot,
         filename: id,
         sourceFileName: id,
-        plugins: [
-          [lazyModuleUrl],
-          ...(needHmr && !isSsr && !inNodeModules ? [[solidRefresh, {
-            ...(options.refresh || {}),
-            bundler: 'vite',
-            fixRender: true,
-            // TODO unfortunately, even with SSR enabled for refresh
-            // it still doesn't work, so now we have to disable
-            // this config
-            jsx: false,
-          }]] : []),
-        ],
+        plugins: needRefresh ? [[solidRefresh, {
+          ...(options.refresh || {}),
+          bundler: 'vite',
+          fixRender: true,
+          // TODO unfortunately, even with SSR enabled for refresh
+          // it still doesn't work, so now we have to disable
+          // this config
+          jsx: false,
+        }]] : [],
         ast: false,
         sourceMaps: true,
         configFile: false,
@@ -732,40 +773,91 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
 
       const babelUserOptions = await getBabelUserOptions(options, source, id, !!isSsr);
 
+      // The native compiler picks its parser dialect from the file
+      // extension; custom extensions registered through `options.extensions`
+      // are unknown to it, so borrow a standard one matching the configured
+      // TypeScript-ness.
+      const nativeFilename = /\.(?:[mc]?[jt]s|[jt]sx)$/i.test(id)
+        ? id
+        : id + (shouldBeProcessedWithTypescript ? '.tsx' : '.jsx');
+
+      // The lazy() module-URL pass runs natively in every mode (the Babel
+      // plugin it replaced is retired). Its map seeds the sourcemap chain.
+      const compiler = await loadNativeCompiler();
+      const lazyResult = await compiler.transformLazyAsync(source, {
+        filename: nativeFilename,
+        sourceMap: true,
+      });
+
       if (options.compiler === 'native') {
-        const supportOptions = mergeAndConcat(
-          babelUserOptions,
-          babelSupportOptions,
-        ) as babel.TransformOptions;
-        const supportResult = await babel.transformAsync(source, supportOptions);
-        if (!supportResult) {
-          return undefined;
+        let code = lazyResult.code;
+        // Sourcemaps of the applied passes, in application order.
+        const maps: ChainableMap[] = [lazyResult.map];
+
+        if (!options.babel) {
+          // Fully Babel-free pipeline: native lazy → native refresh → native
+          // JSX, maps merged at the end.
+          if (needRefresh) {
+            const refreshResult = await compiler.transformRefreshAsync(code, {
+              filename: nativeFilename,
+              bundler: 'vite',
+              fixRender: true,
+              // The napi validator rejects explicit undefined; omit to get
+              // the pass's default (true, same as the Babel plugin).
+              ...(typeof options.refresh?.granular === 'boolean'
+                ? { granular: options.refresh.granular }
+                : {}),
+              jsx: false,
+              importSource: 'solid-js/refresh',
+              sourceMap: true,
+            });
+            code = refreshResult.code;
+            maps.push(refreshResult.map);
+          }
+        } else {
+          // Custom babel options reintroduce a Babel support pass (user
+          // plugins + solid-refresh/babel). Babel merges the lazy map via
+          // inputSourceMap, so its output map restarts the chain.
+          const supportOptions = mergeAndConcat(babelUserOptions, {
+            ...babelSupportOptions,
+            // undefined (not null) when the lazy pass was an identity no-op.
+            inputSourceMap: normalizeSourceMap(lazyResult.map) ?? undefined,
+          }) as babel.TransformOptions;
+          const supportResult = await babel.transformAsync(code, supportOptions);
+          if (!supportResult) {
+            return undefined;
+          }
+          code = supportResult.code || '';
+          maps.length = 0;
+          maps.push(supportResult.map);
         }
 
-        const { transformAsync } = await loadNativeCompiler();
-        const result = await transformAsync(supportResult.code || '', {
+        const result = await compiler.transformAsync(code, {
           ...solidOptions,
           filename: id,
           sourceMap: true,
         });
+        maps.push(result.map);
 
-        const code = injectSsrModuleId(
+        const finalCode = injectSsrModuleId(
           await resolveLazyModuleUrls(this, result.code || '', id),
           id,
           !!isSsr,
         );
 
-        return { code, map: normalizeSourceMap(result.map) };
+        return { code: finalCode, map: combineSourcemaps(maps) };
       }
 
       const opts: babel.TransformOptions = {
         ...babelSupportOptions,
+        // undefined (not null) when the lazy pass was an identity no-op.
+        inputSourceMap: normalizeSourceMap(lazyResult.map) ?? undefined,
         presets: [[solid, solidOptions]],
       };
 
       const babelOptions = mergeAndConcat(babelUserOptions, opts) as babel.TransformOptions;
 
-      const result = await babel.transformAsync(source, babelOptions);
+      const result = await babel.transformAsync(lazyResult.code, babelOptions);
       if (!result) {
         return undefined;
       }

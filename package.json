@@ -44,6 +44,7 @@
   },
   "homepage": "https://github.com/solidjs/vite-plugin-solid#readme",
   "dependencies": {
+    "@ampproject/remapping": "^2.3.0",
     "@babel/core": "^7.23.3",
     "@dom-expressions/compiler": "0.50.0-next.22",
     "@types/babel__core": "^7.20.4",

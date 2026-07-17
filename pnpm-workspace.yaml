@@ -10,6 +10,12 @@ packages:
 # (the .node artifacts are gitignored local builds).
 overrides:
   '@dom-expressions/compiler': link:../dom-expressions/packages/compiler
+  # TEMPORARY: native-mode refresh wrappers import the dev-only
+  # `solid-js/refresh` runtime entry, which is not in any published solid-js
+  # yet (it lands with the release train). Link the worktree carrying it
+  # (branch `refresh-entry`) until that release, then remove this override
+  # and require the released version.
+  'solid-js': link:../solid-refresh-entry/packages/solid
 
 allowBuilds:
   cypress: true

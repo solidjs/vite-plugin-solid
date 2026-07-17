@@ -9,17 +9,18 @@ catalogs:
     '@solidjs/web':
       specifier: '>=2.0.0-beta.19 <2.0.0-experimental.0'
       version: 2.0.0-beta.19
-    solid-js:
-      specifier: '>=2.0.0-beta.19 <2.0.0-experimental.0'
-      version: 2.0.0-beta.19
 
 overrides:
   '@dom-expressions/compiler': link:../dom-expressions/packages/compiler
+  solid-js: link:../solid-refresh-entry/packages/solid
 
 importers:
 
   .:
     dependencies:
+      '@ampproject/remapping':
+        specifier: ^2.3.0
+        version: 2.3.0
       '@babel/core':
         specifier: ^7.23.3
         version: 7.29.7(supports-color@8.1.1)
@@ -41,6 +42,9 @@ importers:
       merge-anything:
         specifier: ^5.1.7
         version: 5.1.7
+      solid-js:
+        specifier: link:../solid-refresh-entry/packages/solid
+        version: 2.0.0-beta.19
       solid-refresh:
         specifier: '>=0.8.0-next.7 < 0.8.0'
         version: 0.8.0-next.7(solid-js@2.0.0-beta.19)
@@ -93,9 +97,6 @@ importers:
       rollup-plugin-cleaner:
         specifier: ^1.0.0
         version: 1.0.0(rollup@4.62.2)
-      solid-js:
-        specifier: '>=2.0.0-beta.19 <2.0.0-experimental.0'
-        version: 2.0.0-beta.19
       typescript:
         specifier: ^5.2.2
         version: 5.9.3
@@ -107,10 +108,10 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: 'catalog:'
-        version: 2.0.0-beta.19(solid-js@2.0.0-beta.19)
+        version: 2.0.0-beta.19(solid-js@solid-refresh-entry+packages+solid)
       solid-js:
-        specifier: 'catalog:'
-        version: 2.0.0-beta.19
+        specifier: link:../../../solid-refresh-entry/packages/solid
+        version: link:../../../solid-refresh-entry/packages/solid
     devDependencies:
       vite:
         specifier: ^7.0.0
@@ -123,10 +124,10 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: 'catalog:'
-        version: 2.0.0-beta.19(solid-js@2.0.0-beta.19)
+        version: 2.0.0-beta.19(solid-js@solid-refresh-entry+packages+solid)
       solid-js:
-        specifier: 'catalog:'
-        version: 2.0.0-beta.19
+        specifier: link:../../../solid-refresh-entry/packages/solid
+        version: link:../../../solid-refresh-entry/packages/solid
     devDependencies:
       vite:
         specifier: ^7.0.0
@@ -139,10 +140,10 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: 'catalog:'
-        version: 2.0.0-beta.19(solid-js@2.0.0-beta.19)
+        version: 2.0.0-beta.19(solid-js@solid-refresh-entry+packages+solid)
       solid-js:
-        specifier: 'catalog:'
-        version: 2.0.0-beta.19
+        specifier: link:../../../solid-refresh-entry/packages/solid
+        version: link:../../../solid-refresh-entry/packages/solid
     devDependencies:
       vite:
         specifier: ^7.0.0
@@ -155,10 +156,10 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: 'catalog:'
-        version: 2.0.0-beta.19(solid-js@2.0.0-beta.19)
+        version: 2.0.0-beta.19(solid-js@solid-refresh-entry+packages+solid)
       solid-js:
-        specifier: 'catalog:'
-        version: 2.0.0-beta.19
+        specifier: link:../../../solid-refresh-entry/packages/solid
+        version: link:../../../solid-refresh-entry/packages/solid
     devDependencies:
       vite:
         specifier: ^3.2.7
@@ -171,10 +172,10 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: 'catalog:'
-        version: 2.0.0-beta.19(solid-js@2.0.0-beta.19)
+        version: 2.0.0-beta.19(solid-js@solid-refresh-entry+packages+solid)
       solid-js:
-        specifier: 'catalog:'
-        version: 2.0.0-beta.19
+        specifier: link:../../../solid-refresh-entry/packages/solid
+        version: link:../../../solid-refresh-entry/packages/solid
     devDependencies:
       vite:
         specifier: ^4.1.5
@@ -187,10 +188,10 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: 'catalog:'
-        version: 2.0.0-beta.19(solid-js@2.0.0-beta.19)
+        version: 2.0.0-beta.19(solid-js@solid-refresh-entry+packages+solid)
       solid-js:
-        specifier: 'catalog:'
-        version: 2.0.0-beta.19
+        specifier: link:../../../solid-refresh-entry/packages/solid
+        version: link:../../../solid-refresh-entry/packages/solid
     devDependencies:
       vite:
         specifier: ^5.1.1
@@ -203,14 +204,14 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: 'catalog:'
-        version: 2.0.0-beta.19(solid-js@2.0.0-beta.19)
+        version: 2.0.0-beta.19(solid-js@solid-refresh-entry+packages+solid)
       solid-js:
-        specifier: 'catalog:'
-        version: 2.0.0-beta.19
+        specifier: link:../../../solid-refresh-entry/packages/solid
+        version: link:../../../solid-refresh-entry/packages/solid
     devDependencies:
       '@solidjs/testing-library':
         specifier: ^0.8.10
-        version: 0.8.10(solid-js@2.0.0-beta.19)
+        version: 0.8.10(solid-js@solid-refresh-entry+packages+solid)
       '@testing-library/jest-dom':
         specifier: ^6.6.3
         version: 6.9.1
@@ -237,14 +238,14 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: 'catalog:'
-        version: 2.0.0-beta.19(solid-js@2.0.0-beta.19)
+        version: 2.0.0-beta.19(solid-js@solid-refresh-entry+packages+solid)
       solid-js:
-        specifier: 'catalog:'
-        version: 2.0.0-beta.19
+        specifier: link:../../../solid-refresh-entry/packages/solid
+        version: link:../../../solid-refresh-entry/packages/solid
     devDependencies:
       '@solidjs/testing-library':
         specifier: ^0.8.10
-        version: 0.8.10(solid-js@2.0.0-beta.19)
+        version: 0.8.10(solid-js@solid-refresh-entry+packages+solid)
       '@testing-library/jest-dom':
         specifier: ^6.6.3
         version: 6.9.1
@@ -271,14 +272,14 @@ importers:
     dependencies:
       '@solidjs/web':
         specifier: 'catalog:'
-        version: 2.0.0-beta.19(solid-js@2.0.0-beta.19)
+        version: 2.0.0-beta.19(solid-js@solid-refresh-entry+packages+solid)
       solid-js:
-        specifier: 'catalog:'
-        version: 2.0.0-beta.19
+        specifier: link:../../../solid-refresh-entry/packages/solid
+        version: link:../../../solid-refresh-entry/packages/solid
     devDependencies:
       '@solidjs/testing-library':
         specifier: ^0.8.10
-        version: 0.8.10(solid-js@2.0.0-beta.19)
+        version: 0.8.10(solid-js@solid-refresh-entry+packages+solid)
       '@testing-library/jest-dom':
         specifier: ^6.6.3
         version: 6.9.1
@@ -305,6 +306,10 @@ packages:
 
   '@adobe/css-tools@4.5.0':
     resolution: {integrity: sha512-6OzddxPio9UiWTCemp4N8cYLV2ZN1ncRnV1cVGtve7dhPOtRkleRyx32GQCYSwDYgaHU3USMm84tNsvKzRCa1Q==}
+
+  '@ampproject/remapping@2.3.0':
+    resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
+    engines: {node: '>=6.0.0'}
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -3849,6 +3854,11 @@ snapshots:
 
   '@adobe/css-tools@4.5.0': {}
 
+  '@ampproject/remapping@2.3.0':
+    dependencies:
+      '@jridgewell/gen-mapping': 0.3.13
+      '@jridgewell/trace-mapping': 0.3.31
+
   '@babel/code-frame@7.29.7':
     dependencies:
       '@babel/helper-validator-identifier': 7.29.7
@@ -5280,16 +5290,22 @@ snapshots:
 
   '@solidjs/signals@2.0.0-beta.19': {}
 
-  '@solidjs/testing-library@0.8.10(solid-js@2.0.0-beta.19)':
+  '@solidjs/testing-library@0.8.10(solid-js@solid-refresh-entry+packages+solid)':
     dependencies:
       '@testing-library/dom': 10.4.1
-      solid-js: 2.0.0-beta.19
+      solid-js: link:../solid-refresh-entry/packages/solid
 
   '@solidjs/web@2.0.0-beta.19(solid-js@2.0.0-beta.19)':
     dependencies:
       seroval: 1.5.5
       seroval-plugins: 1.5.5(seroval@1.5.5)
       solid-js: 2.0.0-beta.19
+
+  '@solidjs/web@2.0.0-beta.19(solid-js@solid-refresh-entry+packages+solid)':
+    dependencies:
+      seroval: 1.5.5
+      seroval-plugins: 1.5.5(seroval@1.5.5)
+      solid-js: link:../solid-refresh-entry/packages/solid
 
   '@testing-library/dom@10.4.1':
     dependencies:

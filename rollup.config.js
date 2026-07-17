@@ -8,6 +8,7 @@ const extensions = ['.js', '.ts', '.json', '.tsx', '.jsx'];
 const external = [
   '@babel/core',
   '@dom-expressions/compiler',
+  '@ampproject/remapping',
   '@babel/preset-typescript',
   'babel-preset-solid',
   'solid-refresh',

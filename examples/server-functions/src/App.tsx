@@ -1,6 +1,7 @@
 import { createSignal } from 'solid-js';
 import { HydrationScript } from '@solidjs/web';
 import { getServerMessage, greet, hasSecret, requestMethod } from './api';
+import HmrTarget from './HmrTarget';
 
 export default function App() {
   const [message, setMessage] = createSignal('');
@@ -8,6 +9,9 @@ export default function App() {
   const [method, setMethod] = createSignal('');
   const [secret, setSecret] = createSignal('');
   const [greeting, setGreeting] = createSignal('');
+  // Client state owned by App: the HMR test increments it, then edits
+  // HmrTarget.tsx and asserts the count survives the hot update.
+  const [count, setCount] = createSignal(0);
 
   // Function-level directive inside a component: the compiler hoists the body
   // to a module-level registration on the server and swaps in a reference on
@@ -51,6 +55,11 @@ export default function App() {
         >
           respond
         </button>
+        <button id="increment" onClick={() => setCount(count() + 1)}>
+          count
+        </button>
+        <p id="count">{count()}</p>
+        <HmrTarget />
         <p id="message">{message()}</p>
         <p id="doubled">{doubled()}</p>
         <p id="method">{method()}</p>

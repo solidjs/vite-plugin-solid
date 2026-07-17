@@ -16,13 +16,18 @@
 //   - the `endpoint` option threads through middleware and runtime configure
 //     calls (separate dev server, no browser).
 //
+// Dev additionally exercises HMR through the native (Babel-free) pipeline:
+// clean hydration with the solid-js/refresh wrapper active, then an on-disk
+// edit of HmrTarget.tsx hot-applies without a full reload and without
+// resetting sibling client state.
+//
 // Requires the plugin built (pnpm build at the repo root) and Google Chrome.
 // Usage: node test/run.mjs [dev|prod|endpoint]   (default: all)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { rmSync, readdirSync, readFileSync } from 'node:fs';
+import { rmSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const exampleDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -281,6 +286,85 @@ async function runMode(mode) {
 
       const errs = cdp.exceptions.filter((e) => !/favicon/i.test(e));
       record(mode, 'rpc', 'no page errors', errs.length === 0, errs.join(' | '));
+
+      // ---- Phase 3 (dev only): HMR through solid-refresh -----------------
+      // Fresh page load (hydrated SSR), then edit HmrTarget.tsx on disk and
+      // assert the update lands hot: new text rendered, no full reload
+      // (window marker survives), sibling client state (the counter owned by
+      // App) preserved. File restored afterwards.
+      if (!isProd) {
+        const hmrFile = path.join(exampleDir, 'src/HmrTarget.tsx');
+        const originalSource = readFileSync(hmrFile, 'utf-8');
+        try {
+          cdp.exceptions.length = 0;
+          await cdp.send('Page.navigate', { url: origin + '/' });
+          await cdp.waitFor('document.readyState === "complete"');
+          await new Promise((r) => setTimeout(r, 750));
+
+          const hydrationErrs = cdp.exceptions.filter((e) => /hydrat|mismatch/i.test(e));
+          record(
+            mode,
+            'hmr',
+            'clean hydration (no hydration console errors)',
+            hydrationErrs.length === 0,
+            hydrationErrs.join(' | '),
+          );
+
+          // Refresh must actually be wired: the served module carries the
+          // refresh wrapper importing the solid-js/refresh runtime (Vite may
+          // rewrite the specifier to its pre-bundled /node_modules/.vite/deps
+          // URL, so match both spellings).
+          const served = await (await fetch(origin + '/src/HmrTarget.tsx')).text();
+          record(
+            mode,
+            'hmr',
+            'refresh active (solid-js/refresh wrapper in served module)',
+            /solid-js[/_]refresh/.test(served) &&
+              served.includes('$$registry') &&
+              served.includes('import.meta.hot'),
+          );
+
+          // Reload marker + client state that must survive the hot update.
+          await cdp.evalJs('window.__HMR_NO_RELOAD_MARKER = 1');
+          await cdp.evalJs('document.querySelector("#increment").click()');
+          await cdp.evalJs('document.querySelector("#increment").click()');
+          record(
+            mode,
+            'hmr',
+            'counter incremented before edit',
+            await cdp.waitFor('document.querySelector("#count")?.textContent === "2"'),
+          );
+
+          writeFileSync(hmrFile, originalSource.replace('HMR-ORIGINAL', 'HMR-UPDATED'));
+          const updated = await cdp.waitFor(
+            'document.querySelector("#hmr-text")?.textContent === "HMR-UPDATED"',
+            15000,
+          );
+          record(
+            mode,
+            'hmr',
+            'hot update applied (edited text rendered)',
+            updated,
+            `hmr-text: ${JSON.stringify(
+              await cdp.evalJs('document.querySelector("#hmr-text")?.textContent'),
+            )}`,
+          );
+          record(
+            mode,
+            'hmr',
+            'no full page reload (window marker survived)',
+            (await cdp.evalJs('window.__HMR_NO_RELOAD_MARKER')) === 1,
+          );
+          record(
+            mode,
+            'hmr',
+            'client state preserved (counter still 2)',
+            (await cdp.evalJs('document.querySelector("#count")?.textContent')) === '2',
+          );
+        } finally {
+          writeFileSync(hmrFile, originalSource);
+        }
+      }
     } finally {
       cdp.close();
       const exited = new Promise((r) => chrome.once('exit', r));

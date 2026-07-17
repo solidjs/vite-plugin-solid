@@ -3,6 +3,10 @@ import { HydrationScript } from '@solidjs/web';
 import { getServerMessage, greet, hasSecret, requestMethod } from './api';
 import HmrTarget from './HmrTarget';
 
+// Injected by the vite config's `define`; names the active JSX backend so
+// the e2e can assert which compiler served the page.
+declare const __JSX_COMPILER__: string;
+
 export default function App() {
   const [message, setMessage] = createSignal('');
   const [doubled, setDoubled] = createSignal('');
@@ -59,6 +63,7 @@ export default function App() {
           count
         </button>
         <p id="count">{count()}</p>
+        <p id="jsx-compiler">{__JSX_COMPILER__}</p>
         <HmrTarget />
         <p id="message">{message()}</p>
         <p id="doubled">{doubled()}</p>

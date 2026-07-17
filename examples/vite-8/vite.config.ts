@@ -14,7 +14,8 @@ export default defineConfig({
         }
       },
     },
-    solidPlugin({ compiler: 'native', ssr: true }),
+    // Rides the native compiler default.
+    solidPlugin({ ssr: true }),
     {
       name: 'assert-single-entry',
       enforce: 'post',

@@ -45,9 +45,6 @@ importers:
       solid-js:
         specifier: link:../solid-refresh-entry/packages/solid
         version: 2.0.0-beta.19
-      solid-refresh:
-        specifier: '>=0.8.0-next.7 < 0.8.0'
-        version: 0.8.0-next.7(solid-js@2.0.0-beta.19)
       vitefu:
         specifier: ^1.0.4
         version: 1.1.3(vite@7.3.6(@types/node@18.19.130)(lightningcss@1.32.0))
@@ -3361,11 +3358,6 @@ packages:
 
   solid-js@2.0.0-beta.19:
     resolution: {integrity: sha512-5tXzw0dIHlILGpERt7ALSveALvKwyRrJPYwZuv2TVWKCMTI2p/P1LkdaW7bfa9pIF//F+Y9XG/75h/1HpIxxXA==}
-
-  solid-refresh@0.8.0-next.7:
-    resolution: {integrity: sha512-fqkPRAeiE0tqfo2ZljeQBIXwfYssU2w1FmaWFrXmnV33B/CfGfez7BjtOF0Y1/orUNRXI/DZcJlJThHllcCMsA==}
-    peerDependencies:
-      solid-js: '>=2.0.0-beta.7 <2.0.0-experimental.0'
 
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
@@ -6888,12 +6880,6 @@ snapshots:
       csstype: 3.2.3
       seroval: 1.5.5
       seroval-plugins: 1.5.5(seroval@1.5.5)
-
-  solid-refresh@0.8.0-next.7(solid-js@2.0.0-beta.19):
-    dependencies:
-      '@babel/generator': 7.29.7
-      '@babel/types': 7.29.7
-      solid-js: 2.0.0-beta.19
 
   source-map-js@1.2.1: {}
 

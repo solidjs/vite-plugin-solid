@@ -14,12 +14,19 @@ import solidPlugin from 'vite-plugin-solid';
 // standalone `serverFunctions()` export instead of this option.)
 //
 // SERVER_FN_ENDPOINT exercises the `endpoint` override in test/run.mjs.
+// test/run.mjs's babel-hmr mode forces the Babel JSX backend to prove the
+// native refresh pass and the solid-js/refresh runtime also work under it.
+// The define exposes the active backend to the page so the test can assert
+// which one served it (their outputs are parity-identical otherwise).
+const jsxCompiler = process.env.SOLID_JSX_COMPILER === 'babel' ? ('babel' as const) : ('native' as const);
+
 export default defineConfig({
+  define: {
+    __JSX_COMPILER__: JSON.stringify(jsxCompiler),
+  },
   plugins: [
     solidPlugin({
-      // Native mode exercises the fully Babel-free pipeline (native
-      // lazy/refresh/JSX passes); test/run.mjs's HMR phase depends on it.
-      compiler: 'native',
+      compiler: jsxCompiler,
       ssr: true,
       serverFunctions: process.env.SERVER_FN_ENDPOINT
         ? { endpoint: process.env.SERVER_FN_ENDPOINT }

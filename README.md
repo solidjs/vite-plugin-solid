@@ -133,20 +133,25 @@ This will force SSR code in the produced files.
 #### options.compiler
 
 - Type: `"babel" | "native"`
-- Default: `"babel"`
+- Default: `"native"`
 
-Choose the JSX compiler backend. `"babel"` keeps using `babel-preset-solid`.
-`"native"` uses the native compiler from `@dom-expressions/compiler`.
-The native compiler requires native Node addon support, so environments that
-disable native addons (for example StackBlitz WebContainers) should use the
-default `"babel"` compiler.
+Choose the JSX compiler backend. The default `"native"` compiles JSX through
+the native compiler from `@dom-expressions/compiler`. `"babel"` runs
+`babel-preset-solid` instead and only switches the JSX transform — every
+other pass (the `lazy()` module-URL transform and the solid-refresh HMR
+transform) is native in both modes.
+
+`"babel"` is the escape hatch: if the native output ever differs from what
+you expect, set `compiler: 'babel'` and file an issue — the behavioral diff
+between the two modes is the bug report. It is also required in environments
+without native Node addon support (for example StackBlitz WebContainers).
 
 ```ts
 import { defineConfig } from 'vite';
 import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig({
-  plugins: [solidPlugin({ compiler: 'native' })],
+  plugins: [solidPlugin({ compiler: 'babel' })],
 });
 ```
 
@@ -185,7 +190,11 @@ This is useful if you want to transform `mdx` files for example.
 
 ## Note on HMR
 
-Starting from version `1.1.0`, this plugin handle automatic HMR via [solid-refresh](https://github.com/solidjs/solid-refresh).
+Starting from version `1.1.0`, this plugin handles automatic HMR. The refresh
+transform is compiled natively by `@dom-expressions/compiler` and drives the
+dev-only `solid-js/refresh` runtime entry that ships with Solid (the
+standalone [solid-refresh](https://github.com/solidjs/solid-refresh) package
+is no longer used).
 
 At this stage it's still early work but provide basic HMR. In order to get the best out of it there are couple of things to keep in mind:
 

@@ -3,6 +3,8 @@ import solidPlugin from 'vite-plugin-solid';
 
 export default defineConfig({
   plugins: [
-    solidPlugin(),
+    // Explicit babel mode: keeps CI coverage of the Babel JSX backend now
+    // that the plugin defaults to the native compiler.
+    solidPlugin({ compiler: 'babel' }),
   ],
 });

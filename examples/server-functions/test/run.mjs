@@ -19,10 +19,12 @@
 // Dev additionally exercises HMR through the native (Babel-free) pipeline:
 // clean hydration with the solid-js/refresh wrapper active, then an on-disk
 // edit of HmrTarget.tsx hot-applies without a full reload and without
-// resetting sibling client state.
+// resetting sibling client state. The babel-hmr mode repeats those checks
+// on a dev server forced to `compiler: 'babel'`, proving the native refresh
+// pass and core runtime under the Babel JSX backend.
 //
 // Requires the plugin built (pnpm build at the repo root) and Google Chrome.
-// Usage: node test/run.mjs [dev|prod|endpoint]   (default: all)
+// Usage: node test/run.mjs [dev|prod|endpoint|babel-hmr]   (default: all)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -165,6 +167,97 @@ function extractFunctionId(transformedCode, name) {
   return match ? match[1] : null;
 }
 
+// HMR checks against a running dev server: fresh page load (hydrated SSR),
+// then edit HmrTarget.tsx on disk and assert the update lands hot: new text
+// rendered, no full reload (window marker survives), sibling client state
+// (the counter owned by App) preserved. File restored afterwards. The
+// refresh transform and runtime are native/core in every mode.
+// `expectCompiler` asserts which JSX backend served the page via the
+// config's define-injected marker (the backends' outputs are otherwise
+// parity-identical, so the marker is the only reliable discriminator).
+async function runHmrChecks(mode, cdp, origin, { expectCompiler } = {}) {
+  const hmrFile = path.join(exampleDir, 'src/HmrTarget.tsx');
+  const originalSource = readFileSync(hmrFile, 'utf-8');
+  try {
+    cdp.exceptions.length = 0;
+    await cdp.send('Page.navigate', { url: origin + '/' });
+    await cdp.waitFor('document.readyState === "complete"');
+    await new Promise((r) => setTimeout(r, 750));
+
+    const hydrationErrs = cdp.exceptions.filter((e) => /hydrat|mismatch/i.test(e));
+    record(
+      mode,
+      'hmr',
+      'clean hydration (no hydration console errors)',
+      hydrationErrs.length === 0,
+      hydrationErrs.join(' | '),
+    );
+
+    // Refresh must actually be wired: the served module carries the
+    // refresh wrapper importing the solid-js/refresh runtime (Vite may
+    // rewrite the specifier to its pre-bundled /node_modules/.vite/deps
+    // URL, so match both spellings).
+    const served = await (await fetch(origin + '/src/HmrTarget.tsx')).text();
+    record(
+      mode,
+      'hmr',
+      'refresh active (solid-js/refresh wrapper in served module)',
+      /solid-js[/_]refresh/.test(served) &&
+        served.includes('$$registry') &&
+        served.includes('import.meta.hot'),
+    );
+    if (expectCompiler) {
+      record(
+        mode,
+        'hmr',
+        `${expectCompiler} JSX backend active (define marker)`,
+        (await cdp.evalJs('document.querySelector("#jsx-compiler")?.textContent')) ===
+          expectCompiler,
+      );
+    }
+
+    // Reload marker + client state that must survive the hot update.
+    await cdp.evalJs('window.__HMR_NO_RELOAD_MARKER = 1');
+    await cdp.evalJs('document.querySelector("#increment").click()');
+    await cdp.evalJs('document.querySelector("#increment").click()');
+    record(
+      mode,
+      'hmr',
+      'counter incremented before edit',
+      await cdp.waitFor('document.querySelector("#count")?.textContent === "2"'),
+    );
+
+    writeFileSync(hmrFile, originalSource.replace('HMR-ORIGINAL', 'HMR-UPDATED'));
+    const updated = await cdp.waitFor(
+      'document.querySelector("#hmr-text")?.textContent === "HMR-UPDATED"',
+      15000,
+    );
+    record(
+      mode,
+      'hmr',
+      'hot update applied (edited text rendered)',
+      updated,
+      `hmr-text: ${JSON.stringify(
+        await cdp.evalJs('document.querySelector("#hmr-text")?.textContent'),
+      )}`,
+    );
+    record(
+      mode,
+      'hmr',
+      'no full page reload (window marker survived)',
+      (await cdp.evalJs('window.__HMR_NO_RELOAD_MARKER')) === 1,
+    );
+    record(
+      mode,
+      'hmr',
+      'client state preserved (counter still 2)',
+      (await cdp.evalJs('document.querySelector("#count")?.textContent')) === '2',
+    );
+  } finally {
+    writeFileSync(hmrFile, originalSource);
+  }
+}
+
 async function runMode(mode) {
   console.log(`\n=== ${mode.toUpperCase()} ===`);
   const isProd = mode === 'prod';
@@ -288,83 +381,66 @@ async function runMode(mode) {
       record(mode, 'rpc', 'no page errors', errs.length === 0, errs.join(' | '));
 
       // ---- Phase 3 (dev only): HMR through solid-refresh -----------------
-      // Fresh page load (hydrated SSR), then edit HmrTarget.tsx on disk and
-      // assert the update lands hot: new text rendered, no full reload
-      // (window marker survives), sibling client state (the counter owned by
-      // App) preserved. File restored afterwards.
       if (!isProd) {
-        const hmrFile = path.join(exampleDir, 'src/HmrTarget.tsx');
-        const originalSource = readFileSync(hmrFile, 'utf-8');
-        try {
-          cdp.exceptions.length = 0;
-          await cdp.send('Page.navigate', { url: origin + '/' });
-          await cdp.waitFor('document.readyState === "complete"');
-          await new Promise((r) => setTimeout(r, 750));
-
-          const hydrationErrs = cdp.exceptions.filter((e) => /hydrat|mismatch/i.test(e));
-          record(
-            mode,
-            'hmr',
-            'clean hydration (no hydration console errors)',
-            hydrationErrs.length === 0,
-            hydrationErrs.join(' | '),
-          );
-
-          // Refresh must actually be wired: the served module carries the
-          // refresh wrapper importing the solid-js/refresh runtime (Vite may
-          // rewrite the specifier to its pre-bundled /node_modules/.vite/deps
-          // URL, so match both spellings).
-          const served = await (await fetch(origin + '/src/HmrTarget.tsx')).text();
-          record(
-            mode,
-            'hmr',
-            'refresh active (solid-js/refresh wrapper in served module)',
-            /solid-js[/_]refresh/.test(served) &&
-              served.includes('$$registry') &&
-              served.includes('import.meta.hot'),
-          );
-
-          // Reload marker + client state that must survive the hot update.
-          await cdp.evalJs('window.__HMR_NO_RELOAD_MARKER = 1');
-          await cdp.evalJs('document.querySelector("#increment").click()');
-          await cdp.evalJs('document.querySelector("#increment").click()');
-          record(
-            mode,
-            'hmr',
-            'counter incremented before edit',
-            await cdp.waitFor('document.querySelector("#count")?.textContent === "2"'),
-          );
-
-          writeFileSync(hmrFile, originalSource.replace('HMR-ORIGINAL', 'HMR-UPDATED'));
-          const updated = await cdp.waitFor(
-            'document.querySelector("#hmr-text")?.textContent === "HMR-UPDATED"',
-            15000,
-          );
-          record(
-            mode,
-            'hmr',
-            'hot update applied (edited text rendered)',
-            updated,
-            `hmr-text: ${JSON.stringify(
-              await cdp.evalJs('document.querySelector("#hmr-text")?.textContent'),
-            )}`,
-          );
-          record(
-            mode,
-            'hmr',
-            'no full page reload (window marker survived)',
-            (await cdp.evalJs('window.__HMR_NO_RELOAD_MARKER')) === 1,
-          );
-          record(
-            mode,
-            'hmr',
-            'client state preserved (counter still 2)',
-            (await cdp.evalJs('document.querySelector("#count")?.textContent')) === '2',
-          );
-        } finally {
-          writeFileSync(hmrFile, originalSource);
-        }
+        await runHmrChecks(mode, cdp, origin, { expectCompiler: 'native' });
       }
+    } finally {
+      cdp.close();
+      const exited = new Promise((r) => chrome.once('exit', r));
+      try {
+        process.kill(-chrome.pid, 'SIGTERM');
+      } catch {}
+      await Promise.race([exited, new Promise((r) => setTimeout(r, 3000))]);
+      try {
+        rmSync(`/tmp/server-functions-chrome-${mode}`, { recursive: true, force: true, maxRetries: 5 });
+      } catch {}
+    }
+  } catch (e) {
+    record(mode, 'run', 'mode completed', false, String(e) + (serverLog ? `\nserver: ${serverLog.slice(-2000)}` : ''));
+  } finally {
+    try {
+      process.kill(-server.pid, 'SIGTERM');
+    } catch {}
+  }
+}
+
+// Babel-JSX HMR: a separate dev server forced to `compiler: 'babel'` via
+// SOLID_JSX_COMPILER, proving the native refresh pass and the
+// solid-js/refresh core runtime also work when the JSX transform runs
+// through babel-preset-solid.
+async function runBabelHmrMode() {
+  const mode = 'babel-hmr';
+  console.log(`\n=== ${mode.toUpperCase()} ===`);
+  const port = 3143;
+  const origin = `http://localhost:${port}`;
+
+  const server = startProcess('node', ['server.js'], {
+    cwd: exampleDir,
+    env: {
+      ...process.env,
+      PORT: String(port),
+      NODE_ENV: 'development',
+      SOLID_JSX_COMPILER: 'babel',
+    },
+  });
+  let serverLog = '';
+  server.stdout.on('data', (d) => (serverLog += d));
+  server.stderr.on('data', (d) => (serverLog += d));
+
+  try {
+    await waitForHttp(origin + '/src/api.ts', 30000);
+
+    const chrome = startProcess(CHROME, [
+      '--headless=new',
+      `--remote-debugging-port=${CDP_PORT}`,
+      `--user-data-dir=/tmp/server-functions-chrome-${mode}`,
+      '--no-first-run',
+      '--disable-extensions',
+      'about:blank',
+    ]);
+    const cdp = await connectChrome();
+    try {
+      await runHmrChecks(mode, cdp, origin, { expectCompiler: 'babel' });
     } finally {
       cdp.close();
       const exited = new Promise((r) => chrome.once('exit', r));
@@ -453,16 +529,12 @@ async function runEndpointMode() {
 }
 
 const arg = process.argv[2];
-const modes =
-  arg === 'dev'
-    ? ['dev']
-    : arg === 'prod'
-      ? ['prod']
-      : arg === 'endpoint'
-        ? ['endpoint']
-        : ['dev', 'prod', 'endpoint'];
+const modes = ['dev', 'prod', 'endpoint', 'babel-hmr'].includes(arg)
+  ? [arg]
+  : ['dev', 'prod', 'endpoint', 'babel-hmr'];
 for (const mode of modes) {
   if (mode === 'endpoint') await runEndpointMode();
+  else if (mode === 'babel-hmr') await runBabelHmrMode();
   else await runMode(mode);
 }
 

@@ -11,8 +11,6 @@ const external = [
   '@ampproject/remapping',
   '@babel/preset-typescript',
   'babel-preset-solid',
-  'solid-refresh',
-  'solid-refresh/babel',
   'merge-anything',
   'vitefu',
   'vite'

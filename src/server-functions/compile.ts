@@ -50,8 +50,10 @@ async function loadCompiler(): Promise<NativeCompiler> {
     compilerPromise = undefined;
     const reason = error instanceof Error ? `\n\nCause: ${error.message}` : '';
     throw new Error(
-      'vite-plugin-solid: server functions require native Node addon support ' +
-        '(the "use server" transform is @dom-expressions/compiler).' +
+      'vite-plugin-solid: failed to load @dom-expressions/compiler (the "use server" ' +
+        'transform). Your platform should get a prebuilt native binary or the ' +
+        '@dom-expressions/compiler-wasm32-wasi fallback — check that optional ' +
+        'dependencies were installed.' +
         reason,
     );
   }

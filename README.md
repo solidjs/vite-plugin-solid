@@ -143,8 +143,10 @@ transform) is native in both modes.
 
 `"babel"` is the escape hatch: if the native output ever differs from what
 you expect, set `compiler: 'babel'` and file an issue — the behavioral diff
-between the two modes is the bug report. It is also required in environments
-without native Node addon support (for example StackBlitz WebContainers).
+between the two modes is the bug report. Platforms without a prebuilt native
+binary (for example StackBlitz WebContainers) automatically fall back to the
+`@dom-expressions/compiler-wasm32-wasi` build, so no configuration is needed
+there.
 
 ```ts
 import { defineConfig } from 'vite';

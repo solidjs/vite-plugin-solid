@@ -101,9 +101,11 @@ async function loadNativeCompiler() {
     nativeCompilerPromise = undefined;
     const reason = error instanceof Error ? `\n\nCause: ${error.message}` : '';
     throw new Error(
-      'vite-plugin-solid: the default compiler: "native" requires native Node addon ' +
-        'support. Environments that disable native addons, such as StackBlitz ' +
-        'WebContainers, must set compiler: "babel".' +
+      'vite-plugin-solid: failed to load @dom-expressions/compiler, which is required ' +
+        'in every mode (it drives the lazy, refresh, and server-function transforms; ' +
+        'compiler: "babel" only switches the JSX transform). Your platform should get ' +
+        'a prebuilt native binary or the @dom-expressions/compiler-wasm32-wasi fallback ' +
+        '— check that optional dependencies were installed.' +
         reason,
     );
   }
@@ -141,8 +143,9 @@ export interface Options {
    * `@dom-expressions/compiler`; `"babel"` is the escape hatch running
    * `babel-preset-solid` instead — if native output ever differs from your
    * expectations, set `compiler: "babel"` and file an issue (the behavioral
-   * diff between the modes is the bug report). Babel is also required where
-   * native Node addons are unavailable (e.g. StackBlitz WebContainers).
+   * diff between the modes is the bug report). Platforms without a prebuilt
+   * native binary (e.g. StackBlitz WebContainers) automatically use the wasm
+   * fallback; the compiler package itself is required in every mode.
    *
    * @default "native"
    */

@@ -526,7 +526,7 @@ export function serverFunctions(
         }
 
         // Fast path: the directive has to appear literally, so anything
-        // without the substring can skip the Babel parse entirely.
+        // without the substring can skip the native parse entirely.
         if (!code.includes(directive)) {
           return null;
         }

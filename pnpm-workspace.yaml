@@ -2,6 +2,15 @@ packages:
   - .
   - examples/*
 
+# TEMPORARY: the server-function directive transform uses transformDirectives,
+# which is not in the published @dom-expressions/compiler (0.50.0-next.22).
+# Link the sibling checkout until the next release, then remove this override
+# and pin the new version. The link needs a locally built binary:
+#   pnpm --filter @dom-expressions/compiler run build:debug   (in ../dom-expressions)
+# (the .node artifacts are gitignored local builds).
+overrides:
+  '@dom-expressions/compiler': link:../dom-expressions/packages/compiler
+
 allowBuilds:
   cypress: true
   esbuild: true

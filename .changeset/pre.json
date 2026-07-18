@@ -14,9 +14,13 @@
     "lazy-entry-rolldown-reclassify",
     "lazy-load-native-compiler",
     "lazy-manifest-robustness",
+    "native-babel-free-refresh",
     "native-compiler-option",
+    "native-server-function-transform",
+    "scoped-server-function-dce",
     "server-functions-compiler",
     "server-functions-default-runtime",
+    "server-functions-turnkey",
     "six-lions-joke",
     "true-boxes-arrive"
   ]

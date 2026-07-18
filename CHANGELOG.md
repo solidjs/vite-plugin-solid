@@ -1,5 +1,63 @@
 # Changelog
 
+## 3.0.0-next.13
+
+### Patch Changes
+
+- e372cc0: The native `@dom-expressions/compiler` is now the default JSX compiler (`compiler: 'native'`). `compiler: 'babel'` remains available as an escape hatch that switches ONLY the JSX transform back to `babel-preset-solid` — if native output differs from your expectations, set it and file an issue (the behavioral diff between the modes is the bug report). Platforms without a prebuilt native binary (e.g. StackBlitz WebContainers) automatically use the compiler's wasm32-wasi fallback; the compiler package is required in every mode.
+
+  The `lazy()` module-URL pass and the solid-refresh HMR pass now run through native compiler passes (`transformLazy` / `transformRefresh`) in every mode, ahead of whichever JSX backend is selected, with sourcemaps chained across all passes. The plugin's own `lazy-module-url` Babel plugin is deleted (the placeholder format and its bundler-side resolution are unchanged), and supplying custom `babel` options in native mode reintroduces a Babel support pass hosting just those options.
+
+  HMR wrappers in all modes now import the refresh runtime from the dev-only `solid-js/refresh` core entry, and the `solid-refresh` package dependency is removed entirely — this also fixes solid-refresh#85 (stale registrations resurrected after full-tree disposal on Solid 2.0) for what was previously the Babel path. Requires the solid-js release that ships the `solid-js/refresh` entry (landing with this release train).
+
+- 4b9c1ea: The server-function `"use server"` directive transform now uses the native `transformDirectives` pass from `@dom-expressions/compiler` (Rust/Oxc) instead of the in-tree Babel implementation. Output is byte-compatible — same runtime ABI, `xxhash32(relative path)-<count>` function IDs, and manifest behavior — but the transform is faster and now reports invalid closure captures as compile-time errors: a server function referencing a binding from an intermediate enclosing scope (an enclosing function's local or parameter, a loop variable) fails the build naming the variable and its location instead of silently breaking at runtime. JSX compilation is unchanged (Babel by default, native opt-in); only the directive transform is native-always.
+
+  Note: this requires `@dom-expressions/compiler` 0.50.0-next.23 or later — earlier releases do not include `transformDirectives`. The dependency is pinned accordingly.
+
+- bde3e2b: More precise dead-code elimination after the `"use server"` client rewrite:
+
+  - The shake is now scoped to bindings orphaned by the rewrite (names
+    referenced from the replaced function bodies, cascading through removed
+    declarations). Code that was already unreferenced before the transform —
+    e.g. `const t = startTimer()` written for its side effect — is no longer
+    deleted from client output.
+  - Destructuring patterns are now shaken: `const { db } = createClient()`
+    used only inside a server function is removed from the client build along
+    with its now-unused imports, closing a server-code-leak hole. Array
+    pattern elements become holes (or truncate the tail), rest elements and
+    nested patterns cascade, and a declarator whose pattern empties is dropped
+    entirely.
+  - Modules containing a direct `eval(...)` call skip the shake (reference
+    counts are unreliable there); the directive rewrite itself still applies,
+    and a warning is logged in development mode.
+
+- 25f0506: Turnkey server functions: `serverFunctions: true` now gives a fully working
+  setup with no manual wiring.
+
+  - Dev: a middleware on the Vite dev server handles the endpoint (default
+    `/_server`, joined with `base`) end to end — it maps the incoming function
+    ID back to its module through the compiler manifest, loads it in the SSR
+    environment so the registration exists (even for functions only client
+    code references, before any SSR render has run), scopes the request with
+    `provideRequestEvent`, and dispatches to `handleServerFunctionRequest`,
+    streaming bodies in both directions.
+  - Prod: import `virtual:solid-server-function-handler` in the server entry
+    and mount its `handleServerFunctionRequest(request)` export on the endpoint
+    — one line, router-agnostic. The module eagerly imports every module
+    containing server functions (via the persisted manifest, so tree-shaking
+    can't drop registrations), configures the endpoint, and scopes requests
+    with `provideRequestEvent`. Vite preview has no SSR runtime, so prod always
+    goes through this mount.
+  - New `endpoint` option on `ServerFunctionsOptions`, threaded to the dev
+    middleware, the virtual handler, and — whenever the resolved path differs
+    from the runtime default — `configureServerFunctions{Client,Server}` calls
+    appended to compiled modules, so the client transport and rendered
+    reference `.url`s agree without any manual configure call.
+  - Bring-your-own wiring keeps working: the standalone `serverFunctions()`
+    export (used by meta-frameworks like SolidStart) never installs the dev
+    middleware, compiled output is byte-identical when the endpoint resolves to
+    the default, and the virtual handler only activates if imported.
+
 ## 3.0.0-next.12
 
 ### Patch Changes

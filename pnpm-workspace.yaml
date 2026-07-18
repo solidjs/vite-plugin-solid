@@ -2,31 +2,23 @@ packages:
   - .
   - examples/*
 
-overrides:
-  # TEMPORARY: native-mode refresh wrappers import the dev-only
-  # `solid-js/refresh` runtime entry, which is not in any published solid-js
-  # yet (it lands with the release train). Link the main solid checkout's
-  # `next` branch carrying it until that release, then remove this override
-  # and require the released version.
-  'solid-js': link:../solid/packages/solid
-
 allowBuilds:
   cypress: true
   esbuild: true
   msw: true
 
 catalog:
-  solid-js: ">=2.0.0-beta.19 <2.0.0-experimental.0"
-  "@solidjs/web": ">=2.0.0-beta.19 <2.0.0-experimental.0"
+  solid-js: ">=2.0.0-beta.20 <2.0.0-experimental.0"
+  "@solidjs/web": ">=2.0.0-beta.20 <2.0.0-experimental.0"
 
 ignoredBuiltDependencies:
   - cypress
 
 minimumReleaseAgeExclude:
-  - '@solidjs/signals@2.0.0-beta.19'
-  - '@solidjs/web@2.0.0-beta.19'
-  - babel-preset-solid@2.0.0-beta.19
-  - solid-js@2.0.0-beta.19
+  - '@solidjs/signals@2.0.0-beta.20'
+  - '@solidjs/web@2.0.0-beta.20'
+  - babel-preset-solid@2.0.0-beta.20
+  - solid-js@2.0.0-beta.20
   - '@dom-expressions/babel-plugin-jsx@0.50.0-next.23'
   - '@dom-expressions/compiler-darwin-arm64@0.50.0-next.23'
   - '@dom-expressions/compiler-darwin-x64@0.50.0-next.23'

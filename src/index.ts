@@ -15,8 +15,8 @@ const runtimeFilePath = require.resolve('solid-refresh/dist/solid-refresh.mjs');
 const runtimeCode = readFileSync(runtimeFilePath, 'utf-8');
 
 const viteVersionMajor = +version.split('.')[0];
-const isVite6 = viteVersionMajor >= 6;
-const isVite8 = viteVersionMajor >= 8;
+const isVite6OrNewer = viteVersionMajor >= 6;
+const isVite8OrNewer = viteVersionMajor >= 8;
 
 /** Possible options for the extensions property */
 export interface ExtensionOptions {
@@ -266,7 +266,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
          */
         // esbuild: { include: /\.ts$/ },
         resolve: {
-          conditions: isVite6
+          conditions: isVite6OrNewer
             ? undefined
             : [
                 'solid',
@@ -283,11 +283,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
           // React's automatic JSX runtime for .tsx files, injecting a
           // react/jsx-dev-runtime import. Tell it to preserve JSX as-is since
           // this plugin handles JSX transformation via babel-preset-solid.
-          ...(isVite8
+          ...(isVite8OrNewer
             ? { rolldownOptions: { transform: { jsx: 'preserve' as const } } }
             : {}),
         },
-        ...(!isVite6 ? { ssr: solidPkgsConfig.ssr } : {}),
+        ...(!isVite6OrNewer ? { ssr: solidPkgsConfig.ssr } : {}),
         ...(test.server ? { test } : {}),
       };
     },
@@ -314,7 +314,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
 
       // Set resolve.noExternal and resolve.external for SSR environment (Vite 6+)
       // Only set resolve.external if noExternal is not true (to avoid conflicts with plugins like Cloudflare)
-      if (isVite6 && name === 'ssr' && solidPkgsConfig) {
+      if (isVite6OrNewer && name === 'ssr' && solidPkgsConfig) {
         if (config.resolve.noExternal !== true) {
           config.resolve.noExternal = [
             ...(Array.isArray(config.resolve.noExternal) ? config.resolve.noExternal : []),
@@ -341,7 +341,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin {
     },
 
     async transform(source, id, transformOptions) {
-      const isSsr = transformOptions && transformOptions.ssr;
+      const isSsr = this.environment
+        ? this.environment.config.consumer === 'server'
+        : Boolean(transformOptions?.ssr);
       const currentFileExtension = getExtension(id);
 
       const extensionsToWatch = options.extensions || [];

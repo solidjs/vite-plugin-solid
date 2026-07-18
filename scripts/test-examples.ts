@@ -1,8 +1,14 @@
 import { spawn, exec, ChildProcess } from 'node:child_process';
+import { readdirSync } from 'node:fs';
 import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
-const examples = ['vite-3', 'vite-4', 'vite-5', 'vite-6'];
+const examples = readdirSync('examples', { withFileTypes: true })
+  .filter((entry) => entry.isDirectory() && /^vite-\d+$/.test(entry.name))
+  .map((entry) => entry.name)
+  .sort((a, b) => Number(a.slice(5)) - Number(b.slice(5)));
+const pluginHookSsrDeprecation =
+  "Plugin hook `options.ssr` is replaced with `this.environment.config.consumer === 'server'`.";
 const PORT = 4173;
 const TEST_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
@@ -28,7 +34,10 @@ async function runExample(example) {
   try {
     // Install and build
     await execAsync('pnpm install', { cwd: examplePath });
-    await execAsync('pnpm run build', { cwd: examplePath });
+    const { stdout, stderr } = await execAsync('pnpm run build', { cwd: examplePath });
+    if (`${stdout}\n${stderr}`.includes(pluginHookSsrDeprecation)) {
+      throw new Error(`Vite's deprecated plugin hook SSR argument was used in ${example}`);
+    }
 
     // Start preview server with timeout
     const server = spawn('pnpm', ['run', 'preview'], { cwd: examplePath });

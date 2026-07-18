@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.11.13
+
+### Patch Changes
+
+- 35ce381: Use per-environment Vite plugin hook APIs while retaining compatibility with Vite 3 through 5.
+
 ## 2.11.12
 
 ### Patch Changes

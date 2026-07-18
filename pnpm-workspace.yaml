@@ -2,20 +2,13 @@ packages:
   - .
   - examples/*
 
-# TEMPORARY: the server-function directive transform uses transformDirectives,
-# which is not in the published @dom-expressions/compiler (0.50.0-next.22).
-# Link the sibling checkout until the next release, then remove this override
-# and pin the new version. The link needs a locally built binary:
-#   pnpm --filter @dom-expressions/compiler run build:debug   (in ../dom-expressions)
-# (the .node artifacts are gitignored local builds).
 overrides:
-  '@dom-expressions/compiler': link:../dom-expressions/packages/compiler
   # TEMPORARY: native-mode refresh wrappers import the dev-only
   # `solid-js/refresh` runtime entry, which is not in any published solid-js
-  # yet (it lands with the release train). Link the worktree carrying it
-  # (branch `refresh-entry`) until that release, then remove this override
+  # yet (it lands with the release train). Link the main solid checkout's
+  # `next` branch carrying it until that release, then remove this override
   # and require the released version.
-  'solid-js': link:../solid-refresh-entry/packages/solid
+  'solid-js': link:../solid/packages/solid
 
 allowBuilds:
   cypress: true
@@ -34,14 +27,14 @@ minimumReleaseAgeExclude:
   - '@solidjs/web@2.0.0-beta.19'
   - babel-preset-solid@2.0.0-beta.19
   - solid-js@2.0.0-beta.19
-  - '@dom-expressions/babel-plugin-jsx@0.50.0-next.22'
-  - '@dom-expressions/compiler-darwin-arm64@0.50.0-next.22'
-  - '@dom-expressions/compiler-darwin-x64@0.50.0-next.22'
-  - '@dom-expressions/compiler-linux-arm64-gnu@0.50.0-next.22'
-  - '@dom-expressions/compiler-linux-x64-gnu@0.50.0-next.22'
-  - '@dom-expressions/compiler-win32-x64-msvc@0.50.0-next.22'
-  - '@dom-expressions/compiler-wasm32-wasi@0.50.0-next.22'
-  - '@dom-expressions/compiler@0.50.0-next.22'
+  - '@dom-expressions/babel-plugin-jsx@0.50.0-next.23'
+  - '@dom-expressions/compiler-darwin-arm64@0.50.0-next.23'
+  - '@dom-expressions/compiler-darwin-x64@0.50.0-next.23'
+  - '@dom-expressions/compiler-linux-arm64-gnu@0.50.0-next.23'
+  - '@dom-expressions/compiler-linux-x64-gnu@0.50.0-next.23'
+  - '@dom-expressions/compiler-win32-x64-msvc@0.50.0-next.23'
+  - '@dom-expressions/compiler-wasm32-wasi@0.50.0-next.23'
+  - '@dom-expressions/compiler@0.50.0-next.23'
 
 onlyBuiltDependencies:
   - cypress

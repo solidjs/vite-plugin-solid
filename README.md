@@ -125,10 +125,108 @@ If set to false, it won't inject the runtime in dev.
 
 #### options.ssr
 
-- Type: Boolean
+- Type: Boolean | Object
 - Default: false
 
-This will force SSR code in the produced files.
+`ssr: true` enables the SSR transforms (hydratable client code, SSR server
+code); you provide the entries and the server yourself, as before.
+
+The object form — even empty, `ssr: {}` — additionally turns on **turnkey
+SSR** (requires Vite 6+): a plain Vite app gets streaming server-side
+rendering with zero wiring. No entry files, no `index.html`, no dev server
+script.
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+import solidPlugin from 'vite-plugin-solid';
+
+export default defineConfig({
+  plugins: [solidPlugin({ ssr: {} })],
+});
+```
+
+```tsx
+// src/App.tsx — the entire app: a plain content component
+export default function App() {
+  return <h1>Hello SSR</h1>;
+}
+```
+
+- **Dev**: `vite` just works — a middleware on the dev server streams the
+  rendered app for HTML-accepting GET requests through the SSR environment,
+  injecting the Vite client (HMR, error overlay) and the dev style patch
+  into `<head>`. SSR errors render Vite's error page with the overlay.
+- **Build**: a plain `vite build` produces both bundles via the
+  environments/builder API — client assets (+ manifest) to `dist/client` and
+  the server bundle to `dist/server/server.js`. (`vite build --app`, or the
+  classic `vite build` + `vite build --ssr` two-step, work too.)
+- **Prod**: the server bundle's entry is `virtual:solid-ssr-handler`, whose
+  `handleRequest(request)` export maps a web-standard `Request` to a
+  streamed `Response` — adapter-agnostic, so any node server / worker /
+  runtime mounts SSR in one line:
+
+```js
+import { handleRequest } from './dist/server/server.js';
+// serve dist/client statically, everything else:
+const response = await handleRequest(request);
+```
+
+Each request is scoped with `provideRequestEvent`, so `getRequestEvent()`
+works during the render; hashed client assets (entry script, CSS) are
+resolved through the build manifest and injected into `<head>`.
+
+**Entry resolution** (all paths relative to the Vite root):
+
+1. Explicit `ssr.entryServer` / `ssr.entryClient` options.
+2. Conventional files: `src/entry-server.{tsx,jsx,ts,js,mjs}` and
+   `src/entry-client.{tsx,jsx,ts,js,mjs}`. Entry files come in pairs —
+   providing only one is an error. The server entry must export
+   `render(request?, context?)` returning a `renderToStream` result, an HTML
+   string, or a `Response`; `context.clientEntry` carries the resolved
+   client entry URL, and in production any literal
+   `"/src/entry-client.tsx"` reference in the rendered HTML is rewritten to
+   the hashed asset (the classic harness convention keeps working).
+3. Generated entries (the zero-config path): when no entry files exist, both
+   are generated from a root component — `ssr.app`, defaulting to
+   `src/App.{tsx,jsx,ts,js}` (or lowercase `src/app.*`) — wrapped in a
+   document shell: `ssr.document`, defaulting to `src/Document.{tsx,jsx}`,
+   else a built-in minimal shell. A custom document receives the app as
+   `props.children` and must render the full `<html>` document including
+   `<HydrationScript />`; the client entry script is injected into `<head>`
+   automatically.
+
+With [`serverFunctions`](#optionsserverfunctions) also enabled the two
+compose: in dev the server-function middleware handles the endpoint before
+SSR; in production the same `handleRequest` serves the endpoint too.
+
+Turnkey serving is opt-in via the object form, so existing `ssr: true` setups
+are unaffected. On Vite versions below 6 the object form falls back to the
+transforms with a warning. See `examples/ssr-turnkey` for a complete app
+(including a one-file production server) and `examples/ssr` for the manual
+`ssr: true` wiring.
+
+#### options.serverFunctions
+
+- Type: Boolean | Object
+- Default: undefined
+
+Enables `"use server"` server function compilation (experimental). Pass
+`true` for the defaults (runtime from `@solidjs/web/server-functions`,
+endpoint `/_server`) or an options object (`runtime`, `endpoint`, `filter`,
+`directive`, `manifest`) to customize.
+
+The setup is turnkey: in dev a middleware on the Vite server handles the
+endpoint end to end — no server-function code needed in your server entry.
+For production SSR builds, either use turnkey SSR (the object form of
+[`ssr`](#optionsssr), whose handler serves the endpoint automatically) or
+import `virtual:solid-server-function-handler` in your server entry and
+mount its `handleServerFunctionRequest(request)` export on the endpoint.
+
+Meta-frameworks that need to control plugin ordering and dispatch requests
+through their own server should use the standalone `serverFunctions()`
+export instead, which never installs the dev middleware. See
+`examples/server-functions` for a complete app.
 
 #### options.compiler
 

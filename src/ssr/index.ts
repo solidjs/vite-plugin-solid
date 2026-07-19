@@ -1,0 +1,489 @@
+// Turnkey SSR for plain Vite apps: `solid({ ssr: {...} })` (the object form
+// of the existing `ssr` option) adds a serving layer on top of the SSR
+// transforms so no hand-rolled entries or dev server are needed.
+//
+// - Dev: a middleware on the Vite dev server streams the rendered app for
+//   HTML-accepting GET requests, loading the app through the SSR environment
+//   (`ssrLoadModule`) and injecting the Vite client + dev style patch into
+//   `<head>` on the way out. SSR errors flow to Vite's error middleware
+//   (stack-fixed) so the browser gets the error overlay page.
+// - Prod: the plugin configures a full-app build (client + server bundles
+//   via the Vite 6+ environments/builder API — a single `vite build` builds
+//   both) whose server entry is `virtual:solid-ssr-handler`: an
+//   adapter-agnostic `handleRequest(Request) => Promise<Response>` that
+//   scopes each request with `provideRequestEvent`, streams the render, and
+//   resolves hashed client assets through `virtual:solid-manifest`.
+// - Entries are conventional with escape hatches: `src/entry-server.*` /
+//   `src/entry-client.*` are used when present (or set explicitly); when
+//   absent, default entries are generated from a single root component
+//   (`ssr.app`, defaulting to `src/App.*`) wrapped in a document shell
+//   (`ssr.document`, defaulting to `src/Document.*`, else a built-in one).
+// - When `serverFunctions` is also enabled, the prod handler composes it:
+//   requests to the server-function endpoint dispatch to
+//   `virtual:solid-server-function-handler` before SSR (in dev, the
+//   server-function middleware is registered earlier and already wins).
+import { existsSync } from 'fs';
+import path from 'path';
+import type { Plugin, ViteDevServer } from 'vite';
+import { devStylePatch } from '../dev-manifest.js';
+import { joinBase, sendWebResponse, webRequestFromNode } from '../http.js';
+
+export interface SsrOptions {
+  /**
+   * Root component module for generated entries (the zero-config path).
+   * Resolved relative to the Vite root.
+   *
+   * @default "src/App.{tsx,jsx,ts,js}" (also probes lowercase "src/app.*")
+   */
+  app?: string;
+  /**
+   * Server entry module. Must export `render(request?, context?)` returning
+   * a `renderToStream` result, an HTML string, or a `Response`.
+   * `context.clientEntry` carries the resolved client entry URL.
+   *
+   * @default "src/entry-server.{tsx,jsx,ts,js,mjs}" when present, else a
+   * generated entry rendering `<Document><App /></Document>`
+   */
+  entryServer?: string;
+  /**
+   * Client (hydration) entry module.
+   *
+   * @default "src/entry-client.{tsx,jsx,ts,js,mjs}" when present, else a
+   * generated entry hydrating `<Document><App /></Document>`
+   */
+  entryClient?: string;
+  /**
+   * Document shell component wrapping the app in generated entries. Receives
+   * `props.children` and must render the full `<html>` document including
+   * `<HydrationScript />`. Only used when the entries are generated.
+   *
+   * @default "src/Document.{tsx,jsx}" when present, else a built-in shell
+   */
+  document?: string;
+}
+
+// Server-only turnkey request handler; also the server bundle's entry so a
+// production server is one import away from `Request -> Response`.
+const HANDLER_ID = 'virtual:solid-ssr-handler';
+// Generated default entries / document shell. The `.tsx` suffix routes them
+// through the plugin's normal JSX transform (per-environment SSR/DOM
+// compile), exactly like user-authored entry files.
+const ENTRY_SERVER_ID = 'virtual:solid-ssr-entry-server.tsx';
+const ENTRY_CLIENT_ID = 'virtual:solid-ssr-entry-client.tsx';
+const DOCUMENT_ID = 'virtual:solid-ssr-document.tsx';
+
+const MANIFEST_ID = 'virtual:solid-manifest';
+const SERVER_FUNCTION_HANDLER_ID = 'virtual:solid-server-function-handler';
+const STORAGE_SOURCE = '@solidjs/web/storage';
+
+const ENTRY_EXTENSIONS = ['.tsx', '.jsx', '.ts', '.js', '.mjs'];
+const APP_EXTENSIONS = ['.tsx', '.jsx', '.ts', '.js'];
+const DOCUMENT_EXTENSIONS = ['.tsx', '.jsx'];
+
+function probe(root: string, stem: string, extensions: string[]): string | null {
+  for (const ext of extensions) {
+    if (existsSync(path.resolve(root, stem + ext))) return stem + ext;
+  }
+  return null;
+}
+
+/** Normalizes a user-supplied module path to a root-relative one (no leading slash). */
+function normalizeUserPath(root: string, spec: string, option: string): string {
+  const absolute = path.isAbsolute(spec) ? spec : path.resolve(root, spec);
+  if (!existsSync(absolute)) {
+    throw new Error(`[vite-plugin-solid] ssr.${option} does not exist: ${spec}`);
+  }
+  const relative = path.relative(root, absolute).split(path.sep).join('/');
+  if (relative.startsWith('..')) {
+    throw new Error(`[vite-plugin-solid] ssr.${option} must live inside the Vite root: ${spec}`);
+  }
+  return relative;
+}
+
+interface ResolvedEntries {
+  /** Root-relative path or virtual id. */
+  entryServer: string;
+  /** Root-relative path or virtual id. */
+  entryClient: string;
+  /** Whether the entries are generated virtual modules. */
+  generated: boolean;
+  /** Absolute path of the app root component (generated entries only). */
+  app: string | null;
+  /** Absolute path of the document shell, or the built-in virtual id. */
+  document: string | null;
+}
+
+function resolveEntries(root: string, options: SsrOptions): ResolvedEntries {
+  const explicitServer = options.entryServer
+    ? normalizeUserPath(root, options.entryServer, 'entryServer')
+    : null;
+  const explicitClient = options.entryClient
+    ? normalizeUserPath(root, options.entryClient, 'entryClient')
+    : null;
+  const entryServer = explicitServer ?? probe(root, 'src/entry-server', ENTRY_EXTENSIONS);
+  const entryClient = explicitClient ?? probe(root, 'src/entry-client', ENTRY_EXTENSIONS);
+
+  if (entryServer && entryClient) {
+    return { entryServer, entryClient, generated: false, app: null, document: null };
+  }
+  if (entryServer || entryClient) {
+    // One authored entry with a generated counterpart is a hydration
+    // mismatch waiting to happen — the generated side wraps the app in the
+    // document shell, which the authored side knows nothing about.
+    const found = entryServer ? 'entry-server' : 'entry-client';
+    const missing = entryServer ? 'entry-client' : 'entry-server';
+    throw new Error(
+      `[vite-plugin-solid] found ${found} but no ${missing}; entry files come in pairs. ` +
+        `Provide both (src/entry-server.* and src/entry-client.*, or the ssr.entryServer / ` +
+        `ssr.entryClient options) or neither (to generate both from ssr.app).`,
+    );
+  }
+
+  const app = options.app
+    ? normalizeUserPath(root, options.app, 'app')
+    : (probe(root, 'src/App', APP_EXTENSIONS) ?? probe(root, 'src/app', APP_EXTENSIONS));
+  if (!app) {
+    throw new Error(
+      `[vite-plugin-solid] turnkey SSR needs an app root: add src/App.tsx (or set ssr.app), ` +
+        `or provide src/entry-server.* and src/entry-client.* entries.`,
+    );
+  }
+  const document = options.document
+    ? normalizeUserPath(root, options.document, 'document')
+    : probe(root, 'src/Document', DOCUMENT_EXTENSIONS);
+
+  return {
+    entryServer: ENTRY_SERVER_ID,
+    entryClient: ENTRY_CLIENT_ID,
+    generated: true,
+    app: path.resolve(root, app),
+    document: document ? path.resolve(root, document) : null,
+  };
+}
+
+export function ssrServe(
+  options: SsrOptions,
+  internal: { serverFunctions?: boolean } = {},
+): Plugin[] {
+  let root = process.cwd();
+  let base = '/';
+  let isBuild = false;
+  let entries: ResolvedEntries | undefined;
+
+  function requireEntries(): ResolvedEntries {
+    // config() always runs before resolveId/load/configureServer.
+    if (!entries) throw new Error('[vite-plugin-solid] SSR entries not resolved yet');
+    return entries;
+  }
+
+  /** Import specifier for generated code: absolute for files, id for virtuals. */
+  function entryServerSpec(): string {
+    const { entryServer } = requireEntries();
+    return entryServer === ENTRY_SERVER_ID ? entryServer : path.resolve(root, entryServer);
+  }
+
+  /** Browser URL of the client entry on the dev server (base applied). */
+  function devClientEntryUrl(): string {
+    const { entryClient } = requireEntries();
+    return entryClient === ENTRY_CLIENT_ID
+      ? joinBase(base, '/@id/' + ENTRY_CLIENT_ID)
+      : joinBase(base, '/' + entryClient);
+  }
+
+  function documentSpec(): string {
+    const { document } = requireEntries();
+    return document ?? DOCUMENT_ID;
+  }
+
+  function generatedEntryServerCode(): string {
+    const { app } = requireEntries();
+    return [
+      `import { renderToStream } from '@solidjs/web';`,
+      `import manifest from ${JSON.stringify(MANIFEST_ID)};`,
+      `import Document from ${JSON.stringify(documentSpec())};`,
+      `import App from ${JSON.stringify(app)};`,
+      ``,
+      `export function render(request, context) {`,
+      `  return renderToStream(() => (`,
+      `    <Document>`,
+      `      <App />`,
+      `    </Document>`,
+      `  ), { manifest });`,
+      `}`,
+    ].join('\n');
+  }
+
+  function generatedEntryClientCode(): string {
+    const { app } = requireEntries();
+    return [
+      `import { hydrate } from '@solidjs/web';`,
+      `import Document from ${JSON.stringify(documentSpec())};`,
+      `import App from ${JSON.stringify(app)};`,
+      ``,
+      `hydrate(() => (`,
+      `  <Document>`,
+      `    <App />`,
+      `  </Document>`,
+      `), document);`,
+    ].join('\n');
+  }
+
+  // Built-in document shell: minimal, hydration-ready. The client entry
+  // script is injected into <head> by the handler (not rendered here) so its
+  // URL never has to survive hydration or a manifest lookup client-side.
+  const documentShellCode = [
+    `import { HydrationScript } from '@solidjs/web';`,
+    ``,
+    `export default function Document(props) {`,
+    `  return (`,
+    `    <html lang="en">`,
+    `      <head>`,
+    `        <meta charset="utf-8" />`,
+    `        <meta name="viewport" content="width=device-width, initial-scale=1.0" />`,
+    `        <HydrationScript />`,
+    `      </head>`,
+    `      <body>{props.children}</body>`,
+    `    </html>`,
+    `  );`,
+    `}`,
+  ].join('\n');
+
+  // The handler module: dev and prod share the render/response plumbing;
+  // they differ in how the client entry URL is known (baked dev URL vs a
+  // manifest scan), what gets injected into <head> (Vite client + style
+  // patch in dev), and server-function composition (build only — in dev the
+  // server-function middleware intercepts the endpoint before SSR runs).
+  function handlerModuleCode(): string {
+    const { generated, entryClient } = requireEntries();
+    const composeServerFunctions = isBuild && internal.serverFunctions;
+
+    const lines = [
+      `import { provideRequestEvent } from ${JSON.stringify(STORAGE_SOURCE)};`,
+      `import * as entry from ${JSON.stringify(entryServerSpec())};`,
+    ];
+
+    if (isBuild) {
+      lines.push(`import manifest from ${JSON.stringify(MANIFEST_ID)};`);
+      if (composeServerFunctions) {
+        lines.push(
+          `import { handleServerFunctionRequest, endpoint } from ${JSON.stringify(SERVER_FUNCTION_HANDLER_ID)};`,
+        );
+      }
+      lines.push(
+        ``,
+        `function joinAssetPath(base, file) {`,
+        `  if (typeof base !== 'string' || !base) base = '/';`,
+        `  if (base[base.length - 1] !== '/') base += '/';`,
+        `  return base + (file[0] === '/' ? file.slice(1) : file);`,
+        `}`,
+        ``,
+        `let clientEntryUrl;`,
+        `function resolveClientEntry() {`,
+        `  if (clientEntryUrl !== undefined) return clientEntryUrl;`,
+        `  clientEntryUrl = null;`,
+        // The plugin's manifest module normalizes lazy facade chunks
+        // (isDynamicEntry) so exactly one real entry remains flagged.
+        `  for (const key in manifest) {`,
+        `    const chunk = manifest[key];`,
+        `    if (chunk && chunk.isEntry && chunk.file) {`,
+        `      clientEntryUrl = joinAssetPath(manifest._base, chunk.file);`,
+        `      break;`,
+        `    }`,
+        `  }`,
+        `  return clientEntryUrl;`,
+        `}`,
+      );
+    } else {
+      const devHead =
+        `<script>${devStylePatch}</script>` +
+        `<script type="module" src="${joinBase(base, '/@vite/client')}"></script>`;
+      lines.push(``, `const DEV_HEAD = ${JSON.stringify(devHead)};`);
+    }
+
+    lines.push(
+      ``,
+      `function createHtmlChunkTransform(clientEntry) {`,
+      `  let injected = false;`,
+      `  return (chunk) => {`,
+    );
+    if (!generated) {
+      // Authored entries reference the client entry by its dev path (the
+      // `<script src="/src/entry-client.tsx">` convention); rewrite it to
+      // the resolved URL like the classic server harnesses do.
+      lines.push(
+        `    if (clientEntry && chunk.includes(${JSON.stringify('/' + entryClient)})) {`,
+        `      chunk = chunk.split(${JSON.stringify('/' + entryClient)}).join(clientEntry);`,
+        `    }`,
+      );
+    }
+    lines.push(`    if (!injected && chunk.includes('</head>')) {`, `      injected = true;`);
+    const headParts: string[] = [];
+    if (!isBuild) headParts.push(`DEV_HEAD`);
+    if (generated) {
+      headParts.push(
+        `(clientEntry ? '<script type="module" src="' + clientEntry + '" async></' + 'script>' : '')`,
+      );
+    }
+    if (headParts.length) {
+      lines.push(`      chunk = chunk.replace('</head>', ${headParts.join(' + ')} + '</head>');`);
+    }
+    lines.push(`    }`, `    return chunk;`, `  };`, `}`);
+
+    lines.push(
+      ``,
+      `function htmlResponse(result, clientEntry, init) {`,
+      `  const transform = createHtmlChunkTransform(clientEntry);`,
+      `  const headers = new Headers(init && init.headers);`,
+      `  if (!headers.has('content-type')) headers.set('content-type', 'text/html; charset=utf-8');`,
+      `  const status = (init && init.status) || 200;`,
+      `  if (typeof result === 'string') {`,
+      `    return new Response('<!DOCTYPE html>' + transform(result), { status, headers });`,
+      `  }`,
+      `  const encoder = new TextEncoder();`,
+      `  const stream = new ReadableStream({`,
+      `    start(controller) {`,
+      `      controller.enqueue(encoder.encode('<!DOCTYPE html>'));`,
+      `      result.pipe({`,
+      `        write(chunk) {`,
+      `          controller.enqueue(encoder.encode(transform(chunk)));`,
+      `        },`,
+      `        end() {`,
+      `          controller.close();`,
+      `        },`,
+      `      });`,
+      `    },`,
+      `  });`,
+      `  return new Response(stream, { status, headers });`,
+      `}`,
+      ``,
+      `export async function handleRequest(request, options = {}) {`,
+    );
+    if (composeServerFunctions) {
+      lines.push(
+        `  if (new URL(request.url).pathname === endpoint) {`,
+        `    return handleServerFunctionRequest(request, options.serverFunctions);`,
+        `  }`,
+      );
+    }
+    lines.push(
+      isBuild
+        ? `  const clientEntry = options.clientEntry || resolveClientEntry();`
+        : `  const clientEntry = options.clientEntry || ${JSON.stringify(devClientEntryUrl())};`,
+      `  return provideRequestEvent({ request, locals: {} }, async () => {`,
+      `    let result = entry.render(request, { clientEntry, ...options.context });`,
+      // renderToStream results are thenables whose then() waits for the
+      // *complete* render — check for pipe first so streaming survives, and
+      // only await plain promises (async render functions).
+      `    if (result && typeof result.pipe !== 'function' && typeof result.then === 'function') {`,
+      `      result = await result;`,
+      `    }`,
+      `    if (result instanceof Response) return result;`,
+      `    return htmlResponse(result, clientEntry, options.responseInit);`,
+      `  });`,
+      `}`,
+    );
+
+    return lines.join('\n');
+  }
+
+  return [
+    {
+      name: 'solid:ssr/setup',
+      enforce: 'pre',
+      config(userConfig, env) {
+        root = path.resolve(userConfig.root || process.cwd());
+        entries = resolveEntries(root, options);
+        const build = env.command === 'build';
+        const clientInput = entries.generated
+          ? ENTRY_CLIENT_ID
+          : path.resolve(root, entries.entryClient);
+        // Real files only — the dep scanner can't crawl virtual modules.
+        const scanEntries = entries.generated
+          ? [entries.app!, ...(entries.document ? [entries.document] : [])]
+          : [path.resolve(root, entries.entryClient)];
+        return {
+          // No index.html: dev must not fall back to SPA-serving one, and
+          // the dep scanner needs explicit entries instead.
+          appType: 'custom',
+          ...(build
+            ? {
+                environments: {
+                  client: {
+                    build: {
+                      manifest: true,
+                      outDir: 'dist/client',
+                      rollupOptions: { input: clientInput },
+                    },
+                  },
+                  ssr: {
+                    build: {
+                      outDir: 'dist/server',
+                      rollupOptions: { input: { server: HANDLER_ID } },
+                    },
+                  },
+                },
+                // Presence of `builder` makes a plain `vite build` build the
+                // whole app (all environments: client then ssr) on Vite 6+.
+                // A classic `vite build --ssr` invocation must stay a
+                // single-environment build, so it doesn't get the flag.
+                ...(env.isSsrBuild ? {} : { builder: {} }),
+              }
+            : {
+                optimizeDeps: { entries: scanEntries },
+              }),
+        };
+      },
+      configResolved(config) {
+        root = config.root;
+        base = config.base;
+        isBuild = config.command === 'build';
+      },
+      resolveId(source) {
+        if (source === HANDLER_ID) {
+          return { id: HANDLER_ID, moduleSideEffects: true };
+        }
+        if (source === ENTRY_SERVER_ID || source === ENTRY_CLIENT_ID || source === DOCUMENT_ID) {
+          return { id: source, moduleSideEffects: source === ENTRY_CLIENT_ID };
+        }
+        return null;
+      },
+      load(id, opts) {
+        if (id === HANDLER_ID) {
+          if (!opts?.ssr) {
+            this.error(`${HANDLER_ID} is server-only; import it from server code (SSR build).`);
+          }
+          return handlerModuleCode();
+        }
+        if (id === ENTRY_SERVER_ID) return generatedEntryServerCode();
+        if (id === ENTRY_CLIENT_ID) return generatedEntryClientCode();
+        if (id === DOCUMENT_ID) return documentShellCode;
+        return null;
+      },
+      configureServer(server: ViteDevServer) {
+        // Post middleware: Vite's own middlewares (transforms, static, the
+        // server-function endpoint) run first; whatever asks for HTML after
+        // that gets the streamed SSR render.
+        return () => {
+          server.middlewares.use((req, res, next) => {
+            if (req.method !== 'GET') return next();
+            const accept = req.headers.accept || '';
+            if (!accept.includes('text/html')) return next();
+            const url = new URL(req.url || '/', 'http://localhost');
+            if (url.pathname.startsWith('/@')) return next();
+            (async () => {
+              // Loaded through the SSR environment so the app, the request
+              // event storage, and the handler share one module registry.
+              const handler = await server.ssrLoadModule(HANDLER_ID);
+              const response: Response = await handler.handleRequest(webRequestFromNode(req));
+              await sendWebResponse(res, response);
+            })().catch((error) => {
+              if (error instanceof Error) server.ssrFixStacktrace(error);
+              // Vite's error middleware renders the overlay-enabled 500 page.
+              next(error);
+            });
+          });
+        };
+      },
+    },
+  ];
+}

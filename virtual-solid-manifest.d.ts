@@ -20,3 +20,27 @@ declare module "virtual:solid-server-function-handler" {
     options?: Record<string, unknown>,
   ): Promise<Response>;
 }
+
+// Server-only turnkey SSR handler (object form of the `ssr` option). It is
+// the SSR build's entry, so a production server imports it from the built
+// bundle (e.g. `./dist/server/server.js`) rather than by this id; importing
+// the id directly also works from custom server code in SSR builds.
+// Streams the rendered app for a web Request, scopes it with
+// provideRequestEvent, resolves hashed client assets through the build
+// manifest, and — when `serverFunctions` is enabled — serves the
+// server-function endpoint ahead of SSR.
+declare module "virtual:solid-ssr-handler" {
+  export function handleRequest(
+    request: Request,
+    options?: {
+      /** Override the resolved client entry URL injected into the document. */
+      clientEntry?: string;
+      /** Extra fields merged into the `context` passed to the entry's `render`. */
+      context?: Record<string, unknown>;
+      /** Status/headers for the HTML response. */
+      responseInit?: ResponseInit;
+      /** Options forwarded to the server-function handler for endpoint requests. */
+      serverFunctions?: Record<string, unknown>;
+    },
+  ): Promise<Response>;
+}

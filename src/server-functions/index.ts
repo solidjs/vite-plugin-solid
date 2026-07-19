@@ -9,8 +9,6 @@
 // that contract can be swapped in through `options.runtime` (SolidStart's,
 // or your own).
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import type { IncomingMessage, ServerResponse } from 'node:http';
-import { Readable } from 'node:stream';
 import path from 'path';
 import {
   createFilter,
@@ -19,6 +17,7 @@ import {
   type Plugin,
   type ViteDevServer,
 } from 'vite';
+import { joinBase, sendWebResponse, webRequestFromNode } from '../http.js';
 import { compile, type CompileOptions } from './compile.js';
 import xxHash32 from './xxhash32.js';
 
@@ -202,68 +201,6 @@ function invalidateModules(
   if (server?.environments && result.invalidPreload) {
     invalidateModule(server.environments.client.moduleGraph, manifest);
     invalidateModule(server.environments.ssr.moduleGraph, manifest);
-  }
-}
-
-function joinBase(base: string, endpoint: string): string {
-  // Absolute-URL or relative bases (CDN deploys, './') don't prefix
-  // same-origin server paths.
-  if (!base.startsWith('/')) return endpoint;
-  return (base.endsWith('/') ? base.slice(0, -1) : base) + endpoint;
-}
-
-function webRequestFromNode(req: IncomingMessage): Request {
-  const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
-  const headers = new Headers();
-  for (const [key, value] of Object.entries(req.headers)) {
-    if (value === undefined) continue;
-    if (Array.isArray(value)) {
-      for (const item of value) headers.append(key, item);
-    } else {
-      headers.append(key, value);
-    }
-  }
-  const method = req.method || 'GET';
-  const body =
-    method === 'GET' || method === 'HEAD'
-      ? undefined
-      : (Readable.toWeb(req) as unknown as ReadableStream);
-  return new Request(url, {
-    method,
-    headers,
-    body,
-    // undici requires half-duplex for streamed request bodies.
-    ...(body ? { duplex: 'half' } : {}),
-  } as RequestInit);
-}
-
-async function sendWebResponse(res: ServerResponse, response: Response): Promise<void> {
-  res.statusCode = response.status;
-  // set-cookie is the one header that must not be comma-joined.
-  const cookies: string[] | undefined = (response.headers as any).getSetCookie?.();
-  response.headers.forEach((value, key) => {
-    if (key !== 'set-cookie') res.setHeader(key, value);
-  });
-  if (cookies && cookies.length) res.setHeader('set-cookie', cookies);
-  if (!response.body) {
-    res.end();
-    return;
-  }
-  const reader = response.body.getReader();
-  res.on('close', () => {
-    reader.cancel().catch(() => {});
-  });
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (!res.write(value)) {
-        await new Promise((resolve) => res.once('drain', resolve));
-      }
-    }
-    res.end();
-  } catch {
-    res.destroy();
   }
 }
 
@@ -505,6 +442,16 @@ export function serverFunctions(
       async load(id, opts) {
         const mode = opts?.ssr ? 'server' : 'client';
         if (id === manifestId) {
+          if (isBuild && mode === 'server') {
+            // Merge the client build's persisted discoveries at load time,
+            // not just configResolved: in builder mode (single process,
+            // `vite build` with the environments API) all environment
+            // configs resolve before the client build has written the file,
+            // but this load runs once the SSR environment builds — after it.
+            for (const entry of readPersistedManifest(root)) {
+              manifest.server.add(entry);
+            }
+          }
           const current = new Debouncer(() =>
             [...manifest[mode]].map((entry) => `import ${JSON.stringify(entry)};`).join('\n'),
           );

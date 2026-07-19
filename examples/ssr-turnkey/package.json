@@ -1,0 +1,19 @@
+{
+  "name": "example-ssr-turnkey",
+  "private": "true",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "NODE_ENV=production node server.js",
+    "test": "node test/run.mjs"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0",
+    "vite-plugin-solid": "workspace:*"
+  },
+  "dependencies": {
+    "solid-js": "catalog:",
+    "@solidjs/web": "catalog:"
+  }
+}

@@ -20,12 +20,14 @@ import {
 } from './client-manifest.js';
 
 import { serverFunctions, type ServerFunctionsOptions } from './server-functions/index.js';
+import { ssrServe, type SsrOptions } from './ssr/index.js';
 
 export { devStylePatch } from './dev-manifest.js';
 export type { ClientAssetMap } from './client-manifest.js';
 export { serverFunctions };
 export type { ServerFunctionsOptions };
 export type { ServerFunctionsFilter } from './server-functions/index.js';
+export type { SsrOptions };
 import path from 'path';
 import type { FilterPattern, Plugin } from 'vite';
 import { createFilter, version } from 'vite';
@@ -132,11 +134,32 @@ export interface Options {
    */
   dev?: boolean;
   /**
-   * This will force SSR code in the produced files.
+   * SSR support. `true` enables the SSR transforms only (hydratable client
+   * code, SSR server code) — you provide the entries and the server, as
+   * before.
+   *
+   * The object form (even empty: `ssr: {}`) additionally turns on turnkey
+   * serving (requires Vite 6+):
+   *
+   * - Dev: a middleware on the Vite dev server streams the rendered app for
+   *   HTML-accepting GET requests — `vite` just works, no server file.
+   * - Build: a plain `vite build` produces both bundles (client to
+   *   `dist/client`, server to `dist/server` via the environments/builder
+   *   API). The server bundle's entry is `virtual:solid-ssr-handler`, whose
+   *   `handleRequest(request)` export maps a web `Request` to a streamed
+   *   `Response` — mount it on any server or adapter in one line.
+   * - Entries: `src/entry-server.*` / `src/entry-client.*` are used when
+   *   present (or set via `ssr.entryServer` / `ssr.entryClient`); when
+   *   absent, both are generated from a root component (`ssr.app`, default
+   *   `src/App.*`) wrapped in a document shell (`ssr.document`, default
+   *   `src/Document.*`, else a built-in one).
+   * - With `serverFunctions` also enabled, the prod handler serves the
+   *   server-function endpoint too (in dev the server-function middleware
+   *   already runs first).
    *
    * @default false
    */
-  ssr?: boolean;
+  ssr?: boolean | SsrOptions;
 
   /**
    * JSX compiler backend to use. The default `"native"` compiles through
@@ -299,7 +322,9 @@ async function getBabelUserOptions(
   return babelOptions instanceof Promise ? await babelOptions : babelOptions;
 }
 
-function normalizeSourceMap(map: string | babel.TransformOptions['inputSourceMap'] | null | undefined) {
+function normalizeSourceMap(
+  map: string | babel.TransformOptions['inputSourceMap'] | null | undefined,
+) {
   if (typeof map === 'string') return JSON.parse(map);
   return map || null;
 }
@@ -456,9 +481,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       });
 
       // fix for bundling dev in production
-      const nestedDeps = replaceDev
-        ? ['solid-js', '@solidjs/web']
-        : [];
+      const nestedDeps = replaceDev ? ['solid-js', '@solidjs/web'] : [];
 
       const userTest = (userConfig as any).test ?? {};
       const test = {} as any;
@@ -522,9 +545,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
           // React's automatic JSX runtime for .tsx files, injecting a
           // react/jsx-dev-runtime import. Tell it to preserve JSX as-is since
           // this plugin handles JSX transformation via babel-preset-solid.
-          ...(isVite8
-            ? { rolldownOptions: { transform: { jsx: 'preserve' as const } } }
-            : {}),
+          ...(isVite8 ? { rolldownOptions: { transform: { jsx: 'preserve' as const } } } : {}),
         },
         ...(!isVite6 ? { ssr: solidPkgsConfig.ssr } : {}),
         ...(test.server ? { test } : {}),
@@ -572,7 +593,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       isSsrBuild = !!config.build.ssr;
       base = config.base;
       projectRoot = config.root;
-      needHmr = config.command === 'serve' && config.mode !== 'production' && (options.hot !== false && !options.refresh?.disabled);
+      needHmr =
+        config.command === 'serve' &&
+        config.mode !== 'production' &&
+        options.hot !== false &&
+        !options.refresh?.disabled;
     },
 
     configureServer(server) {
@@ -597,7 +622,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
         if (typeof payload === 'object' && payload) {
           if (payload.type === 'error') {
             lastErrorTime = Date.now();
-          } else if (lastErrorTime && (payload.type === 'full-reload' || payload.type === 'update')) {
+          } else if (
+            lastErrorTime &&
+            (payload.type === 'full-reload' || payload.type === 'update')
+          ) {
             if (Date.now() - lastErrorTime < 200) return;
             lastErrorTime = 0;
           }
@@ -679,7 +707,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       // generateBundle, after hashing) is a function of every css source and
       // the dynamic-import graph. Fold those inputs into the hash so a
       // content change can't hide under an unchanged filename.
-      if (!isBuild || !isClientBuild(this) || !chunkInfo.moduleIds?.includes(RESOLVED_CLIENT_MANIFEST_ID)) {
+      if (
+        !isBuild ||
+        !isClientBuild(this) ||
+        !chunkInfo.moduleIds?.includes(RESOLVED_CLIENT_MANIFEST_ID)
+      ) {
         return;
       }
       let acc = '';
@@ -882,7 +914,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   // The directive transform must run before the JSX transform (it operates
   // on raw directives, and client-mode module-level extraction must happen
   // before templates are generated), so its sub-plugins go first.
-  return options.serverFunctions
+  const plugins: Plugin[] = options.serverFunctions
     ? [
         ...serverFunctions(options.serverFunctions === true ? {} : options.serverFunctions, {
           devMiddleware: true,
@@ -890,6 +922,21 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
         mainPlugin,
       ]
     : [mainPlugin];
+
+  // The object form of `ssr` opts into turnkey serving on top of the
+  // transforms (`ssr: true` keeps the historical transform-only behavior).
+  if (typeof options.ssr === 'object' && options.ssr !== null) {
+    if (isVite6) {
+      plugins.push(...ssrServe(options.ssr, { serverFunctions: !!options.serverFunctions }));
+    } else {
+      console.warn(
+        '[vite-plugin-solid] turnkey SSR (the object form of `ssr`) requires Vite 6+; ' +
+          'only the SSR transforms are enabled on this Vite version.',
+      );
+    }
+  }
+
+  return plugins;
 }
 
 export type ViteManifest = Record<

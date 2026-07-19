@@ -1,0 +1,68 @@
+// Node <-> web-standard request/response bridging shared by the turnkey dev
+// middlewares (server functions and SSR). The virtual production handlers
+// speak web Request/Response only; this is the node:http glue the dev server
+// needs to talk to them.
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { Readable } from 'node:stream';
+
+export function webRequestFromNode(req: IncomingMessage): Request {
+  const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (value === undefined) continue;
+    if (Array.isArray(value)) {
+      for (const item of value) headers.append(key, item);
+    } else {
+      headers.append(key, value);
+    }
+  }
+  const method = req.method || 'GET';
+  const body =
+    method === 'GET' || method === 'HEAD'
+      ? undefined
+      : (Readable.toWeb(req) as unknown as ReadableStream);
+  return new Request(url, {
+    method,
+    headers,
+    body,
+    // undici requires half-duplex for streamed request bodies.
+    ...(body ? { duplex: 'half' } : {}),
+  } as RequestInit);
+}
+
+export async function sendWebResponse(res: ServerResponse, response: Response): Promise<void> {
+  res.statusCode = response.status;
+  // set-cookie is the one header that must not be comma-joined.
+  const cookies: string[] | undefined = (response.headers as any).getSetCookie?.();
+  response.headers.forEach((value, key) => {
+    if (key !== 'set-cookie') res.setHeader(key, value);
+  });
+  if (cookies && cookies.length) res.setHeader('set-cookie', cookies);
+  if (!response.body) {
+    res.end();
+    return;
+  }
+  const reader = response.body.getReader();
+  res.on('close', () => {
+    reader.cancel().catch(() => {});
+  });
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!res.write(value)) {
+        await new Promise((resolve) => res.once('drain', resolve));
+      }
+    }
+    res.end();
+  } catch {
+    res.destroy();
+  }
+}
+
+export function joinBase(base: string, pathname: string): string {
+  // Absolute-URL or relative bases (CDN deploys, './') don't prefix
+  // same-origin server paths.
+  if (!base.startsWith('/')) return pathname;
+  return (base.endsWith('/') ? base.slice(0, -1) : base) + pathname;
+}

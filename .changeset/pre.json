@@ -5,6 +5,7 @@
     "vite-plugin-solid": "3.0.0-next.2"
   },
   "changesets": [
+    "bump-solid-beta-21",
     "clean-lazy-entries",
     "client-manifest-outdir",
     "compiler-package-rename",
@@ -22,6 +23,7 @@
     "server-functions-default-runtime",
     "server-functions-turnkey",
     "six-lions-joke",
-    "true-boxes-arrive"
+    "true-boxes-arrive",
+    "turnkey-ssr"
   ]
 }

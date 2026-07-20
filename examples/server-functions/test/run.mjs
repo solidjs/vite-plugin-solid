@@ -160,9 +160,10 @@ function record(mode, phase, name, ok, detail = '') {
 // Dev function IDs are `hash-count-name`; pull the one for `name` out of the
 // client-transformed module so the endpoint can be hit directly.
 function extractFunctionId(transformedCode, name) {
-  // The import identifier may be aliased (e.g. createServerReference_1).
+  // The import identifier may be aliased (e.g. createServerReference_1), and
+  // newer compilers pass the function name as a second argument after the id.
   const match = transformedCode.match(
-    new RegExp(`createServerReference\\w*\\("([^"]*-${name})"\\)`),
+    new RegExp(`createServerReference\\w*\\("([^"]*-${name})"`),
   );
   return match ? match[1] : null;
 }
@@ -308,9 +309,13 @@ async function runMode(mode) {
       // manifest and load it before dispatching.
       const clientModule = await (await fetch(origin + '/src/api.ts')).text();
       const functionId = extractFunctionId(clientModule, 'getServerMessage');
+      // Server functions are POST-only by default as of @solidjs/web
+      // 2.0.0-beta.21; args still come from the query string when no
+      // instance header is present.
       const cold = functionId
         ? await fetch(
             `${origin}/_server?id=${encodeURIComponent(functionId)}&args=${encodeURIComponent('["turnkey"]')}`,
+            { method: 'POST' },
           )
         : null;
       const coldText = cold ? await cold.text() : '';
@@ -500,6 +505,7 @@ async function runEndpointMode() {
     const custom = functionId
       ? await fetch(
           `${origin}${endpoint}?id=${encodeURIComponent(functionId)}&args=${encodeURIComponent('["endpoint"]')}`,
+          { method: 'POST' },
         )
       : null;
     const customText = custom ? await custom.text() : '';

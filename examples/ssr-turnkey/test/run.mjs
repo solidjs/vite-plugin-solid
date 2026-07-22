@@ -6,8 +6,11 @@
 //     Loading fallback, the async content follows in a later chunk,
 //   - the generated document shell carries the hydration script and the
 //     client entry (dev: /@id/virtual URL; prod: hashed asset + css link),
-//   - dev injects the Vite client + dev style patch into <head>; prod does
-//     not leak them,
+//   - dev injects the Vite client + dev style patch into <head> and inlines
+//     the entry graph's CSS (App.css rules SSR'd as <style data-vite-dev-id>
+//     tags — the no-FOUC guarantee) with exactly one surviving style element
+//     per dev id after hydration and after CSS HMR; prod does not leak dev
+//     injections (CSS ships as a hashed <link>),
 //   - hydration is clean and the app is interactive (counter),
 //   - server functions compose: dev middleware first, prod through the same
 //     handleRequest handler (`/_server` round-trips from the browser and
@@ -170,9 +173,9 @@ function record(mode, phase, name, ok, detail = '') {
 // Dev function IDs are `hash-count-name`; pull the one for `name` out of the
 // client-transformed module so the endpoint can be hit directly.
 function extractFunctionId(transformedCode, name) {
-  const match = transformedCode.match(
-    new RegExp(`createServerReference\\w*\\("([^"]*-${name})"\\)`),
-  );
+  // The import identifier may be aliased (e.g. createServerReference_1), and
+  // newer compilers pass the function name as a second argument after the id.
+  const match = transformedCode.match(new RegExp(`createServerReference\\w*\\("([^"]*-${name})"`));
   return match ? match[1] : null;
 }
 
@@ -247,9 +250,45 @@ async function runHmrChecks(mode, cdp, origin) {
   } finally {
     writeFileSync(hmrFile, originalSource);
   }
+
+  // CSS HMR: edit App.css on disk, assert the new rule hot-applies and the
+  // update lands in a single style element — the SSR-inlined tag must not
+  // linger next to Vite's updated one.
+  const cssFile = path.join(exampleDir, 'src/App.css');
+  const originalCss = readFileSync(cssFile, 'utf-8');
+  const HMR_CSS_COLOR = 'rgb(200, 100, 50)';
+  try {
+    writeFileSync(cssFile, originalCss.replace('rgb(20, 40, 60)', HMR_CSS_COLOR));
+    record(
+      mode,
+      'hmr',
+      'CSS hot update applied (computed color changed)',
+      await cdp.waitFor(
+        `getComputedStyle(document.querySelector("#title")).color === ${JSON.stringify(HMR_CSS_COLOR)}`,
+        15000,
+      ),
+    );
+    record(
+      mode,
+      'hmr',
+      'no duplicate App.css style tag after CSS HMR',
+      (await cdp.evalJs(
+        `document.querySelectorAll(${JSON.stringify(APP_CSS_STYLE_SELECTOR)}).length`,
+      )) === 1,
+    );
+  } finally {
+    writeFileSync(cssFile, originalCss);
+  }
 }
 
-async function runBrowserChecks(mode, origin, { hmr } = {}) {
+// Distinctive rule from src/App.css: proves real styles (not just the dev
+// style patch) reached the page. Keep in sync with the stylesheet.
+const APP_CSS_COLOR = 'rgb(20, 40, 60)';
+// Selects style tags for App.css whatever the id shape (absolute fs path in
+// dev; never present in prod, where CSS ships as a hashed <link>).
+const APP_CSS_STYLE_SELECTOR = 'style[data-vite-dev-id$="App.css"]';
+
+async function runBrowserChecks(mode, origin, { hmr, devCss } = {}) {
   const chrome = startProcess(CHROME, [
     '--headless=new',
     `--remote-debugging-port=${CDP_PORT}`,
@@ -301,6 +340,31 @@ async function runBrowserChecks(mode, origin, { hmr } = {}) {
         'STREAMED-ASYNC-CONTENT',
     );
 
+    // App.css actually applies after hydration, dev and prod alike.
+    record(
+      mode,
+      'browser',
+      'App.css styles applied (computed color)',
+      (await cdp.evalJs('getComputedStyle(document.querySelector("#title")).color')) ===
+        APP_CSS_COLOR,
+    );
+
+    if (devCss) {
+      // Exactly one active style element for the dev id after hydration:
+      // Vite's client either adopts the SSR'd tag on startup (seeding its
+      // registry from the DOM) or, when it injects its own twin, the dev
+      // style patch drops the SSR'd copy (data-asset). Either way a
+      // duplicate means double style application — the bug being guarded.
+      record(
+        mode,
+        'browser',
+        'exactly one App.css style tag after hydration (dedup)',
+        (await cdp.evalJs(
+          `document.querySelectorAll(${JSON.stringify(APP_CSS_STYLE_SELECTOR)}).length`,
+        )) === 1,
+      );
+    }
+
     const errs = cdp.exceptions.filter((e) => !/favicon/i.test(e));
     record(mode, 'browser', 'no page errors', errs.length === 0, errs.join(' | '));
 
@@ -340,7 +404,32 @@ async function runDevMode() {
 
     const html = await runSsrChecks(mode, origin);
     record(mode, 'dev', 'Vite client injected into <head>', html.includes('/@vite/client'));
-    record(mode, 'dev', 'dev style patch injected', html.includes('data-vite-dev-id'));
+    // The patch script's own source references the selector; match it inside
+    // an inline <script> so the check can't be satisfied by a style tag.
+    record(
+      mode,
+      'dev',
+      'dev style patch injected',
+      /<script>[^<]*style\[data-vite-dev-id\]/.test(html),
+    );
+    // The no-FOUC guarantee: the SSR response itself carries App.css inlined
+    // as a dedup-ready style tag — not just the patch script, actual rules.
+    const styleTag = /<style[^>]*data-vite-dev-id="[^"]*App\.css"[^>]*>([\s\S]*?)<\/style>/.exec(
+      html,
+    );
+    record(
+      mode,
+      'dev',
+      'entry CSS inlined in SSR head (App.css rules present)',
+      !!styleTag && styleTag[1].includes('#title') && styleTag[1].includes(APP_CSS_COLOR),
+      styleTag ? `style content: ${JSON.stringify(styleTag[1].slice(0, 120))}` : 'no App.css style tag',
+    );
+    record(
+      mode,
+      'dev',
+      'inlined SSR style marked data-asset (dedup patch contract)',
+      !!styleTag && styleTag[0].includes('data-asset='),
+    );
     record(
       mode,
       'dev',
@@ -358,9 +447,12 @@ async function runDevMode() {
       clientModule.includes('createServerReference'),
     );
     const functionId = extractFunctionId(clientModule, 'getServerMessage');
+    // POST-only by default as of @solidjs/web 2.0.0-beta.21; args still come
+    // from the query string when no instance header is present.
     const cold = functionId
       ? await fetch(
           `${origin}/_server?id=${encodeURIComponent(functionId)}&args=${encodeURIComponent('["turnkey"]')}`,
+          { method: 'POST' },
         )
       : null;
     const coldText = cold ? await cold.text() : '';
@@ -372,7 +464,7 @@ async function runDevMode() {
       functionId ? `got ${JSON.stringify(coldText)}` : 'could not extract function id',
     );
 
-    await runBrowserChecks(mode, origin, { hmr: true });
+    await runBrowserChecks(mode, origin, { hmr: true, devCss: true });
   } catch (e) {
     record(
       mode,

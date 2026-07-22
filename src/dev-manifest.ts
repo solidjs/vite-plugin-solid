@@ -17,9 +17,11 @@ import type { DevEnvironment, EnvironmentModuleNode, ViteDevServer } from 'vite'
  * dynamically imported modules register their own styles when they render.
  */
 
+export type DevStyleDescriptor = { id: string; content: string; attrs?: Record<string, string> };
+
 export type ResolvedAssets = {
   js: string[];
-  css: (string | { id: string; content: string; attrs?: Record<string, string> })[];
+  css: (string | DevStyleDescriptor)[];
 };
 
 export type DevAssetResolver = {
@@ -139,38 +141,78 @@ function injectQuery(url: string, query: string): string {
   return url.includes('?') ? `${url}&${query}` : `${url}?${query}`;
 }
 
+/**
+ * Walks the SSR module graph from `files` (root-relative or absolute) and
+ * returns inline-style descriptors for every transitively imported CSS
+ * module — the same shape the dev asset resolver answers with for lazy
+ * modules. Used by the turnkey SSR dev middleware to inline the root entry's
+ * CSS into `<head>` so server-painted content is styled from the first byte
+ * (no FOUC while waiting for Vite's client-side style injection).
+ */
+export async function collectDevStyles(
+  server: ViteDevServer,
+  files: string[],
+): Promise<DevStyleDescriptor[]> {
+  const ssrEnv = server.environments?.ssr;
+  const clientEnv = server.environments?.client;
+  if (!ssrEnv || !clientEnv) return [];
+
+  const deps = new Set<EnvironmentModuleNode>();
+  const crawled = new Set<string>();
+  for (const file of files) {
+    await collectModuleDeps(ssrEnv, path.resolve(server.config.root, file), deps, crawled);
+  }
+
+  const css: DevStyleDescriptor[] = [];
+  const seen = new Set<string>();
+  for (const node of deps) {
+    if (!node.id) continue;
+    const cleanUrl = node.url.split('?')[0];
+    if (!cssFileRegExp.test(cleanUrl) || nonAmbientQueryRegExp.test(node.url)) continue;
+    // `?direct` yields the compiled stylesheet text (what Vite serves for
+    // <link> requests) — through the client environment, whose css
+    // pipeline matches what the browser will run for HMR updates.
+    const result = await clientEnv
+      .transformRequest(injectQuery(node.url, 'direct'))
+      .catch(() => null);
+    if (result?.code == null) continue;
+    const id = wrapId(node.id);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    css.push({
+      id,
+      content: result.code,
+      attrs: { 'data-vite-dev-id': id },
+    });
+  }
+  return css;
+}
+
+function escapeAttr(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+/**
+ * Serializes a dev style descriptor to the exact tag shape the SSR runtime
+ * emits for lazy-registered assets (`data-asset` marks the SSR'd copy so
+ * `devStylePatch` knows which twin to drop when Vite's client injects its
+ * own), so the dedup story is identical for entry styles and lazy styles.
+ */
+export function renderDevStyleTag(desc: DevStyleDescriptor): string {
+  let attrs = '';
+  for (const name in desc.attrs) {
+    attrs += ` ${name}="${escapeAttr(String(desc.attrs![name]))}"`;
+  }
+  const content = desc.content.replace(/<\/(style)/gi, '<\\/$1');
+  return `<style data-asset="${escapeAttr(desc.id)}"${attrs}>${content}</style>`;
+}
+
 export function createDevAssetResolver(server: ViteDevServer): DevAssetResolver {
   const resolve = async function resolveDevAssets(key: string): Promise<ResolvedAssets | null> {
-    const ssrEnv = server.environments?.ssr;
-    const clientEnv = server.environments?.client;
     // The module's dev URL doubles as its client entry: modulepreload hint
     // and hydration module-map value.
     const js = ['/' + key];
-    if (!ssrEnv || !clientEnv) return { js, css: [] };
-
-    const absolute = path.resolve(server.config.root, key);
-    const deps = new Set<EnvironmentModuleNode>();
-    await collectModuleDeps(ssrEnv, absolute, deps, new Set());
-
-    const css: ResolvedAssets['css'] = [];
-    for (const node of deps) {
-      if (!node.id) continue;
-      const cleanUrl = node.url.split('?')[0];
-      if (!cssFileRegExp.test(cleanUrl) || nonAmbientQueryRegExp.test(node.url)) continue;
-      // `?direct` yields the compiled stylesheet text (what Vite serves for
-      // <link> requests) — through the client environment, whose css
-      // pipeline matches what the browser will run for HMR updates.
-      const result = await clientEnv
-        .transformRequest(injectQuery(node.url, 'direct'))
-        .catch(() => null);
-      if (result?.code == null) continue;
-      const id = wrapId(node.id);
-      css.push({
-        id,
-        content: result.code,
-        attrs: { 'data-vite-dev-id': id },
-      });
-    }
+    const css = await collectDevStyles(server, [key]);
     return { js, css };
   };
   return {

@@ -4,9 +4,11 @@
 //
 // - Dev: a middleware on the Vite dev server streams the rendered app for
 //   HTML-accepting GET requests, loading the app through the SSR environment
-//   (`ssrLoadModule`) and injecting the Vite client + dev style patch into
-//   `<head>` on the way out. SSR errors flow to Vite's error middleware
-//   (stack-fixed) so the browser gets the error overlay page.
+//   (`ssrLoadModule`) and injecting the Vite client + dev style patch + the
+//   entry graph's CSS (inlined `<style data-vite-dev-id>` tags collected
+//   from the SSR module graph, so server-painted content never flashes
+//   unstyled) into `<head>` on the way out. SSR errors flow to Vite's error
+//   middleware (stack-fixed) so the browser gets the error overlay page.
 // - Prod: the plugin configures a full-app build (client + server bundles
 //   via the Vite 6+ environments/builder API — a single `vite build` builds
 //   both) whose server entry is `virtual:solid-ssr-handler`: an
@@ -25,7 +27,7 @@
 import { existsSync } from 'fs';
 import path from 'path';
 import type { Plugin, ViteDevServer } from 'vite';
-import { devStylePatch } from '../dev-manifest.js';
+import { collectDevStyles, devStylePatch, renderDevStyleTag } from '../dev-manifest.js';
 import { joinBase, sendWebResponse, webRequestFromNode } from '../http.js';
 
 export interface SsrOptions {
@@ -302,7 +304,7 @@ export function ssrServe(
 
     lines.push(
       ``,
-      `function createHtmlChunkTransform(clientEntry) {`,
+      `function createHtmlChunkTransform(clientEntry, extraHead) {`,
       `  let injected = false;`,
       `  return (chunk) => {`,
     );
@@ -318,7 +320,9 @@ export function ssrServe(
     }
     lines.push(`    if (!injected && chunk.includes('</head>')) {`, `      injected = true;`);
     const headParts: string[] = [];
-    if (!isBuild) headParts.push(`DEV_HEAD`);
+    // Dev: the style patch + Vite client, then the SSR'd entry styles the
+    // middleware collected (per request, so HMR-edited CSS is current).
+    if (!isBuild) headParts.push(`DEV_HEAD`, `(extraHead || '')`);
     if (generated) {
       headParts.push(
         `(clientEntry ? '<script type="module" src="' + clientEntry + '" async></' + 'script>' : '')`,
@@ -331,8 +335,8 @@ export function ssrServe(
 
     lines.push(
       ``,
-      `function htmlResponse(result, clientEntry, init) {`,
-      `  const transform = createHtmlChunkTransform(clientEntry);`,
+      `function htmlResponse(result, clientEntry, extraHead, init) {`,
+      `  const transform = createHtmlChunkTransform(clientEntry, extraHead);`,
       `  const headers = new Headers(init && init.headers);`,
       `  if (!headers.has('content-type')) headers.set('content-type', 'text/html; charset=utf-8');`,
       `  const status = (init && init.status) || 200;`,
@@ -378,7 +382,7 @@ export function ssrServe(
       `      result = await result;`,
       `    }`,
       `    if (result instanceof Response) return result;`,
-      `    return htmlResponse(result, clientEntry, options.responseInit);`,
+      `    return htmlResponse(result, clientEntry, options.devHead, options.responseInit);`,
       `  });`,
       `}`,
     );
@@ -460,6 +464,20 @@ export function ssrServe(
         return null;
       },
       configureServer(server: ViteDevServer) {
+        // The files whose static import graphs carry the app's entry CSS:
+        // the app root (+ document) for generated entries, the authored
+        // server entry otherwise. Their transitively imported styles are
+        // inlined into <head> per request (Vite injects entry CSS from
+        // client JS only, so SSR'd markup would flash unstyled without
+        // this); the SSR'd tags carry data-asset + data-vite-dev-id so the
+        // dev style patch drops them once Vite's own injection takes over —
+        // exactly the lazy-asset dedup story, HMR included.
+        const styleRoots = () => {
+          const { generated, app, document, entryServer } = requireEntries();
+          return generated
+            ? [app!, ...(document ? [document] : [])]
+            : [path.resolve(root, entryServer)];
+        };
         // Post middleware: Vite's own middlewares (transforms, static, the
         // server-function endpoint) run first; whatever asks for HTML after
         // that gets the streamed SSR render.
@@ -474,7 +492,11 @@ export function ssrServe(
               // Loaded through the SSR environment so the app, the request
               // event storage, and the handler share one module registry.
               const handler = await server.ssrLoadModule(HANDLER_ID);
-              const response: Response = await handler.handleRequest(webRequestFromNode(req));
+              const styles = await collectDevStyles(server, styleRoots());
+              const devHead = styles.map(renderDevStyleTag).join('');
+              const response: Response = await handler.handleRequest(webRequestFromNode(req), {
+                devHead,
+              });
               await sendWebResponse(res, response);
             })().catch((error) => {
               if (error instanceof Error) server.ssrFixStacktrace(error);

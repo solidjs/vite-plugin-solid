@@ -116,22 +116,6 @@ importers:
         specifier: workspace:*
         version: link:../..
 
-  examples/server-functions:
-    dependencies:
-      '@solidjs/web':
-        specifier: 'catalog:'
-        version: 2.0.0-beta.22(solid-js@2.0.0-beta.22)
-      solid-js:
-        specifier: 'catalog:'
-        version: 2.0.0-beta.22
-    devDependencies:
-      vite:
-        specifier: ^7.0.0
-        version: 7.3.6(@types/node@18.19.130)(lightningcss@1.32.0)
-      vite-plugin-solid:
-        specifier: workspace:*
-        version: link:../..
-
   examples/ssr:
     dependencies:
       '@solidjs/web':
@@ -148,7 +132,7 @@ importers:
         specifier: workspace:*
         version: link:../..
 
-  examples/ssr-turnkey:
+  examples/turnkey:
     dependencies:
       '@solidjs/web':
         specifier: 'catalog:'

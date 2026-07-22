@@ -204,9 +204,9 @@ compose: in dev the server-function middleware handles the endpoint before
 SSR; in production the same `handleRequest` serves the endpoint too.
 
 Turnkey serving is opt-in via the object form, so existing `ssr: true` setups
-are unaffected. See `examples/ssr-turnkey` for a complete app (including a
-one-file production server) and `examples/ssr` for the manual `ssr: true`
-wiring.
+are unaffected. See `examples/turnkey` for a complete app (including a
+one-file production server and server functions) and `examples/ssr` for the
+manual `ssr: true` wiring.
 
 #### options.serverFunctions
 
@@ -228,7 +228,7 @@ mount its `handleServerFunctionRequest(request)` export on the endpoint.
 Meta-frameworks that need to control plugin ordering and dispatch requests
 through their own server should use the standalone `serverFunctions()`
 export instead, which never installs the dev middleware. See
-`examples/server-functions` for a complete app.
+`examples/turnkey` for a complete app.
 
 #### options.compiler
 

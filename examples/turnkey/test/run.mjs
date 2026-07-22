@@ -1,7 +1,9 @@
-// Turnkey SSR fixture test: proves `solid({ ssr: {} })` gives a plain Vite
-// app working streaming SSR with zero wiring — no entry files, no index.html,
-// no dev server script. Asserts, in both dev (`vite`) and production
-// (`vite build` + the one-line handler in server.js):
+// Turnkey kitchen-sink fixture test: proves `solid({ ssr: {}, serverFunctions:
+// true })` gives a plain Vite app working streaming SSR *and* "use server"
+// server functions with zero wiring — no entry files, no index.html, no dev
+// server script. Union of the former ssr-turnkey and server-functions
+// suites. Asserts, in both dev (`vite`) and production (`vite build` + the
+// one-line handler in server.js):
 //   - the SSR response actually streams: the shell arrives first with the
 //     Loading fallback, the async content follows in a later chunk,
 //   - the generated document shell carries the hydration script and the
@@ -12,13 +14,23 @@
 //     per dev id after hydration and after CSS HMR; prod does not leak dev
 //     injections (CSS ships as a hashed <link>),
 //   - hydration is clean and the app is interactive (counter),
-//   - server functions compose: dev middleware first, prod through the same
-//     handleRequest handler (`/_server` round-trips from the browser and
-//     over plain HTTP),
-//   - HMR still works through the turnkey dev middleware (on-disk edit
-//     hot-applies without a reload, sibling client state preserved),
-//   - the `ssr.document` escape hatch swaps the document shell (separate dev
-//     server, no browser),
+//   - server functions compose: cold dispatch is served by the dev
+//     middleware before anything has rendered in the SSR environment
+//     (exercising the function-ID → module manifest mapping), unknown ids
+//     are rejected, and in prod the same handleRequest handler serves the
+//     endpoint (module-level and function-level functions, getRequestEvent,
+//     the respond() envelope — all round-trip from the browser),
+//   - server-only module code (the secret) never reaches the SSR html, the
+//     transformed client module, or any client asset,
+//   - HMR works through the turnkey dev middleware under the native
+//     (Babel-free) pipeline: the solid-js/refresh wrapper is active, an
+//     on-disk edit hot-applies without a reload, sibling client state
+//     survives, and a CSS edit hot-applies into a single style element; the
+//     babel-hmr mode repeats those checks on a dev server forced to
+//     `compiler: 'babel'`,
+//   - the `ssr.document` escape hatch swaps the document shell and the
+//     `serverFunctions.endpoint` option threads through middleware and
+//     runtime configure calls (separate dev servers, no browser),
 //   - the conventional-entries path: when src/entry-server.tsx and
 //     src/entry-client.tsx exist (written temporarily by the test), they are
 //     used instead of the generated ones, and in prod the authored
@@ -26,16 +38,28 @@
 //     asset.
 //
 // Requires the plugin built (pnpm build at the repo root) and Google Chrome.
-// Usage: node test/run.mjs [dev|prod|document]   (default: all)
+// Usage: node test/run.mjs [dev|prod|document|entries|endpoint|babel-hmr]
+// (default: all)
 
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { rmSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { rmSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const exampleDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const CDP_PORT = 9337;
+
+const SECRET = 'SERVER-ONLY-SECRET';
+
+// Server-function round-trips driven from the hydrated page.
+const CALLS = [
+  { name: 'module-level fn (message)', button: '#call-message', target: '#message', expected: 'hello client from the server' },
+  { name: 'function-level fn (double)', button: '#call-double', target: '#doubled', expected: '42' },
+  { name: 'getRequestEvent in fn (method)', button: '#call-method', target: '#method', expected: 'POST' },
+  { name: 'server-only secret usable (secret)', button: '#call-secret', target: '#secret', expected: 'true' },
+  { name: 'respond() helper round-trip (greeting)', button: '#call-respond', target: '#greeting', expected: 'hi client' },
+];
 
 // ---------------------------------------------------------------------------
 // Small process / http helpers
@@ -179,6 +203,13 @@ function extractFunctionId(transformedCode, name) {
   return match ? match[1] : null;
 }
 
+// Distinctive rule from src/App.css: proves real styles (not just the dev
+// style patch) reached the page. Keep in sync with the stylesheet.
+const APP_CSS_COLOR = 'rgb(20, 40, 60)';
+// Selects style tags for App.css whatever the id shape (absolute fs path in
+// dev; never present in prod, where CSS ships as a hashed <link>).
+const APP_CSS_STYLE_SELECTOR = 'style[data-vite-dev-id$="App.css"]';
+
 // Shared SSR + streaming assertions against a running server.
 async function runSsrChecks(mode, origin) {
   const { status, chunks, html } = await fetchStreamed(origin + '/');
@@ -191,6 +222,7 @@ async function runSsrChecks(mode, origin) {
     html.startsWith('<!DOCTYPE html><html'),
   );
   record(mode, 'ssr', 'hydration script present', html.includes('_$HY'));
+  record(mode, 'ssr', `no "${SECRET}" in SSR html`, !html.includes(SECRET));
 
   const contentAt = chunks.findIndex((c) => c.includes('STREAMED-ASYNC-CONTENT'));
   const shellChunks = chunks.slice(0, contentAt === -1 ? undefined : contentAt).join('');
@@ -213,14 +245,67 @@ async function runSsrChecks(mode, origin) {
 }
 
 // HMR checks against a running dev server: fresh page load (hydrated SSR),
-// then edit HmrTarget.tsx on disk and assert the update lands hot: new text
-// rendered, no full reload (window marker survives), sibling client state
-// (the counter owned by App) preserved. File restored afterwards.
-async function runHmrChecks(mode, cdp, origin) {
+// refresh-wrapper sanity on the served module, then edit HmrTarget.tsx on
+// disk and assert the update lands hot: new text rendered, no full reload
+// (window marker survives), sibling client state (the counter owned by App)
+// preserved; finally a CSS edit must hot-apply into a single style element
+// (the SSR-inlined tag must not linger next to Vite's updated one). Files
+// restored afterwards. `expectCompiler` asserts which JSX backend served the
+// page via the config's define-injected marker (the backends' outputs are
+// otherwise parity-identical, so the marker is the only reliable
+// discriminator).
+async function runHmrChecks(mode, cdp, origin, { expectCompiler } = {}) {
   const hmrFile = path.join(exampleDir, 'src/HmrTarget.tsx');
   const originalSource = readFileSync(hmrFile, 'utf-8');
   try {
+    cdp.exceptions.length = 0;
+    await cdp.send('Page.navigate', { url: origin + '/' });
+    await cdp.waitFor('document.readyState === "complete"');
+    await new Promise((r) => setTimeout(r, 750));
+
+    const hydrationErrs = cdp.exceptions.filter((e) => /hydrat|mismatch/i.test(e));
+    record(
+      mode,
+      'hmr',
+      'clean hydration (no hydration console errors)',
+      hydrationErrs.length === 0,
+      hydrationErrs.join(' | '),
+    );
+
+    // Refresh must actually be wired: the served module carries the
+    // refresh wrapper importing the solid-js/refresh runtime (Vite may
+    // rewrite the specifier to its pre-bundled /node_modules/.vite/deps
+    // URL, so match both spellings).
+    const served = await (await fetch(origin + '/src/HmrTarget.tsx')).text();
+    record(
+      mode,
+      'hmr',
+      'refresh active (solid-js/refresh wrapper in served module)',
+      /solid-js[/_]refresh/.test(served) &&
+        served.includes('$$registry') &&
+        served.includes('import.meta.hot'),
+    );
+    if (expectCompiler) {
+      record(
+        mode,
+        'hmr',
+        `${expectCompiler} JSX backend active (define marker)`,
+        (await cdp.evalJs('document.querySelector("#jsx-compiler")?.textContent')) ===
+          expectCompiler,
+      );
+    }
+
+    // Reload marker + client state that must survive the hot update.
     await cdp.evalJs('window.__HMR_NO_RELOAD_MARKER = 1');
+    await cdp.evalJs('document.querySelector("#increment").click()');
+    await cdp.evalJs('document.querySelector("#increment").click()');
+    record(
+      mode,
+      'hmr',
+      'counter incremented before edit',
+      await cdp.waitFor('document.querySelector("#count")?.textContent === "2"'),
+    );
+
     writeFileSync(hmrFile, originalSource.replace('HMR-ORIGINAL', 'HMR-UPDATED'));
     const updated = await cdp.waitFor(
       'document.querySelector("#hmr-text")?.textContent === "HMR-UPDATED"',
@@ -244,7 +329,7 @@ async function runHmrChecks(mode, cdp, origin) {
     record(
       mode,
       'hmr',
-      'client state preserved (counter kept its value)',
+      'client state preserved (counter still 2)',
       (await cdp.evalJs('document.querySelector("#count")?.textContent')) === '2',
     );
   } finally {
@@ -252,8 +337,7 @@ async function runHmrChecks(mode, cdp, origin) {
   }
 
   // CSS HMR: edit App.css on disk, assert the new rule hot-applies and the
-  // update lands in a single style element — the SSR-inlined tag must not
-  // linger next to Vite's updated one.
+  // update lands in a single style element.
   const cssFile = path.join(exampleDir, 'src/App.css');
   const originalCss = readFileSync(cssFile, 'utf-8');
   const HMR_CSS_COLOR = 'rgb(200, 100, 50)';
@@ -281,18 +365,11 @@ async function runHmrChecks(mode, cdp, origin) {
   }
 }
 
-// Distinctive rule from src/App.css: proves real styles (not just the dev
-// style patch) reached the page. Keep in sync with the stylesheet.
-const APP_CSS_COLOR = 'rgb(20, 40, 60)';
-// Selects style tags for App.css whatever the id shape (absolute fs path in
-// dev; never present in prod, where CSS ships as a hashed <link>).
-const APP_CSS_STYLE_SELECTOR = 'style[data-vite-dev-id$="App.css"]';
-
-async function runBrowserChecks(mode, origin, { hmr, devCss } = {}) {
+async function runBrowserChecks(mode, origin, { hmr, devCss, expectCompiler } = {}) {
   const chrome = startProcess(CHROME, [
     '--headless=new',
     `--remote-debugging-port=${CDP_PORT}`,
-    `--user-data-dir=/tmp/ssr-turnkey-chrome-${mode}`,
+    `--user-data-dir=/tmp/turnkey-chrome-${mode}`,
     '--no-first-run',
     '--disable-extensions',
     'about:blank',
@@ -322,15 +399,22 @@ async function runBrowserChecks(mode, origin, { hmr, devCss } = {}) {
       await cdp.waitFor('document.querySelector("#count")?.textContent === "2"'),
     );
 
-    await cdp.evalJs('document.querySelector("#call-message").click()');
-    record(
-      mode,
-      'browser',
-      'server function round-trip from the browser',
-      await cdp.waitFor(
-        'document.querySelector("#message")?.textContent === "hello client from the server"',
-      ),
-    );
+    for (const call of CALLS) {
+      await cdp.evalJs(`document.querySelector(${JSON.stringify(call.button)}).click()`);
+      const ok = await cdp.waitFor(
+        `document.querySelector(${JSON.stringify(call.target)})?.textContent === ${JSON.stringify(call.expected)}`,
+      );
+      const actual = ok
+        ? call.expected
+        : await cdp.evalJs(`document.querySelector(${JSON.stringify(call.target)})?.textContent`);
+      record(
+        mode,
+        'rpc',
+        call.name,
+        ok,
+        `${call.target}: ${JSON.stringify(actual)} != ${JSON.stringify(call.expected)}`,
+      );
+    }
 
     record(
       mode,
@@ -369,7 +453,7 @@ async function runBrowserChecks(mode, origin, { hmr, devCss } = {}) {
     record(mode, 'browser', 'no page errors', errs.length === 0, errs.join(' | '));
 
     if (hmr) {
-      await runHmrChecks(mode, cdp, origin);
+      await runHmrChecks(mode, cdp, origin, { expectCompiler });
     }
   } finally {
     cdp.close();
@@ -379,7 +463,7 @@ async function runBrowserChecks(mode, origin, { hmr, devCss } = {}) {
     } catch {}
     await Promise.race([exited, new Promise((r) => setTimeout(r, 3000))]);
     try {
-      rmSync(`/tmp/ssr-turnkey-chrome-${mode}`, { recursive: true, force: true, maxRetries: 5 });
+      rmSync(`/tmp/turnkey-chrome-${mode}`, { recursive: true, force: true, maxRetries: 5 });
     } catch {}
   }
 }
@@ -400,7 +484,41 @@ async function runDevMode() {
   server.stderr.on('data', (d) => (serverLog += d));
 
   try {
+    // Wait on a plain module transform instead of `/` so nothing has touched
+    // the SSR environment before the cold turnkey checks below.
     await waitForHttp(origin + '/src/api.ts', 30000);
+
+    // ---- Server functions first: cold dispatch, no wiring ---------------
+    // The SSR environment has rendered nothing yet, so the middleware must
+    // map the function ID to its module via the compiler manifest and load
+    // it before dispatching.
+    const clientModule = await (await fetch(origin + '/src/api.ts')).text();
+    record(
+      mode,
+      'sf',
+      'client module compiled to references',
+      clientModule.includes('createServerReference'),
+    );
+    record(mode, 'sf', 'secret absent from transformed module', !clientModule.includes(SECRET));
+    const functionId = extractFunctionId(clientModule, 'getServerMessage');
+    // POST-only by default as of @solidjs/web 2.0.0-beta.21; args still come
+    // from the query string when no instance header is present.
+    const cold = functionId
+      ? await fetch(
+          `${origin}/_server?id=${encodeURIComponent(functionId)}&args=${encodeURIComponent('["turnkey"]')}`,
+          { method: 'POST' },
+        )
+      : null;
+    const coldText = cold ? await cold.text() : '';
+    record(
+      mode,
+      'sf',
+      'cold dispatch before any SSR render (dev middleware)',
+      coldText === 'hello turnkey from the server',
+      functionId ? `got ${JSON.stringify(coldText)}` : 'could not extract function id',
+    );
+    const bogus = await fetch(origin + '/_server?id=bogus-0');
+    record(mode, 'sf', 'dev middleware rejects unknown id', bogus.status === 404);
 
     const html = await runSsrChecks(mode, origin);
     record(mode, 'dev', 'Vite client injected into <head>', html.includes('/@vite/client'));
@@ -437,34 +555,7 @@ async function runDevMode() {
       html.includes('/@id/virtual:solid-ssr-entry-client.tsx'),
     );
 
-    // Server-function dev middleware handles the endpoint before SSR (cold:
-    // nothing has rendered in the SSR environment for this module yet).
-    const clientModule = await (await fetch(origin + '/src/api.ts')).text();
-    record(
-      mode,
-      'sf',
-      'client module compiled to references',
-      clientModule.includes('createServerReference'),
-    );
-    const functionId = extractFunctionId(clientModule, 'getServerMessage');
-    // POST-only by default as of @solidjs/web 2.0.0-beta.21; args still come
-    // from the query string when no instance header is present.
-    const cold = functionId
-      ? await fetch(
-          `${origin}/_server?id=${encodeURIComponent(functionId)}&args=${encodeURIComponent('["turnkey"]')}`,
-          { method: 'POST' },
-        )
-      : null;
-    const coldText = cold ? await cold.text() : '';
-    record(
-      mode,
-      'sf',
-      'endpoint served by dev middleware alongside SSR',
-      coldText === 'hello turnkey from the server',
-      functionId ? `got ${JSON.stringify(coldText)}` : 'could not extract function id',
-    );
-
-    await runBrowserChecks(mode, origin, { hmr: true, devCss: true });
+    await runBrowserChecks(mode, origin, { hmr: true, devCss: true, expectCompiler: 'native' });
   } catch (e) {
     record(
       mode,
@@ -501,6 +592,8 @@ async function runProdMode() {
     'server handler bundle emitted',
     existsSync(path.join(exampleDir, 'dist/server/server.js')),
   );
+  // The virtual handler's manifest import must keep the registrations in the
+  // SSR bundle even though the render graph also reaches them.
   const serverBundle = readFileSync(path.join(exampleDir, 'dist/server/server.js'), 'utf-8');
   record(
     mode,
@@ -508,6 +601,12 @@ async function runProdMode() {
     'server-function registrations bundled eagerly',
     serverBundle.includes('registerServerReference'),
   );
+  // Every client asset must be free of the module-level secret.
+  const assetsDir = path.join(exampleDir, 'dist/client/assets');
+  const leaks = readdirSync(assetsDir).filter((f) =>
+    readFileSync(path.join(assetsDir, f), 'utf-8').includes(SECRET),
+  );
+  record(mode, 'dce', 'secret absent from client assets', leaks.length === 0, leaks.join(', '));
 
   const server = startProcess('node', ['server.js'], {
     cwd: exampleDir,
@@ -519,6 +618,9 @@ async function runProdMode() {
 
   try {
     await waitForHttp(origin + '/', 30000, { headers: { accept: 'text/html' } });
+
+    const bogus = await fetch(origin + '/_server?id=bogus-0');
+    record(mode, 'sf', 'prod handler rejects unknown id', bogus.status === 404);
 
     const html = await runSsrChecks(mode, origin);
     record(
@@ -708,15 +810,143 @@ async function runEntriesMode() {
   }
 }
 
+// Endpoint override: a separate dev server with `serverFunctions.endpoint`
+// set, asserting the option threads through the middleware and the runtime
+// configure calls appended to compiled client modules. No browser needed —
+// the endpoint is exercised over plain HTTP.
+async function runEndpointMode() {
+  const mode = 'endpoint';
+  console.log(`\n=== ${mode.toUpperCase()} ===`);
+  const port = 3164;
+  const origin = `http://localhost:${port}`;
+  const endpoint = '/custom-fn-endpoint';
+
+  const server = startProcess('pnpm', ['exec', 'vite', '--port', String(port), '--strictPort'], {
+    cwd: exampleDir,
+    env: { ...process.env, SERVER_FN_ENDPOINT: endpoint },
+  });
+  let serverLog = '';
+  server.stdout.on('data', (d) => (serverLog += d));
+  server.stderr.on('data', (d) => (serverLog += d));
+
+  try {
+    await waitForHttp(origin + '/src/api.ts', 30000);
+
+    const clientModule = await (await fetch(origin + '/src/api.ts')).text();
+    record(
+      mode,
+      'config',
+      'client module configures the custom endpoint',
+      clientModule.includes('configureServerFunctionsClient') && clientModule.includes(endpoint),
+    );
+
+    const functionId = extractFunctionId(clientModule, 'getServerMessage');
+    const custom = functionId
+      ? await fetch(
+          `${origin}${endpoint}?id=${encodeURIComponent(functionId)}&args=${encodeURIComponent('["endpoint"]')}`,
+          { method: 'POST' },
+        )
+      : null;
+    const customText = custom ? await custom.text() : '';
+    record(
+      mode,
+      'rpc',
+      'middleware serves the custom endpoint',
+      customText === 'hello endpoint from the server',
+      functionId ? `got ${JSON.stringify(customText)}` : 'could not extract function id',
+    );
+
+    const fallback = await fetch(`${origin}/_server?id=${encodeURIComponent(functionId || '')}`);
+    record(
+      mode,
+      'rpc',
+      'default endpoint no longer handled',
+      fallback.status !== 200,
+      `status ${fallback.status}`,
+    );
+  } catch (e) {
+    record(
+      mode,
+      'run',
+      'mode completed',
+      false,
+      String(e) + (serverLog ? `\nserver: ${serverLog.slice(-2000)}` : ''),
+    );
+  } finally {
+    try {
+      process.kill(-server.pid, 'SIGTERM');
+    } catch {}
+  }
+}
+
+// Babel-JSX HMR: a separate dev server forced to `compiler: 'babel'` via
+// SOLID_JSX_COMPILER, proving the native refresh pass and the
+// solid-js/refresh core runtime also work when the JSX transform runs
+// through babel-preset-solid.
+async function runBabelHmrMode() {
+  const mode = 'babel-hmr';
+  console.log(`\n=== ${mode.toUpperCase()} ===`);
+  const port = 3165;
+  const origin = `http://localhost:${port}`;
+
+  const server = startProcess('pnpm', ['exec', 'vite', '--port', String(port), '--strictPort'], {
+    cwd: exampleDir,
+    env: { ...process.env, SOLID_JSX_COMPILER: 'babel' },
+  });
+  let serverLog = '';
+  server.stdout.on('data', (d) => (serverLog += d));
+  server.stderr.on('data', (d) => (serverLog += d));
+
+  try {
+    await waitForHttp(origin + '/src/api.ts', 30000);
+
+    const chrome = startProcess(CHROME, [
+      '--headless=new',
+      `--remote-debugging-port=${CDP_PORT}`,
+      `--user-data-dir=/tmp/turnkey-chrome-${mode}`,
+      '--no-first-run',
+      '--disable-extensions',
+      'about:blank',
+    ]);
+    const cdp = await connectChrome();
+    try {
+      await runHmrChecks(mode, cdp, origin, { expectCompiler: 'babel' });
+    } finally {
+      cdp.close();
+      const exited = new Promise((r) => chrome.once('exit', r));
+      try {
+        process.kill(-chrome.pid, 'SIGTERM');
+      } catch {}
+      await Promise.race([exited, new Promise((r) => setTimeout(r, 3000))]);
+      try {
+        rmSync(`/tmp/turnkey-chrome-${mode}`, { recursive: true, force: true, maxRetries: 5 });
+      } catch {}
+    }
+  } catch (e) {
+    record(
+      mode,
+      'run',
+      'mode completed',
+      false,
+      String(e) + (serverLog ? `\nserver: ${serverLog.slice(-2000)}` : ''),
+    );
+  } finally {
+    try {
+      process.kill(-server.pid, 'SIGTERM');
+    } catch {}
+  }
+}
+
+const ALL_MODES = ['dev', 'prod', 'document', 'entries', 'endpoint', 'babel-hmr'];
 const arg = process.argv[2];
-const modes = ['dev', 'prod', 'document', 'entries'].includes(arg)
-  ? [arg]
-  : ['dev', 'prod', 'document', 'entries'];
+const modes = ALL_MODES.includes(arg) ? [arg] : ALL_MODES;
 for (const mode of modes) {
   if (mode === 'dev') await runDevMode();
   else if (mode === 'prod') await runProdMode();
   else if (mode === 'document') await runDocumentMode();
-  else await runEntriesMode();
+  else if (mode === 'entries') await runEntriesMode();
+  else if (mode === 'endpoint') await runEndpointMode();
+  else await runBabelHmrMode();
 }
 
 const failed = results.filter((r) => !r.ok);

@@ -11,11 +11,16 @@
   "module": "dist/esm/index.mjs",
   "types": "dist/types/src/index.d.ts",
   "exports": {
-    "types": "./dist/types/src/index.d.ts",
-    "import": "./dist/esm/index.mjs",
-    "node": "./dist/cjs/index.cjs",
-    "require": "./dist/cjs/index.cjs",
-    "default": "./dist/cjs/index.cjs"
+    ".": {
+      "types": "./dist/types/src/index.d.ts",
+      "import": "./dist/esm/index.mjs",
+      "node": "./dist/cjs/index.cjs",
+      "require": "./dist/cjs/index.cjs",
+      "default": "./dist/cjs/index.cjs"
+    },
+    "./virtual-solid-manifest": {
+      "types": "./virtual-solid-manifest.d.ts"
+    }
   },
   "scripts": {
     "build": "rollup -c && tsc --emitDeclarationOnly",

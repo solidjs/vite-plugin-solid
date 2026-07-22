@@ -1,4 +1,5 @@
-import { createContext, createSignal, JSX, onSettled, useContext } from "solid-js";
+import { createContext, createSignal, onSettled, useContext } from "solid-js";
+import type { JSX } from "@solidjs/web";
 
 interface CounterContext {
   value(): number;

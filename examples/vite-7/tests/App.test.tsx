@@ -8,14 +8,14 @@ import App from '../src/App.jsx';
 test('App', async () => {
   const root = page.elementLocator(render(() => <App />).baseElement);
 
-  const count = root.getByText('Count:');
-  await expect.element(count).toHaveTextContent('Count: 0');
+  const count = root.getByText('Counter:');
+  await expect.element(count).toHaveTextContent('Counter: 0');
 
   const incrementButton = root.getByText('Increment');
   await incrementButton.click();
-  await expect.element(count).toHaveTextContent('Count: 1');
+  await expect.element(count).toHaveTextContent('Counter: 1');
 
   const decrementButton = root.getByText('Decrement');
   await decrementButton.click();
-  await expect.element(count).toHaveTextContent('Count: 0');
+  await expect.element(count).toHaveTextContent('Counter: 0');
 });

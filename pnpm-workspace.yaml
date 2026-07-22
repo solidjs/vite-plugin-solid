@@ -27,6 +27,7 @@ minimumReleaseAgeExclude:
   - '@dom-expressions/compiler-win32-x64-msvc@0.50.0-next.25'
   - '@dom-expressions/compiler-wasm32-wasi@0.50.0-next.25'
   - '@dom-expressions/compiler@0.50.0-next.25'
+  - '@solidjs/testing-library@1.0.0-beta.2'
 
 onlyBuiltDependencies:
   - cypress

@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.0-next.15
+
+### Patch Changes
+
+- 97d7ee8: update to solid 2.0.0-beta.22 and @dom-expressions/compiler 0.50.0-next.25
+
 ## 3.0.0-next.14
 
 ### Patch Changes

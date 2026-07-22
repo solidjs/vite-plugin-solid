@@ -6,6 +6,7 @@
   },
   "changesets": [
     "bump-solid-beta-21",
+    "bump-solid-beta-22",
     "clean-lazy-entries",
     "client-manifest-outdir",
     "compiler-package-rename",

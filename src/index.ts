@@ -55,7 +55,6 @@ const LAZY_PLACEHOLDER_PREFIX = '__SOLID_LAZY_MODULE__:';
 const REFRESH_RUNTIME_SOURCE = 'solid-js/refresh';
 
 const viteVersionMajor = +version.split('.')[0];
-const isVite6 = viteVersionMajor >= 6;
 const isVite8 = viteVersionMajor >= 8;
 
 const VIRTUAL_MANIFEST_ID = 'virtual:solid-manifest';
@@ -139,7 +138,7 @@ export interface Options {
    * before.
    *
    * The object form (even empty: `ssr: {}`) additionally turns on turnkey
-   * serving (requires Vite 6+):
+   * serving:
    *
    * - Dev: a middleware on the Vite dev server streams the rendered app for
    *   HTML-accepting GET requests — `vite` just works, no server file.
@@ -519,14 +518,8 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
          * .tsx & .jsx files are handled by us
          */
         // esbuild: { include: /\.ts$/ },
+        // resolve.conditions is handled per-environment in configEnvironment.
         resolve: {
-          conditions: isVite6
-            ? undefined
-            : [
-                'solid',
-                ...(replaceDev ? ['development'] : []),
-                ...(userConfig.mode === 'test' && !options.ssr ? ['browser'] : []),
-              ],
           dedupe: nestedDeps,
         },
         optimizeDeps: {
@@ -547,7 +540,6 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
           // this plugin handles JSX transformation via babel-preset-solid.
           ...(isVite8 ? { rolldownOptions: { transform: { jsx: 'preserve' as const } } } : {}),
         },
-        ...(!isVite6 ? { ssr: solidPkgsConfig.ssr } : {}),
         ...(test.server ? { test } : {}),
       };
     },
@@ -572,9 +564,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
         ...config.resolve.conditions,
       ];
 
-      // Set resolve.noExternal and resolve.external for SSR environment (Vite 6+)
+      // Set resolve.noExternal and resolve.external for the SSR environment.
       // Only set resolve.external if noExternal is not true (to avoid conflicts with plugins like Cloudflare)
-      if (isVite6 && name === 'ssr' && solidPkgsConfig) {
+      if (name === 'ssr' && solidPkgsConfig) {
         if (config.resolve.noExternal !== true) {
           config.resolve.noExternal = [
             ...(Array.isArray(config.resolve.noExternal) ? config.resolve.noExternal : []),
@@ -926,14 +918,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   // The object form of `ssr` opts into turnkey serving on top of the
   // transforms (`ssr: true` keeps the historical transform-only behavior).
   if (typeof options.ssr === 'object' && options.ssr !== null) {
-    if (isVite6) {
-      plugins.push(...ssrServe(options.ssr, { serverFunctions: !!options.serverFunctions }));
-    } else {
-      console.warn(
-        '[vite-plugin-solid] turnkey SSR (the object form of `ssr`) requires Vite 6+; ' +
-          'only the SSR transforms are enabled on this Vite version.',
-      );
-    }
+    plugins.push(...ssrServe(options.ssr, { serverFunctions: !!options.serverFunctions }));
   }
 
   return plugins;

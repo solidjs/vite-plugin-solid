@@ -22,9 +22,13 @@ Join [solid discord](https://discord.com/invite/solidjs) and check the [troubles
 
 ## Requirements
 
-This module 100% ESM compatible and requires NodeJS `14.18.0` or later.
+This module is 100% ESM compatible and requires NodeJS `14.18.0` or later.
 
 You can check your current version of NodeJS by typing `node -v` in your terminal. If your version is below that one version I'd encourage you to either do an update globally or use a NodeJS version management tool such as [Volta](https://volta.sh/) or [nvm](https://github.com/nvm-sh/nvm).
+
+Supported Vite versions: **Vite 6, 7 and 8**. Support for Vite 3–5 was
+dropped; if you are on an older Vite, stay on an earlier release of this
+plugin (2.x) or upgrade Vite.
 
 ## Quickstart
 
@@ -132,9 +136,8 @@ If set to false, it won't inject the runtime in dev.
 code); you provide the entries and the server yourself, as before.
 
 The object form — even empty, `ssr: {}` — additionally turns on **turnkey
-SSR** (requires Vite 6+): a plain Vite app gets streaming server-side
-rendering with zero wiring. No entry files, no `index.html`, no dev server
-script.
+SSR**: a plain Vite app gets streaming server-side rendering with zero
+wiring. No entry files, no `index.html`, no dev server script.
 
 ```ts
 // vite.config.ts
@@ -201,10 +204,9 @@ compose: in dev the server-function middleware handles the endpoint before
 SSR; in production the same `handleRequest` serves the endpoint too.
 
 Turnkey serving is opt-in via the object form, so existing `ssr: true` setups
-are unaffected. On Vite versions below 6 the object form falls back to the
-transforms with a warning. See `examples/ssr-turnkey` for a complete app
-(including a one-file production server) and `examples/ssr` for the manual
-`ssr: true` wiring.
+are unaffected. See `examples/ssr-turnkey` for a complete app (including a
+one-file production server) and `examples/ssr` for the manual `ssr: true`
+wiring.
 
 #### options.serverFunctions
 

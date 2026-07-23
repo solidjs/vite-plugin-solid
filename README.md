@@ -230,6 +230,20 @@ through their own server should use the standalone `serverFunctions()`
 export instead, which never installs the dev middleware. See
 `examples/turnkey` for a complete app.
 
+**Server components (experimental):** `serverFunctions: { components: true }`
+lets a `"use server"` function return a component. Server components ride
+server functions — same endpoint, same compilation — with zero extra plugin
+config: responses for component-returning functions are served as streamed
+HTML that the client applies in place (client state and DOM identity inside
+survive updates), and the plugin's dev middleware and production handler
+handle that automatically. Combined with turnkey SSR (the object form of
+[`ssr`](#optionsssr)) and generated entries, the document wiring is emitted
+too: server components render inline in the SSR'd document and are adopted
+at boot with zero endpoint requests. With authored entries, the app-side
+pieces (the render plugin, the bootstrap script, and the client's
+`installServerComponents()` call, all from `@solidjs/web/frames`) live in
+your entry files instead. See `examples/turnkey` for a complete page.
+
 #### options.compiler
 
 - Type: `"babel" | "native"`

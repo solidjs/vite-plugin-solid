@@ -230,6 +230,14 @@ export interface Options {
    * own server should use the standalone `serverFunctions()` export instead,
    * which never installs the dev middleware.
    *
+   * The object form's `components` flag additionally enables server
+   * components (experimental) — `"use server"` functions returning a
+   * component, served over the same endpoint. They come essentially for
+   * free: the endpoint transform is installed automatically, and with
+   * turnkey SSR (the object form of `ssr`) and generated entries the
+   * document wiring is emitted too. See
+   * {@link ServerFunctionsOptions.components}.
+   *
    * @default undefined
    */
   serverFunctions?: boolean | ServerFunctionsOptions;
@@ -369,6 +377,8 @@ function normalizeEmittedLazyEntries(manifest: Record<string, any>) {
 
 export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   const filter = createFilter(options.include, options.exclude);
+  const serverComponents =
+    typeof options.serverFunctions === 'object' && !!options.serverFunctions.components;
 
   let needHmr = false;
   let replaceDev = false;
@@ -531,6 +541,16 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
             ...(command === 'serve' && options.hot !== false && !options.refresh?.disabled
               ? [REFRESH_RUNTIME_SOURCE]
               : []),
+            // The server-components client runtime is imported by the
+            // (virtual) client entry, and compiled function references
+            // import the server-function client runtime; pre-bundle both up
+            // front — in one optimizer pass — so a mid-session discovery
+            // can't trigger a re-optimize + full reload, and both entries
+            // share one instance of the transport config module (the
+            // server-components runtime installs its response policy there).
+            ...(command === 'serve' && serverComponents
+              ? ['@solidjs/web/frames', '@solidjs/web/server-functions']
+              : []),
             ...solidPkgsConfig.optimizeDeps.include,
           ],
           exclude: solidPkgsConfig.optimizeDeps.exclude,
@@ -585,6 +605,16 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       isSsrBuild = !!config.build.ssr;
       base = config.base;
       projectRoot = config.root;
+      if (serverComponents && typeof options.ssr !== 'object') {
+        config.logger.warn(
+          '[vite-plugin-solid] serverFunctions.components is set without the turnkey `ssr` object ' +
+            'option, so the plugin only installs the endpoint response transform (server functions ' +
+            'returning components stream correctly). The document wiring — render plugin, bootstrap ' +
+            'script, and the client-side installServerComponents() call — is emitted by turnkey ' +
+            "SSR's generated entries; without it, server components only mount from post-boot " +
+            'streams and your client code must call installServerComponents() itself.',
+        );
+      }
       needHmr =
         config.command === 'serve' &&
         config.mode !== 'production' &&
@@ -918,7 +948,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   // The object form of `ssr` opts into turnkey serving on top of the
   // transforms (`ssr: true` keeps the historical transform-only behavior).
   if (typeof options.ssr === 'object' && options.ssr !== null) {
-    plugins.push(...ssrServe(options.ssr, { serverFunctions: !!options.serverFunctions }));
+    plugins.push(
+      ...ssrServe(options.ssr, { serverFunctions: !!options.serverFunctions, serverComponents }),
+    );
   }
 
   return plugins;

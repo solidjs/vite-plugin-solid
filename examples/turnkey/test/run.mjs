@@ -35,10 +35,27 @@
 //     src/entry-client.tsx exist (written temporarily by the test), they are
 //     used instead of the generated ones, and in prod the authored
 //     `/src/entry-client.tsx` script reference is rewritten to the hashed
-//     asset.
+//     asset,
+//   - frames (server components, enabled by the single option
+//     `serverFunctions: { components: true }` — SOLID_SERVER_COMPONENTS in
+//     vite.config.ts), in dev and prod: the plugin's generated entries emit
+//     all the wiring (render plugin, bootstrap script,
+//     installServerComponents()), document SSR renders a server component
+//     inline with t=0 slot records and the SC bootstrap, the boundary is
+//     adopted at boot with zero `/_server` requests, refetch/navigation
+//     morph the boundary over the existing endpoint with client wrapper
+//     state + DOM identity surviving (policy A), an adopted boundary's
+//     nested regions survive the first morph (dom-expressions#547), a
+//     never-SSR'd boundary mounts and morphs from post-boot streams, a
+//     mutation via a plain data server function rides the same endpoint,
+//     and the server component's JSX never reaches client assets. The app
+//     surface lives in src/frames/,
+//   - the option is pure codegen: the plain dev/prod modes assert the
+//     generated entries and client assets carry no reference to the
+//     server-components runtime when the option is off.
 //
 // Requires the plugin built (pnpm build at the repo root) and Google Chrome.
-// Usage: node test/run.mjs [dev|prod|document|entries|endpoint|babel-hmr]
+// Usage: node test/run.mjs [dev|prod|document|entries|endpoint|babel-hmr|frames]
 // (default: all)
 
 import { spawn, execSync } from 'node:child_process';
@@ -135,6 +152,7 @@ async function connectChrome() {
   let msgId = 0;
   const pending = new Map();
   const exceptions = [];
+  const requests = [];
   ws.onmessage = (ev) => {
     const msg = JSON.parse(ev.data);
     if (msg.id && pending.has(msg.id)) {
@@ -148,6 +166,8 @@ async function connectChrome() {
       exceptions.push(
         'console.error: ' + msg.params.args.map((a) => a.value ?? a.description ?? '').join(' '),
       );
+    } else if (msg.method === 'Network.requestWillBeSent') {
+      requests.push(msg.params.request.url);
     }
   };
   const send = (method, params = {}) =>
@@ -159,6 +179,7 @@ async function connectChrome() {
   await new Promise((r) => (ws.onopen = r));
   await send('Runtime.enable');
   await send('Page.enable');
+  await send('Network.enable');
 
   const evalJs = async (expression) => {
     const res = await send('Runtime.evaluate', {
@@ -181,7 +202,7 @@ async function connectChrome() {
     return false;
   };
 
-  return { send, evalJs, waitFor, exceptions, close: () => ws.close() };
+  return { send, evalJs, waitFor, exceptions, requests, close: () => ws.close() };
 }
 
 // ---------------------------------------------------------------------------
@@ -554,6 +575,20 @@ async function runDevMode() {
       'generated client entry script injected',
       html.includes('/@id/virtual:solid-ssr-entry-client.tsx'),
     );
+    // Tree-shaking guarantee: `serverFunctions.components` is pure codegen,
+    // so with the option off the generated entries must not reference the
+    // server-components runtime at all (guards against the wiring becoming
+    // an unconditional import behind a runtime flag).
+    const generatedEntry = await (
+      await fetch(origin + '/@id/virtual:solid-ssr-entry-client.tsx')
+    ).text();
+    record(
+      mode,
+      'dce',
+      'no server-components runtime in generated client entry (option off)',
+      !generatedEntry.includes('installServerComponents') &&
+        !generatedEntry.includes('@solidjs/web/frames'),
+    );
 
     await runBrowserChecks(mode, origin, { hmr: true, devCss: true, expectCompiler: 'native' });
   } catch (e) {
@@ -607,6 +642,27 @@ async function runProdMode() {
     readFileSync(path.join(assetsDir, f), 'utf-8').includes(SECRET),
   );
   record(mode, 'dce', 'secret absent from client assets', leaks.length === 0, leaks.join(', '));
+  // Tree-shaking guarantee: with `serverFunctions.components` off, neither
+  // bundle may reference the server-components runtime — the client via the
+  // minification-proof runtime marker, the (unminified) server bundle via
+  // the emitted import/transform names.
+  const scLeaks = readdirSync(assetsDir).filter((f) => {
+    const source = readFileSync(path.join(assetsDir, f), 'utf-8');
+    return source.includes(FRAMES_CLIENT_RUNTIME_MARKER) || source.includes('installServerComponents');
+  });
+  record(
+    mode,
+    'dce',
+    'no server-components runtime in client assets (option off)',
+    scLeaks.length === 0,
+    scLeaks.join(', '),
+  );
+  record(
+    mode,
+    'dce',
+    'no server-components transform in server bundle (option off)',
+    !serverBundle.includes('@solidjs/web/frames') && !serverBundle.includes('frameTransformResult'),
+  );
 
   const server = startProcess('node', ['server.js'], {
     cwd: exampleDir,
@@ -879,6 +935,334 @@ async function runEndpointMode() {
   }
 }
 
+// Frames: server components (`use server` functions returning a function)
+// enabled by the single config line `serverFunctions: { components: true }`
+// (via SOLID_SERVER_COMPONENTS in vite.config.ts, which also points
+// `ssr.app` at the server-components page). Everything else is the stock
+// turnkey surface: generated entries carry the wiring the plugin emits for
+// the option — the render plugin + direct-call transform in the server
+// entry, the bootstrap script in <head>, installServerComponents() in the
+// client entry — and the untouched dev middleware / virtual prod handler
+// serve component responses through the config-level response transform.
+// The app surface (server component module, client Row wrapper, page) is
+// permanent code in src/frames/.
+const FRAMES_SECRET = 'SERVER-ROW-TEXT';
+// Distinctive string literal from the server-components client runtime that
+// survives minification — the positive/negative bundling probe.
+const FRAMES_CLIENT_RUNTIME_MARKER = 'sc:region:';
+
+// The frames assertion body, shared by dev and prod: document SSR +
+// adoption, adopted-boundary morphs (including the dom-expressions#547
+// nested-region case), a fresh (never-SSR'd) boundary's full loop, and a
+// plain data server function on the same endpoint.
+async function runFramesChecks(mode, origin) {
+  // ---- The document over plain HTTP ------------------------------------
+  const html = await (await fetch(origin + '/', { headers: { accept: 'text/html' } })).text();
+  // (`panel:` not `panel:alpha`: hydration comment markers split the text.)
+  record(
+    mode,
+    'document',
+    'server component SSR\'d inline (frame markers in document)',
+    html.includes('panel:') && html.includes('frame:') && html.includes(':start-->'),
+  );
+  record(
+    mode,
+    'document',
+    'server content exactly once in document',
+    html.split(`${FRAMES_SECRET}-one`).length === 2,
+  );
+  record(mode, 'document', 't=0 slot records shipped (sc:slot)', html.includes('sc:slot:'));
+  record(mode, 'document', 'SC bootstrap inline in head', html.includes('self._$SC='));
+
+  const chrome = startProcess(CHROME, [
+    '--headless=new',
+    `--remote-debugging-port=${CDP_PORT}`,
+    `--user-data-dir=/tmp/turnkey-chrome-${mode}`,
+    '--no-first-run',
+    '--disable-extensions',
+    'about:blank',
+  ]);
+  const cdp = await connectChrome();
+  try {
+    cdp.exceptions.length = 0;
+    cdp.requests.length = 0;
+    await cdp.send('Page.navigate', { url: origin + '/' });
+    await cdp.waitFor('document.readyState === "complete"');
+    await new Promise((r) => setTimeout(r, 750));
+
+    // ---- Boot: hydration + t=0 adoption ---------------------------------
+    const hydrationErrs = cdp.exceptions.filter((e) => /hydrat|mismatch/i.test(e));
+    record(
+      mode,
+      'boot',
+      'clean hydration (no hydration console errors)',
+      hydrationErrs.length === 0,
+      hydrationErrs.join(' | '),
+    );
+    record(
+      mode,
+      'boot',
+      'panel server-rendered and adopted',
+      (await cdp.evalJs('document.querySelector("#panel-name")?.textContent')) === 'panel:alpha',
+    );
+    const bootFetches = cdp.requests.filter((u) => u.includes('/_server'));
+    record(
+      mode,
+      'boot',
+      'zero /_server requests at boot (t=0 adoption)',
+      bootFetches.length === 0,
+      `${bootFetches.length} request(s)`,
+    );
+    await cdp.evalJs('document.querySelectorAll(".row-bump")[0].click()');
+    await cdp.evalJs('document.querySelectorAll(".row-bump")[0].click()');
+    record(
+      mode,
+      'boot',
+      'client wrapper interactive on adopted DOM',
+      await cdp.waitFor('document.querySelectorAll(".row-count")[0]?.textContent === "2"'),
+    );
+    await cdp.evalJs('document.querySelector("#draft").value = "typed-draft"');
+
+    // ---- Adopted-boundary morphs ----------------------------------------
+    cdp.requests.length = 0;
+    await cdp.evalJs('document.querySelector("#refetch").click()');
+    record(
+      mode,
+      'morph',
+      'refetch morphs adopted boundary (version advances)',
+      await cdp.waitFor('document.querySelector("#server-version")?.textContent === "version:1"'),
+      `got ${JSON.stringify(await cdp.evalJs('document.querySelector("#server-version")?.textContent'))}`,
+    );
+    record(
+      mode,
+      'morph',
+      'refetch went over /_server',
+      cdp.requests.some((u) => u.includes('/_server')),
+    );
+    record(
+      mode,
+      'morph',
+      'draft input (direct-insert slot) survives adopted morph',
+      (await cdp.evalJs('document.querySelector("#draft")?.value')) === 'typed-draft',
+    );
+    await new Promise((r) => setTimeout(r, 300));
+    const adoptedBodies = await cdp.evalJs('document.querySelectorAll(".rows .row-body").length');
+    record(
+      mode,
+      'morph',
+      'adopted nested regions survive first morph (dom-expressions#547)',
+      adoptedBodies === 2,
+      `${adoptedBodies}/2 row bodies left`,
+    );
+    await cdp.evalJs('document.querySelector("#nav-beta").click()');
+    record(
+      mode,
+      'morph',
+      'navigation re-renders adopted server content',
+      await cdp.waitFor('document.querySelector("#panel-name")?.textContent === "panel:beta"'),
+    );
+
+    // ---- Fresh (never-SSR'd) boundary: the post-boot stream loop --------
+    cdp.requests.length = 0;
+    await cdp.evalJs('document.querySelector("#show-fresh").click()');
+    record(
+      mode,
+      'fresh',
+      'fresh boundary mounts from a post-boot stream',
+      await cdp.waitFor('document.querySelector("#fresh-name")?.textContent === "fresh:beta"'),
+    );
+    record(
+      mode,
+      'fresh',
+      'fresh mount fetched over /_server',
+      cdp.requests.some((u) => u.includes('/_server')),
+    );
+    await new Promise((r) => setTimeout(r, 300));
+    record(
+      mode,
+      'fresh',
+      'fresh boundary renders nested regions',
+      (await cdp.evalJs('document.querySelectorAll(".fresh-rows .row-body").length')) === 2,
+    );
+    await cdp.evalJs('document.querySelectorAll(".fresh-rows .row-bump")[0].click()');
+    record(
+      mode,
+      'fresh',
+      'fresh wrapper interactive',
+      await cdp.waitFor('document.querySelectorAll(".fresh-rows .row-count")[0]?.textContent === "1"'),
+    );
+    await cdp.evalJs('window.__freshRow = document.querySelectorAll(".fresh-rows .row")[0]');
+
+    await cdp.evalJs('document.querySelector("#refetch").click()');
+    record(
+      mode,
+      'fresh',
+      'fresh morph streams (fversion advances)',
+      await cdp.waitFor(
+        '/fversion:[0-9]+/.test(document.querySelector("#fresh-version")?.textContent) && document.querySelector("#fresh-version")?.textContent !== "fversion:1"',
+      ),
+    );
+    await new Promise((r) => setTimeout(r, 300));
+    record(
+      mode,
+      'fresh',
+      'client wrapper state survives fresh morph (policy A)',
+      (await cdp.evalJs('document.querySelectorAll(".fresh-rows .row-count")[0]?.textContent')) ===
+        '1',
+    );
+    record(
+      mode,
+      'fresh',
+      'client wrapper DOM identity survives fresh morph',
+      await cdp.evalJs('window.__freshRow === document.querySelectorAll(".fresh-rows .row")[0]'),
+    );
+    record(
+      mode,
+      'fresh',
+      'nested regions survive fresh morph',
+      (await cdp.evalJs('document.querySelectorAll(".fresh-rows .row-body").length')) === 2,
+    );
+
+    // ---- Plain data server function + mutation on the same endpoint -----
+    await cdp.evalJs('document.querySelector("#mutate").click()');
+    record(
+      mode,
+      'data',
+      'mutation via data server function reflected in next stream',
+      await cdp.waitFor('/counter:[1-9]/.test(document.querySelector("#server-counter")?.textContent)'),
+      `got ${JSON.stringify(await cdp.evalJs('document.querySelector("#server-counter")?.textContent'))}`,
+    );
+    record(
+      mode,
+      'data',
+      'region content follows server input after morphs',
+      await cdp.waitFor(
+        'document.querySelectorAll(".fresh-rows .row-body")[0]?.textContent?.endsWith(":beta")',
+      ),
+    );
+
+    const errs = cdp.exceptions.filter((e) => !/favicon/i.test(e));
+    record(mode, 'browser', 'no page errors', errs.length === 0, errs.join(' | '));
+  } finally {
+    cdp.close();
+    const exited = new Promise((r) => chrome.once('exit', r));
+    try {
+      process.kill(-chrome.pid, 'SIGTERM');
+    } catch {}
+    await Promise.race([exited, new Promise((r) => setTimeout(r, 3000))]);
+    try {
+      rmSync(`/tmp/turnkey-chrome-${mode}`, { recursive: true, force: true, maxRetries: 5 });
+    } catch {}
+  }
+}
+
+async function runFramesMode() {
+  console.log(`\n=== FRAMES ===`);
+  const devPort = 3166;
+  const prodPort = 3167;
+  // The one-line enablement under test: the env flag flips
+  // `serverFunctions: { components: true }` + `ssr.app` in vite.config.ts.
+  // No entry files — the plugin's generated entries carry all the wiring.
+  const env = { ...process.env, SOLID_SERVER_COMPONENTS: '1' };
+
+  let server;
+  let serverLog = '';
+  const captureLog = (child) => {
+    child.stdout.on('data', (d) => (serverLog += d));
+    child.stderr.on('data', (d) => (serverLog += d));
+  };
+  try {
+    // ---- Dev: the plain `vite` CLI, frames through the dev middleware ----
+    const devOrigin = `http://localhost:${devPort}`;
+    server = startProcess('pnpm', ['exec', 'vite', '--port', String(devPort), '--strictPort'], {
+      cwd: exampleDir,
+      env,
+    });
+    captureLog(server);
+    await waitForHttp(devOrigin + '/src/frames/data.tsx', 30000);
+    // The option's generated client entry is the whole client-side wiring —
+    // fetching it doubles as a pre-warm of the client transform graph.
+    const entryClient = await (
+      await fetch(devOrigin + '/@id/virtual:solid-ssr-entry-client.tsx')
+    ).text();
+    record(
+      'frames-dev',
+      'wiring',
+      'generated client entry installs server components',
+      entryClient.includes('installServerComponents'),
+    );
+    await new Promise((r) => setTimeout(r, 1500));
+    const clientModule = await (await fetch(devOrigin + '/src/frames/data.tsx')).text();
+    record(
+      'frames-dev',
+      'dce',
+      'server JSX absent from transformed client module',
+      !clientModule.includes(FRAMES_SECRET),
+    );
+    record(
+      'frames-dev',
+      'dce',
+      'client module compiled to references',
+      clientModule.includes('createServerReference'),
+    );
+    await runFramesChecks('frames-dev', devOrigin);
+    try {
+      process.kill(-server.pid, 'SIGTERM');
+    } catch {}
+    server = undefined;
+
+    // ---- Prod: one `vite build`, frames through the virtual handler ------
+    console.log('  building…');
+    execSync('pnpm run build', { cwd: exampleDir, stdio: 'pipe', env });
+    const assetsDir = path.join(exampleDir, 'dist/client/assets');
+    const leaks = readdirSync(assetsDir).filter((f) =>
+      readFileSync(path.join(assetsDir, f), 'utf-8').includes(FRAMES_SECRET),
+    );
+    record(
+      'frames-prod',
+      'dce',
+      'server JSX absent from client assets',
+      leaks.length === 0,
+      leaks.join(', '),
+    );
+    record(
+      'frames-prod',
+      'wiring',
+      'server-components client runtime bundled (option codegen)',
+      readdirSync(assetsDir).some((f) =>
+        readFileSync(path.join(assetsDir, f), 'utf-8').includes(FRAMES_CLIENT_RUNTIME_MARKER),
+      ),
+    );
+    const prodOrigin = `http://localhost:${prodPort}`;
+    server = startProcess('node', ['server.js'], {
+      cwd: exampleDir,
+      env: { ...env, PORT: String(prodPort), NODE_ENV: 'production' },
+    });
+    captureLog(server);
+    await waitForHttp(prodOrigin + '/', 30000, { headers: { accept: 'text/html' } });
+    await runFramesChecks('frames-prod', prodOrigin);
+  } catch (e) {
+    record(
+      'frames',
+      'run',
+      'mode completed',
+      false,
+      String(e) + (serverLog ? `\nserver: ${serverLog.slice(-2000)}` : ''),
+    );
+  } finally {
+    if (server) {
+      try {
+        process.kill(-server.pid, 'SIGTERM');
+      } catch {}
+    }
+    // Leave dist in the standard (no server components) state for anyone
+    // poking at it.
+    try {
+      execSync('pnpm run build', { cwd: exampleDir, stdio: 'pipe' });
+    } catch {}
+  }
+}
+
 // Babel-JSX HMR: a separate dev server forced to `compiler: 'babel'` via
 // SOLID_JSX_COMPILER, proving the native refresh pass and the
 // solid-js/refresh core runtime also work when the JSX transform runs
@@ -937,7 +1321,7 @@ async function runBabelHmrMode() {
   }
 }
 
-const ALL_MODES = ['dev', 'prod', 'document', 'entries', 'endpoint', 'babel-hmr'];
+const ALL_MODES = ['dev', 'prod', 'document', 'entries', 'endpoint', 'frames', 'babel-hmr'];
 const arg = process.argv[2];
 const modes = ALL_MODES.includes(arg) ? [arg] : ALL_MODES;
 for (const mode of modes) {
@@ -946,6 +1330,7 @@ for (const mode of modes) {
   else if (mode === 'document') await runDocumentMode();
   else if (mode === 'entries') await runEntriesMode();
   else if (mode === 'endpoint') await runEndpointMode();
+  else if (mode === 'frames') await runFramesMode();
   else await runBabelHmrMode();
 }
 

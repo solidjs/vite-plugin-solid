@@ -64,6 +64,33 @@ export interface ServerFunctionsOptions {
    * @default "/_server"
    */
   endpoint?: string;
+  /**
+   * Enable server components (experimental): `"use server"` functions that
+   * return a component. Responses for them are served over the
+   * server-function endpoint as streamed HTML that the client runtime
+   * applies in place of the boundary (instead of decoding it as data).
+   *
+   * The plugin's dispatch surfaces — the turnkey dev middleware and the
+   * `virtual:solid-server-function-handler` module — install the response
+   * transform on the server runtime automatically, so this needs no
+   * per-request wiring or server code.
+   *
+   * Document SSR of server components (rendered inline at t=0 and adopted
+   * at boot with zero endpoint requests) needs three more pieces: the
+   * render must run with the server-component render plugin, the document
+   * must carry the bootstrap script, and the client must call
+   * `installServerComponents()` before hydrating. With turnkey SSR (the
+   * object form of the main plugin's `ssr` option) and generated entries
+   * the plugin emits all three. With authored entries those pieces live in
+   * your entry files — import them from `@solidjs/web/frames` (see the
+   * README).
+   *
+   * All of this is pure codegen: when the option is off, no reference to
+   * the server-component runtime is emitted anywhere.
+   *
+   * @default false
+   */
+  components?: boolean;
 }
 
 const DEFAULT_INCLUDE = 'src/**/*.{jsx,tsx,ts,js,mjs,cjs}';
@@ -224,6 +251,7 @@ export function serverFunctions(
   const runtime = options.runtime || { server: DEFAULT_RUNTIME, client: DEFAULT_RUNTIME };
   const endpointOption = options.endpoint || DEFAULT_ENDPOINT;
   const endpoint = endpointOption.startsWith('/') ? endpointOption : '/' + endpointOption;
+  const components = !!options.components;
 
   let env: CompileOptions['env'];
   let root = process.cwd();
@@ -297,11 +325,21 @@ export function serverFunctions(
   // Builds import it so tree-shaking can't drop registrations for functions
   // only client code references.
   function handlerModuleCode(includeManifest: boolean): string {
+    // Server components ride the frame-stream wire protocol: the transform
+    // serves a function's component result as streamed HTML instead of data.
+    // Installing it here (config-level, merged with the other keys) covers
+    // both dispatch surfaces — the dev middleware and the prod handler load
+    // this module before dispatching — with zero per-request wiring. The
+    // import is only emitted when the option is on, so disabled setups keep
+    // a server-component-free graph.
     return [
       ...(includeManifest ? [`import ${JSON.stringify(manifestId)};`] : []),
       `import { handleServerFunctionRequest as handle, configureServerFunctionsServer } from ${JSON.stringify(runtime.server)};`,
       `import { provideRequestEvent } from ${JSON.stringify(STORAGE_SOURCE)};`,
-      `configureServerFunctionsServer({ provideEvent: provideRequestEvent, endpoint: ${JSON.stringify(resolvedEndpoint)} });`,
+      ...(components ? [`import { frameTransformResult } from '@solidjs/web/frames';`] : []),
+      `configureServerFunctionsServer({ provideEvent: provideRequestEvent, endpoint: ${JSON.stringify(resolvedEndpoint)}${
+        components ? ', transformResult: frameTransformResult' : ''
+      } });`,
       `export const endpoint = ${JSON.stringify(resolvedEndpoint)};`,
       `export function handleServerFunctionRequest(request, options) {`,
       `  return handle(request, { provideEvent: provideRequestEvent, ...options });`,

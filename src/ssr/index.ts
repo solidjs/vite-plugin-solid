@@ -165,8 +165,16 @@ function resolveEntries(root: string, options: SsrOptions): ResolvedEntries {
 
 export function ssrServe(
   options: SsrOptions,
-  internal: { serverFunctions?: boolean } = {},
+  internal: { serverFunctions?: boolean; serverComponents?: boolean } = {},
 ): Plugin[] {
+  // Server components (`serverFunctions: { components: true }`): generated
+  // entries additionally emit the document-SSR wiring — the render plugin +
+  // direct-call transform server-side, the bootstrap script in <head>, and
+  // the client-side installServerComponents() call. Authored entries carry
+  // those pieces themselves (the endpoint response transform is installed by
+  // the server-function handler module either way). Everything is gated
+  // codegen: with the option off, none of these imports exist anywhere.
+  const serverComponents = !!internal.serverComponents;
   let root = process.cwd();
   let base = '/';
   let isBuild = false;
@@ -201,16 +209,32 @@ export function ssrServe(
     const { app } = requireEntries();
     return [
       `import { renderToStream } from '@solidjs/web';`,
+      ...(serverComponents
+        ? [
+            `import { configureServerFunctionsServer } from '@solidjs/web/server-functions';`,
+            `import { frameTransformDirectResult, ServerComponentPlugin } from '@solidjs/web/frames';`,
+          ]
+        : []),
       `import manifest from ${JSON.stringify(MANIFEST_ID)};`,
       `import Document from ${JSON.stringify(documentSpec())};`,
       `import App from ${JSON.stringify(app)};`,
       ``,
+      ...(serverComponents
+        ? [
+            // Direct (in-process) server-function calls made during document
+            // SSR must resolve to inline-renderable components; the endpoint
+            // response transform is installed separately by the
+            // server-function handler module (configure calls merge per key).
+            `configureServerFunctionsServer({ transformDirectResult: frameTransformDirectResult });`,
+            ``,
+          ]
+        : []),
       `export function render(request, context) {`,
       `  return renderToStream(() => (`,
       `    <Document>`,
       `      <App />`,
       `    </Document>`,
-      `  ), { manifest });`,
+      `  ), { manifest${serverComponents ? ', plugins: [ServerComponentPlugin]' : ''} });`,
       `}`,
     ].join('\n');
   }
@@ -219,9 +243,21 @@ export function ssrServe(
     const { app } = requireEntries();
     return [
       `import { hydrate } from '@solidjs/web';`,
+      ...(serverComponents
+        ? [`import { installServerComponents } from '@solidjs/web/frames';`]
+        : []),
       `import Document from ${JSON.stringify(documentSpec())};`,
       `import App from ${JSON.stringify(app)};`,
       ``,
+      ...(serverComponents
+        ? [
+            // Installs the t=0 document-adoption registry and the transport
+            // policy (component responses morph their boundary instead of
+            // decoding as data). Must run before hydrate().
+            `installServerComponents();`,
+            ``,
+          ]
+        : []),
       `hydrate(() => (`,
       `  <Document>`,
       `    <App />`,
@@ -258,10 +294,19 @@ export function ssrServe(
   function handlerModuleCode(): string {
     const { generated, entryClient } = requireEntries();
     const composeServerFunctions = isBuild && internal.serverFunctions;
+    // Generated entries own the whole document wiring, so the handler also
+    // injects the server-component bootstrap (the per-function-id
+    // placeholder registry the render plugin references; must be inline in
+    // <head> before any hydration data script streams in). Authored entries
+    // inject it themselves.
+    const injectComponentBootstrap = generated && serverComponents;
 
     const lines = [
       `import { provideRequestEvent } from ${JSON.stringify(STORAGE_SOURCE)};`,
       `import * as entry from ${JSON.stringify(entryServerSpec())};`,
+      ...(injectComponentBootstrap
+        ? [`import { SERVER_COMPONENT_BOOTSTRAP } from '@solidjs/web/frames';`]
+        : []),
     ];
 
     if (isBuild) {
@@ -323,6 +368,9 @@ export function ssrServe(
     // Dev: the style patch + Vite client, then the SSR'd entry styles the
     // middleware collected (per request, so HMR-edited CSS is current).
     if (!isBuild) headParts.push(`DEV_HEAD`, `(extraHead || '')`);
+    if (injectComponentBootstrap) {
+      headParts.push(`'<script>' + SERVER_COMPONENT_BOOTSTRAP + '</' + 'script>'`);
+    }
     if (generated) {
       headParts.push(
         `(clientEntry ? '<script type="module" src="' + clientEntry + '" async></' + 'script>' : '')`,

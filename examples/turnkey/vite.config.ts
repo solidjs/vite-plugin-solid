@@ -17,8 +17,12 @@ import solidPlugin from 'vite-plugin-solid';
 // - SOLID_JSX_COMPILER=babel forces the Babel JSX backend (babel-hmr mode);
 //   the define exposes the active backend to the page so the test can assert
 //   which one served it (their outputs are parity-identical otherwise).
+// - SOLID_SERVER_COMPONENTS points the generated entries at the
+//   server-components page and flips `serverFunctions: { components: true }`
+//   (frames mode) — the one-line enablement under test.
 const jsxCompiler =
   process.env.SOLID_JSX_COMPILER === 'babel' ? ('babel' as const) : ('native' as const);
+const serverComponents = !!process.env.SOLID_SERVER_COMPONENTS;
 
 export default defineConfig({
   define: {
@@ -27,10 +31,16 @@ export default defineConfig({
   plugins: [
     solidPlugin({
       compiler: jsxCompiler,
-      ssr: process.env.SSR_DOCUMENT ? { document: process.env.SSR_DOCUMENT } : {},
-      serverFunctions: process.env.SERVER_FN_ENDPOINT
-        ? { endpoint: process.env.SERVER_FN_ENDPOINT }
-        : true,
+      ssr: serverComponents
+        ? { app: 'src/frames/FramesApp.tsx' }
+        : process.env.SSR_DOCUMENT
+          ? { document: process.env.SSR_DOCUMENT }
+          : {},
+      serverFunctions: serverComponents
+        ? { components: true }
+        : process.env.SERVER_FN_ENDPOINT
+          ? { endpoint: process.env.SERVER_FN_ENDPOINT }
+          : true,
     }),
   ],
 });

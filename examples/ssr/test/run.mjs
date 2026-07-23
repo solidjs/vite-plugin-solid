@@ -9,7 +9,10 @@
 //   - prod: the classic two-step `vite build` (client) + `vite build --ssr`
 //     (server) + `node server.js` serves the SSR'd document with the
 //     authored `/src/entry-client.tsx` reference rewritten to the hashed
-//     asset from the manifest.
+//     asset from the manifest,
+//   - with no server functions in the app (and no `serverFunctions` option),
+//     the served client entry and the built client assets carry no
+//     server-function runtime references.
 //
 // Requires the plugin built (pnpm build at the repo root). No browser.
 // Usage: node test/run.mjs [dev|prod]   (default: both)
@@ -17,8 +20,21 @@
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { readdirSync, readFileSync } from 'node:fs';
 
 const exampleDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+
+// This example has no server functions and no `serverFunctions` option, so
+// no client output may reference the server-function runtime. The guarantee
+// is structural — the directive transform only emits runtime imports into
+// modules containing "use server", and nothing imports it unconditionally —
+// and these probes pin it against future codegen/endpoint-threading changes.
+const SERVER_FN_RUNTIME_PROBES = [
+  '@solidjs/web/server-functions',
+  'createServerReference',
+  'configureServerFunctionsClient',
+];
+const findServerFnProbe = (source) => SERVER_FN_RUNTIME_PROBES.find((probe) => source.includes(probe));
 
 const children = new Set();
 function cleanup(code = 0) {
@@ -102,12 +118,32 @@ async function runMode(mode) {
           /<script type="module" src="\/assets\/[^"]+\.js" async>/.test(html),
       );
       record(mode, 'no dev injections leaked', !html.includes('/@vite/client'));
+      const assetsDir = path.join(exampleDir, 'dist/client/assets');
+      const leaks = readdirSync(assetsDir)
+        .map((f) => {
+          const probe = findServerFnProbe(readFileSync(path.join(assetsDir, f), 'utf-8'));
+          return probe ? `${f}: ${probe}` : null;
+        })
+        .filter(Boolean);
+      record(
+        mode,
+        'no server-function runtime in client assets (unused)',
+        leaks.length === 0,
+        leaks.join(', '),
+      );
     } else {
       record(mode, 'Vite client injected into <head>', html.includes('/@vite/client'));
       record(
         mode,
         'authored client entry served as-is',
         html.includes('src="/src/entry-client.tsx"'),
+      );
+      const entryClient = await (await fetch(origin + '/src/entry-client.tsx')).text();
+      record(
+        mode,
+        'no server-function runtime in served client entry (unused)',
+        !findServerFnProbe(entryClient),
+        findServerFnProbe(entryClient) || '',
       );
     }
   } catch (e) {

@@ -1,5 +1,40 @@
 # Changelog
 
+## 3.0.0-next.16
+
+### Minor Changes
+
+- 91aea47: BREAKING: requires Vite 6+. The `vite` peer dependency is now
+  `^6.0.0 || ^7.0.0 || ^8.0.0` and the legacy pre-environment-API code paths
+  are gone: the plugin now always configures `resolve.conditions` and SSR
+  `noExternal`/`external` per environment through `configEnvironment` (instead
+  of the old top-level `resolve.conditions` / `ssr` config placement), and the
+  turnkey SSR object form no longer needs a Vite-version guard. The `vite-3`,
+  `vite-4` and `vite-5` examples were removed. If you are on Vite 3–5, stay on
+  an earlier release of this plugin or upgrade Vite.
+- 4bddb00: add `serverFunctions: { components: true }` (experimental): server components ride server functions with zero extra plugin config — the dev middleware and production handler serve component responses automatically, and turnkey SSR's generated entries emit the document wiring (render plugin, bootstrap script, client `installServerComponents()` call)
+
+### Patch Changes
+
+- 4d68f9c: update to solid 2.0.0-beta.24 and @dom-expressions/compiler 0.50.0-next.29
+- 2ca6a9e: update to solid 2.0.0-beta.25
+- 7b20a0f: Turnkey SSR: dev responses now inline the entry graph's CSS, fixing the
+  flash of unstyled content. The dev middleware walks the SSR module graph
+  from the root entry (the app + document for generated entries, the authored
+  server entry otherwise), compiles each transitively imported stylesheet
+  through the client environment, and SSRs them as
+  `<style data-asset data-vite-dev-id>` tags in `<head>` — the same shape the
+  lazy-asset system emits, so Vite's client adopts them on startup (CSS HMR
+  updates the adopted tag in place) and the dev style patch dedupes any
+  late-injected twin. Previously entry CSS only arrived when the client entry
+  JS executed, so server-painted markup flashed unstyled in dev; production
+  was always fine (manifest-driven `<link rel="stylesheet">`).
+- 1df46d6: Expose the `vite-plugin-solid/virtual-solid-manifest` ambient type
+  declarations through a package `exports` subpath so
+  `"types": ["vite-plugin-solid/virtual-solid-manifest"]` resolves under
+  `moduleResolution: "bundler"` / `node16` too (previously only classic `node`
+  resolution found the shipped `.d.ts`).
+
 ## 3.0.0-next.15
 
 ### Patch Changes

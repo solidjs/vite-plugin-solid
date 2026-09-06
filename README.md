@@ -435,15 +435,10 @@ runtime option, then the module function's result, then the static config;
 an unknown value from any of the three is an error naming its source. The
 mode applies to generated and authored entries alike — an authored
 `render()` returning a `renderToStream` result is awaited the same way (and
-in production its client-entry reference is still rewritten). One caveat for
-authored entries: `httpStatus()` / `httpHeader()` declarations made during
-the render are reverted when the runtime disposes it, which under `'async'`
-happens before the response head is committed — the generated entry commits
-the head at render completion (`renderToStream`'s `onCompleteAll`) to keep
-them, so an authored entry that needs them under `'async'` should pass the
-same hook (`onCompleteAll: () => commitResponseStub(getRequestEvent().response)`);
-a `Location` written straight onto `event.response.headers` is unaffected.
-Server mode only — in client mode the served shell has no boundaries to
+in production its client-entry reference is still rewritten). `httpStatus()` /
+`httpHeader()` declarations survive either mode: the runtime freezes the
+response head when the awaited render completes (`@solidjs/web` 2.0.0-rc.7+),
+just as streaming freezes it at shell flush. Server mode only — in client mode the served shell has no boundaries to
 settle, so the option is a documented no-op there.
 
 **`env`** — first-party typed environment variables. A schema file at the

@@ -762,9 +762,9 @@ export function startServe(
       ].join('\n');
     }
     const { app } = requireEntries();
-    const streamOptions = `{ manifest, onCompleteAll: commitResponseHead${serverComponents ? ', plugins: [ServerComponentPlugin]' : ''} }`;
+    const streamOptions = `{ manifest${serverComponents ? ', plugins: [ServerComponentPlugin]' : ''} }`;
     return [
-      `import { renderToStream, getRequestEvent, commitResponseStub } from '@solidjs/web';`,
+      `import { renderToStream${setupPath ? ', getRequestEvent' : ''} } from '@solidjs/web';`,
       ...(serverComponents
         ? [
             `import { configureServerFunctionsServer } from '@solidjs/web/server-functions';`,
@@ -797,19 +797,6 @@ export function startServe(
             ``,
           ]
         : []),
-      // Commits the response head when the render completes — BEFORE the
-      // runtime disposes the render. `httpStatus`/`httpHeader` register
-      // cleanups that revert their declarations unless the stub is already
-      // committed; streaming commits at shell flush (this is a no-op there),
-      // but the async render mode resolves the complete document only after
-      // that disposal (`renderToStream(...).then` disposes, then resolves),
-      // so without this the settled 404 / Location would be reverted before
-      // createSSRResponse's string path could commit them.
-      `function commitResponseHead() {`,
-      `  const event = getRequestEvent();`,
-      `  if (event) commitResponseStub(event.response);`,
-      `}`,
-      ``,
       ...(setupPath
         ? [
             // The per-request seam: the hook sees the same event the

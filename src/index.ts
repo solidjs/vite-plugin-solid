@@ -442,6 +442,11 @@ function getExtension(filename: string): string {
   const index = filename.lastIndexOf('.');
   return index < 0 ? '' : filename.substring(index).replace(/\?.+$/, '');
 }
+// The packages whose dev/production server builds are selected by the
+// `development` export condition. A dependency on either means the package
+// consumes the runtime and must resolve it through Vite in dev.
+const SOLID_RUNTIME_PKGS = ['solid-js', '@solidjs/web'];
+
 function containsSolidField(fields: Record<string, any>) {
   const keys = Object.keys(fields);
   for (let i = 0; i < keys.length; i++) {
@@ -1033,6 +1038,23 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
         isBuild: command === 'build',
         isFrameworkPkgByJson(pkgJson) {
           return containsSolidField(pkgJson.exports || {});
+        },
+        // Under `vite dev` the runtime must not be split in two. Inlined
+        // modules resolve `solid-js` through Vite with `development` (its dev
+        // server build); an externalized package's own imports are resolved by
+        // Node, which has no `development` condition, so it loads the
+        // production build instead. Both then run, each with its own
+        // `sharedConfig` — the manifest `renderToStream` sets lands on one and
+        // `lazy()` reads the other. `resolve.externalConditions` below only
+        // fixes the external's own entry, not what it imports, so every
+        // package that consumes the runtime has to go through Vite as well.
+        // Semi-framework is the right class: `ssr.noExternal` without
+        // `optimizeDeps.exclude`, since these hold no raw Solid components.
+        isSemiFrameworkPkgByJson(pkgJson) {
+          if (!replaceDev) return false;
+          return SOLID_RUNTIME_PKGS.some(
+            (name) => pkgJson.dependencies?.[name] || pkgJson.peerDependencies?.[name],
+          );
         },
       });
 

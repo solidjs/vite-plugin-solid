@@ -1058,6 +1058,62 @@ async function runDevMode() {
       ssrError: true,
     });
 
+    // ---- Re-optimization keeps the toolbar import current ----------------
+    // The generated entry's toolbar import resolves through the optimizer,
+    // so it carries a browserHash. A dependency discovered after the initial
+    // scan re-optimizes (new hash, toolbar chunks re-emitted under new
+    // names); the entry must follow, not keep the id detection resolved
+    // against the first pass — that stale id 504'd the toolbar's lazy chunks
+    // and brought a second solid-js instance into the page. The probe module
+    // imports a package subpath the app graph never touches, which is what
+    // a late discovery looks like — one that shares chunks with the deps
+    // already bundled, so the optimizer has to rewrite them (a dependency
+    // that only adds a standalone bundle keeps the old hashes and reloads
+    // nothing).
+    {
+      const entryUrl = origin + '/@id/virtual:solid-ssr-entry-client.tsx';
+      const hashes = async () => {
+        const entry = await (await fetch(entryUrl)).text();
+        return {
+          toolbar: /@solidjs_start-devtools\.js\?v=([0-9a-f]+)/.exec(entry)?.[1] ?? null,
+          web: /@solidjs_web\.js\?v=([0-9a-f]+)/.exec(entry)?.[1] ?? null,
+        };
+      };
+      const before = await hashes();
+      const probePath = path.join(exampleDir, 'src/ReoptimizeProbe.ts');
+      writeFileSync(
+        probePath,
+        `import '@solidjs/web/frames/client';\nexport const probe = true;\n`,
+      );
+      let after = before;
+      try {
+        await fetch(origin + '/src/ReoptimizeProbe.ts');
+        // Discovery re-optimizes on a short debounce; wait for the entry's
+        // other optimized import to move to the new pass.
+        const deadline = Date.now() + 15000;
+        while (after.web === before.web && Date.now() < deadline) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          after = await hashes();
+        }
+      } finally {
+        rmSync(probePath, { force: true });
+      }
+      record(
+        mode,
+        'devtools',
+        'late dependency discovery re-optimized (probe)',
+        !!before.web && !!after.web && after.web !== before.web,
+        `@solidjs/web ?v=${before.web} -> ?v=${after.web}`,
+      );
+      record(
+        mode,
+        'devtools',
+        'toolbar import follows the optimizer across a re-optimization',
+        !!after.toolbar && after.toolbar === after.web && after.toolbar !== before.toolbar,
+        `start-devtools ?v=${before.toolbar} -> ?v=${after.toolbar}, @solidjs/web ?v=${after.web}`,
+      );
+    }
+
     // ---- Cold-start dep scan (boundary-guard false positive) -------------
     // Counterpart: the ssr example's boundary.mjs proves the guard still
     // errors on real client-graph imports of 'server-only'.

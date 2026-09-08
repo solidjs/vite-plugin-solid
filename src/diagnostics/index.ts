@@ -163,6 +163,23 @@ export function solidDiagnostics(mode: true | 'auto' = 'auto'): Plugin {
       return env.command === 'serve' && !env.isPreview && env.mode !== 'test';
     },
 
+    // The bridge module is virtual and reaches the page behind the
+    // scanner's back (a script injected into index.html at transform time,
+    // or an import the generated start entry adds), so the optimizer never
+    // sees its two package imports up front. Pre-bundle them: otherwise the
+    // first page load discovers them, re-optimizes and full-reloads — a
+    // flash at best, and a broken page whenever anything else on the page
+    // was resolved against the first optimizer pass.
+    config(userConfig) {
+      const rootDir = path.resolve(userConfig.root || process.cwd());
+      if (mode !== true && !detectDiagnosticsPackage(rootDir)) return;
+      return {
+        optimizeDeps: {
+          include: [`${DIAGNOSTICS_PACKAGE}/browser`, `${DIAGNOSTICS_PACKAGE}/protocol`],
+        },
+      };
+    },
+
     configResolved(config) {
       root = config.root;
       base = config.base;

@@ -1108,6 +1108,33 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
           'development',
           ...(config.resolve.externalConditions ?? defaultExternalConditions),
         ];
+
+        // `externalConditions` only reaches the imports the module runner
+        // resolves itself. An externalized package's OWN imports are resolved
+        // by Node, with Node's conditions — never `development`. Since
+        // solid 2.0.0-rc.7 both `solid-js` and `@solidjs/web` ship a
+        // `dist/server.dev.*` behind that condition, so leaving them external
+        // splits the framework in two under `vite dev`: the app's `solid-js`
+        // is the runner's dev copy while `@solidjs/web`'s `import "solid-js"`
+        // lands on Node's prod copy. `renderToStream` then installs the asset
+        // resolver on one `sharedConfig` and `lazy()` reads the other ("no
+        // asset manifest is set"), with every other module-level singleton
+        // (owner tracking, request events, hydration keys) split the same
+        // way. Inlining the two core packages makes every resolution — theirs
+        // included — go through the environment's conditions, so one dev
+        // build is loaded end to end. Framework packages that declare the
+        // `solid` export condition are already inlined via vitefu below and
+        // reach the same copy. Vitest projects manage their own inlining
+        // (`test.server.deps` above) and are left alone, as is a host that
+        // set `noExternal: true` (everything is inlined already).
+        if (!isTestMode && config.resolve.noExternal !== true) {
+          const noExternal = config.resolve.noExternal;
+          config.resolve.noExternal = [
+            ...(Array.isArray(noExternal) ? noExternal : noExternal ? [noExternal] : []),
+            'solid-js',
+            '@solidjs/web',
+          ];
+        }
       }
 
       // Set resolve.noExternal and resolve.external for the SSR environment.

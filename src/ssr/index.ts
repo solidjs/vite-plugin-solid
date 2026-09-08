@@ -552,10 +552,11 @@ export function startServe(
   // any of the (lazy) uses in entry codegen and the entry transform.
   let diagnostics = internal.diagnostics === true;
   let devtoolsEnabled = false;
-  let devtoolsResolutions: Partial<
-    Record<'client' | 'server', Promise<string | null>>
-  > = {};
-  let devtoolsIds: Partial<Record<'client' | 'server', string | null>> = {};
+  // Toolbar detection, memoized per consumer: whether @solidjs/start-devtools
+  // resolves at all, and the app importer it was probed from. Only the
+  // verdict is kept — the resolved id is deliberately not (see resolveId).
+  let devtoolsDetections: Partial<Record<'client' | 'server', Promise<boolean>>> = {};
+  let devtoolsImporters: Partial<Record<'client' | 'server', string>> = {};
   // `external` is server-mode-only (documented no-op in client mode, so a
   // host-integrated config survives the `ssr` boolean flip untouched).
   const externalServer = !clientMode && !!options.external;
@@ -582,37 +583,49 @@ export function startServe(
     return entries;
   }
 
+  type DevtoolsResolve = (source: string, importer: string) => Promise<{ id: string } | null>;
+
+  /**
+   * Resolve @solidjs/start-devtools for generated code: from the app graph
+   * first (the documented install location), then from the plugin's own
+   * file — in pnpm-isolated apps a copy that is only a dependency of the
+   * plugin is not reachable from the app's importers. Resolving from the
+   * plugin's own file never yields null when the package is absent: it is
+   * declared an optional peer dependency, so Vite answers with its
+   * `__vite-optional-peer-dep:` stub (an empty module). That stub counts as
+   * "not installed".
+   */
+  async function resolveDevtoolsId(
+    resolve: DevtoolsResolve,
+    importer: string,
+  ): Promise<string | null> {
+    const realId = (resolved: { id: string } | null) =>
+      resolved && !resolved.id.startsWith('__vite-optional-peer-dep:') ? resolved.id : null;
+    return (
+      realId(await resolve(DEVTOOLS_PACKAGE, importer)) ??
+      realId(await resolve(DEVTOOLS_PACKAGE, fileURLToPath(import.meta.url)))
+    );
+  }
+
   async function resolveDevtools(
-    resolve: (source: string, importer: string) => Promise<{ id: string } | null>,
+    resolve: DevtoolsResolve,
     importer: string,
     consumer: 'client' | 'server',
   ): Promise<boolean> {
     if (!devtoolsEnabled) return false;
-    // Detect from the app graph first (the documented install location), then
-    // from the plugin's own file: in pnpm-isolated apps a copy that is only a
-    // dependency of the plugin is not reachable from the app's importers. The
-    // resolved id is kept so imports from generated modules can use it.
-    devtoolsResolutions[consumer] ??= (async () => {
-      // Resolving from the plugin's own file never yields null when the
-      // package is absent: it is declared an optional peer dependency, so
-      // Vite answers with its `__vite-optional-peer-dep:` stub (an empty
-      // module). Treat that stub as "not installed".
-      const realId = (resolved: { id: string } | null) =>
-        resolved && !resolved.id.startsWith('__vite-optional-peer-dep:') ? resolved.id : null;
-      return (
-        realId(await resolve(DEVTOOLS_PACKAGE, importer)) ??
-        realId(await resolve(DEVTOOLS_PACKAGE, fileURLToPath(import.meta.url)))
-      );
-    })();
-    const id = await devtoolsResolutions[consumer];
-    devtoolsIds[consumer] = id;
-    if (!id && options.devtools === true) {
+    // An install cannot change under a running server, so the verdict is
+    // memoized per consumer. The id it was reached with is not reused for
+    // generated imports: resolveId resolves afresh from the same importer.
+    devtoolsImporters[consumer] ??= importer;
+    devtoolsDetections[consumer] ??= resolveDevtoolsId(resolve, importer).then((id) => id !== null);
+    const detected = await devtoolsDetections[consumer];
+    if (!detected && options.devtools === true) {
       throw new Error(
         '[@solidjs/vite-plugin] start.devtools requires @solidjs/start-devtools. ' +
           'Install it as a development dependency or set start.devtools to false.',
       );
     }
-    return id !== null;
+    return detected;
   }
 
   /**
@@ -1267,8 +1280,8 @@ export function startServe(
         root = path.resolve(userConfig.root || process.cwd());
         devtoolsEnabled =
           env.command === 'serve' && !env.isPreview && options.devtools !== false;
-        devtoolsResolutions = {};
-        devtoolsIds = {};
+        devtoolsDetections = {};
+        devtoolsImporters = {};
         entries = resolveEntries(root, options, clientMode);
         internal.onDocumentResolved?.(entries.document);
         middlewarePath = options.middleware
@@ -1429,7 +1442,7 @@ export function startServe(
           diagnostics = detectDiagnosticsPackage(root);
         }
       },
-      resolveId(source, importer, opts) {
+      async resolveId(source, importer, opts) {
         if (source === HANDLER_ID) {
           return { id: HANDLER_ID, moduleSideEffects: true };
         }
@@ -1447,17 +1460,29 @@ export function startServe(
         if (devtoolsEnabled && source === DEVTOOLS_MOUNT_ID) {
           return { id: source, moduleSideEffects: true };
         }
-        // Generated modules have no directory for bare-package resolution.
-        // Reuse the app-relative id captured during detection.
-        const devtoolsId = devtoolsIds[getEnvironmentConsumer(this.environment, opts)];
         if (
-          devtoolsId &&
           source === DEVTOOLS_PACKAGE &&
           (importer === ENTRY_SERVER_ID ||
             importer === ENTRY_CLIENT_ID ||
             importer === DEVTOOLS_MOUNT_ID)
         ) {
-          return { id: devtoolsId };
+          // Generated modules have no directory for bare-package resolution:
+          // resolve from the app importer detection probed. Resolve afresh on
+          // every request rather than reusing detection's id — in the client
+          // environment that id is the optimizer's pre-bundled URL, stamped
+          // with the browserHash of the pass that produced it. Any dependency
+          // discovered after the initial scan re-optimizes: the toolbar's
+          // chunks are re-emitted under new names and the hash moves on, and
+          // a frozen id would keep the entry on the previous pass — its lazy
+          // chunks answer 504 (Outdated Optimize Dep) and the stale bundle
+          // brings a second solid-js instance into the page.
+          const from = devtoolsImporters[getEnvironmentConsumer(this.environment, opts)];
+          if (!from) return null;
+          const id = await resolveDevtoolsId(
+            (s, i) => this.resolve(s, i, { skipSelf: true }),
+            from,
+          );
+          return id ? { id } : null;
         }
         return null;
       },

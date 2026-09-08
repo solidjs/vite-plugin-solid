@@ -224,6 +224,34 @@ async function fetchStreamed(url) {
   return { status: res.status, headers: res.headers, chunks, html };
 }
 
+/**
+ * A request with EXACTLY the headers given. `fetch` (undici) treats the
+ * `Sec-Fetch-*` names as forbidden request headers — it drops the caller's
+ * and sends its own `Sec-Fetch-Mode: cors` — so a browser form navigation
+ * (`Sec-Fetch-Mode: navigate`, the gate of the no-JS server-function
+ * convention) cannot be imitated through it. Never follows redirects;
+ * `setCookies` is the raw multi-valued `Set-Cookie`.
+ */
+function rawRequest(url, { method = 'GET', headers = {}, body } = {}) {
+  return new Promise((resolve, reject) => {
+    const req = http.request(url, { method, headers }, (res) => {
+      let text = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => (text += chunk));
+      res.on('end', () =>
+        resolve({
+          status: res.statusCode,
+          headers: res.headers,
+          setCookies: res.headers['set-cookie'] ?? [],
+          text,
+        }),
+      );
+    });
+    req.on('error', reject);
+    req.end(body);
+  });
+}
+
 // ---------------------------------------------------------------------------
 // CDP driver
 // ---------------------------------------------------------------------------
@@ -2697,6 +2725,98 @@ async function runMiddlewareChecksOverHttp(mode, origin, functionId) {
     !!first && !!second && second.seq > first.seq,
     `seq ${first?.seq} then ${second?.seq}`,
   );
+
+  // ---- The no-JS server-function convention, end to end ------------------
+  // A browser form posted to a server function's bare address without the
+  // client runtime cannot receive a value: the runtime answers 303 back to
+  // the referring page with the outcome riding a one-shot flash cookie, and
+  // the render that follows decodes it (src/setup.tsx here — the
+  // integration's half). Since @solidjs/web 2.0.0-rc.7 that cookie is
+  // AES-GCM encrypted under a key derived from the deployment secret, and
+  // WITHOUT a secret the flash is withheld entirely (the redirect goes out
+  // plain, dev warns once). The plugin provides the secret with zero
+  // configuration — `globalThis.__SOLID_SECRET__ ??=` leads the generated
+  // handler module — so the Set-Cookie below is the proof that it reached
+  // the runtime, and the marker is the proof the render decrypted it under
+  // the same key. Headers mimic a real form navigation: form content type,
+  // `Sec-Fetch-Mode: navigate` (the convention's gate — hence rawRequest,
+  // fetch cannot send it), same-origin proof for the CSRF check, and the
+  // referrer the redirect returns to.
+  if (functionId) {
+    const back = origin + '/';
+    const post = await rawRequest(`${origin}/_server/${encodeURIComponent(functionId)}`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        accept: 'text/html',
+        referer: back,
+        'sec-fetch-site': 'same-origin',
+        'sec-fetch-mode': 'navigate',
+      },
+      body: new URLSearchParams({ name: 'nojs-flash' }).toString(),
+    });
+    record(
+      mode,
+      'flash',
+      'no-JS form POST to a server function redirects back to the referrer (303)',
+      post.status === 303 && post.headers.location === back,
+      `status ${post.status}, location ${JSON.stringify(post.headers.location)}`,
+    );
+    const postCookies = post.setCookies;
+    const flashCookie = postCookies.find((cookie) => cookie.startsWith('flash=')) ?? null;
+    record(
+      mode,
+      'flash',
+      'redirect carries the encrypted flash cookie (deployment secret reached the runtime)',
+      !!flashCookie && /^flash=1\./.test(flashCookie),
+      `set-cookie: ${JSON.stringify(postCookies)}`,
+    );
+    record(
+      mode,
+      'flash',
+      'flash cookie is one-shot and Lax (Max-Age=60, SameSite=Lax, HttpOnly)',
+      !!flashCookie &&
+        /;\s*max-age=60\b/i.test(flashCookie) &&
+        /;\s*samesite=lax\b/i.test(flashCookie) &&
+        /;\s*httponly\b/i.test(flashCookie),
+      `set-cookie: ${JSON.stringify(flashCookie)}`,
+    );
+
+    // The render that follows the redirect: the page reads the cookie back,
+    // decrypts it, and surfaces the outcome (the flash's url is the unbound
+    // function base, its result the function's return, its input the
+    // submitted form) — then clears the cookie so a reload reads "no flash".
+    const flashed = await fetch(back, {
+      headers: { accept: 'text/html', cookie: flashCookie ? flashCookie.split(';')[0] : '' },
+    });
+    const flashedHtml = await flashed.text();
+    const flashMarker = /flash:([^:<]+):([^:<]+):([^:<]+)</.exec(flashedHtml);
+    record(
+      mode,
+      'flash',
+      'following render decrypts the flash and surfaces the outcome (url, result, input)',
+      !!flashMarker &&
+        flashMarker[1] === `/_server/${functionId}` &&
+        flashMarker[2] === 'mw-user' &&
+        flashMarker[3] === 'nojs-flash',
+      flashMarker ? `marker ${JSON.stringify(flashMarker[0])}` : 'no flash marker in html',
+    );
+    const flashedCookies = flashed.headers.getSetCookie ? flashed.headers.getSetCookie() : [];
+    record(
+      mode,
+      'flash',
+      'render clears the flash cookie once read',
+      flashedCookies.some((cookie) => /^flash=;/.test(cookie) && /max-age=0\b/i.test(cookie)),
+      `set-cookie: ${JSON.stringify(flashedCookies)}`,
+    );
+    const plain = await fetch(back, { headers: { accept: 'text/html' } });
+    record(
+      mode,
+      'flash',
+      'a render without the cookie carries no flash',
+      !/flash:/.test(await plain.text()),
+    );
+  }
 }
 
 async function runMiddlewareMode() {

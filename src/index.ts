@@ -237,6 +237,18 @@ export interface Options {
    */
   dev?: boolean;
   /**
+   * Resolve Solid's observe builds: the production-speed runtime that keeps
+   * the diagnostics and attribution channels (`OBSERVE`) alive for
+   * production observability tooling. Adds the `observe` export condition
+   * to every environment (client and server, inlined and externalized) and
+   * turns on the compiler's `componentNames` option so owner labels survive
+   * minification. Applies to `vite build` and preview; under `vite dev` the
+   * `development` condition still wins (the dev build is a superset).
+   *
+   * @default false
+   */
+  observe?: boolean;
+  /**
    * Dev-serve only: expose Solid's diagnostic and attribution channels to
    * out-of-process consumers (agents, tests, curl). Injects a client module
    * that installs the in-page bridge from the app's own
@@ -498,6 +510,7 @@ function getSolidOptions(
   options: Partial<Options>,
   isSsr: boolean,
   dev: boolean,
+  observe: boolean,
   isTestMode = false,
 ): SolidOptions {
   let solidOptions: Pick<SolidOptions, 'generate' | 'hydratable'>;
@@ -537,10 +550,17 @@ function getSolidOptions(
   // builtIns, contextToCustomElements, wrapConditionals) are baked into both
   // backends — @solidjs/compiler and @solidjs/babel-plugin — so only the
   // posture this plugin actually decides is passed.
+  // Component labels: the dev and observe runtimes name each component's
+  // owner (`<Home>`) for diagnostics and attribution paths. Without the
+  // compiler carrying the source tag name, a minified build labels owners by
+  // whatever the minifier left of `Comp.name`. DOM-only by construction (the
+  // ssr generate ignores the flag), and the production runtime ignores the
+  // argument, so it is only emitted for the postures whose runtime reads it.
   return {
     ...solidOptions,
     ...(serverComponents && solidOptions.generate === 'ssr' ? { serverComponents: true } : {}),
     dev,
+    ...(dev || observe ? { componentNames: true } : {}),
     ...(options.solid || {}),
   };
 }
@@ -864,6 +884,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
 
   let needHmr = false;
   let replaceDev = false;
+  let observe = false;
   // Resolved absolute path of the start-mode document shell (normalized to
   // forward slashes, matching Vite ids), reported back by the start plugin's
   // config hook. The document is the one module whose client compile must
@@ -998,7 +1019,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   }
 
   async function compileTsrxCss(source: string, id: string): Promise<string> {
-    const solidOptions = getSolidOptions(options, false, replaceDev, isTestMode);
+    const solidOptions = getSolidOptions(options, false, replaceDev, observe, isTestMode);
     if (options.compiler === 'babel') {
       const babelUserOptions = await getBabelUserOptions(options, source, id, false);
       const babelOptions = mergeAndConcat(babelUserOptions, {
@@ -1036,6 +1057,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
     async config(userConfig, { command }) {
       // We inject the dev mode only if the user explicitly wants it or if we are in dev (serve) mode
       replaceDev = options.dev === true || (options.dev !== false && command === 'serve');
+      observe = options.observe === true;
       projectRoot = userConfig.root || projectRoot;
       isTestMode = userConfig.mode === 'test';
       // Per-vitest-project posture: the client posture (browser conditions,
@@ -1077,9 +1099,12 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
         // Semi-framework is the right class: `ssr.noExternal` without
         // `optimizeDeps.exclude`, since these hold no raw Solid components.
         isSemiFrameworkPkgByJson(pkgJson) {
-          // Same gate as the core inlining in configEnvironment: dev serve
-          // only, never vitest (it manages inlining via test.server.deps).
-          if (!replaceDev || isTestMode) return false;
+          // Same gate as the core inlining in configEnvironment: dev serve or
+          // an observe build (the `observe` condition selects a server build
+          // the same way `development` does, and an externalized consumer
+          // would split it just the same), never vitest (it manages inlining
+          // via test.server.deps).
+          if (!(replaceDev || observe) || isTestMode) return false;
           return SOLID_RUNTIME_PKGS.some(
             (name) => pkgJson.dependencies?.[name] || pkgJson.peerDependencies?.[name],
           );
@@ -1180,7 +1205,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
                   if (!isTsrxModule(id) || isTsrxCssModule(id)) return null;
                   const compiler = await loadNativeCompiler();
                   const result = await compiler.transformAsync(source, {
-                    ...getSolidOptions(options, false, replaceDev, isTestMode),
+                    ...getSolidOptions(options, false, replaceDev, observe, isTestMode),
                     filename: cleanModuleId(id),
                     sourceMap: false,
                   });
@@ -1212,6 +1237,10 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       config.resolve.conditions = [
         'solid',
         ...(replaceDev ? ['development'] : []),
+        // `development` nests above `observe` in the runtime's exports, so
+        // both may be present: dev serve keeps the dev build, builds get the
+        // observe build.
+        ...(observe ? ['observe'] : []),
         // Tests resolve the browser builds even when the app is
         // server-rendered — the client posture applies to the whole test
         // pipeline, not just the codegen. Projects that explicitly opt into
@@ -1231,10 +1260,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       // runtime among them) run their PRODUCTION copy under `vite dev`:
       // server errors reach the client sanitized to "Internal Server Error"
       // instead of carrying the real message, dev-only diagnostics vanish.
-      // So the dev flag has to reach both lists.
-      if (replaceDev && config.consumer !== 'client' && name !== 'client') {
+      // So the dev flag has to reach both lists — and `observe` selects its
+      // server build the same way, with the same split if it only reaches
+      // one list.
+      if ((replaceDev || observe) && config.consumer !== 'client' && name !== 'client') {
         config.resolve.externalConditions = [
-          'development',
+          ...(replaceDev ? ['development'] : []),
+          ...(observe ? ['observe'] : []),
           ...(config.resolve.externalConditions ?? defaultExternalConditions),
         ];
 
@@ -1553,7 +1585,7 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       }
 
       const inNodeModules = /node_modules/.test(id);
-      const solidOptions = getSolidOptions(options, !!isSsr, replaceDev, isTestMode);
+      const solidOptions = getSolidOptions(options, !!isSsr, replaceDev, observe, isTestMode);
 
       // We need to know if the current file extension has a typescript options tied to it
       const shouldBeProcessedWithTypescript =

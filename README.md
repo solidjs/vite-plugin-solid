@@ -125,6 +125,17 @@ This will inject `solid-js/dev` in place of `solid-js` in dev mode. Has no effec
 If set to false, it won't inject it in dev.
 This is useful for extra logs and debug.
 
+#### options.observe
+
+- Type: Boolean
+- Default: false
+
+Resolve Solid's observe builds in production: the production-speed runtime that keeps the
+diagnostics and attribution channels (`OBSERVE`) alive for observability tooling (error
+monitoring, performance tracing). Adds the `observe` export condition to every environment
+and turns on the compiler's `componentNames` option, so component owner labels (`<Home>`)
+survive minification. Under `vite dev` the dev build still wins.
+
 #### options.hot
 
 - Type: Boolean

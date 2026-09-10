@@ -525,6 +525,14 @@ export function startServe(
      * declines HMR for that module's client compile (solidjs/solid#3151).
      */
     onDocumentResolved?: (documentPath: string | null) => void;
+    /**
+     * Reports the client entry this plugin adds to the client build's input
+     * (the virtual generated entry id, or the authored entry's absolute
+     * path) back to the main plugin, which stamps it as `_entry` on
+     * `virtual:solid-manifest` so the built handler and the runtime never
+     * have to guess the entry among other configured inputs (#353).
+     */
+    onClientEntryResolved?: (entryId: string) => void;
   } = {},
 ): Plugin[] {
   // Client mode (the `start` option without `ssr: true`) rides this exact
@@ -995,8 +1003,16 @@ export function startServe(
         `function resolveClientEntry() {`,
         `  if (clientEntryUrl !== undefined) return clientEntryUrl;`,
         `  clientEntryUrl = null;`,
-        // The plugin's manifest module normalizes lazy facade chunks
-        // (isDynamicEntry) so exactly one real entry remains flagged.
+        // The plugin's manifest module names the client entry it injected
+        // into the build (`_entry`): every configured input is a genuine
+        // `isEntry` record (a filesystem router's `buildInputs` lists every
+        // route module), so scanning for the first flagged record would pick
+        // whichever sorts first (#353). The scan stays as the fallback for
+        // hand-rolled manifests without the stamp.
+        `  const stamped = manifest._entry && manifest[manifest._entry];`,
+        `  if (stamped && stamped.file) {`,
+        `    return (clientEntryUrl = joinAssetPath(manifest._base, stamped.file));`,
+        `  }`,
         `  for (const key in manifest) {`,
         `    const chunk = manifest[key];`,
         `    if (chunk && chunk.isEntry && chunk.file) {`,
@@ -1333,6 +1349,7 @@ export function startServe(
         const clientInput = entries.generated
           ? ENTRY_CLIENT_ID
           : path.resolve(root, entries.entryClient);
+        internal.onClientEntryResolved?.(clientInput);
         // Real files only — the dep scanner can't crawl virtual modules.
         // (In client mode the resolved document joins the scan/style roots
         // even with an authored client entry; in SSR mode authored entries

@@ -54,6 +54,10 @@ import solidPlugin from '@solidjs/vite-plugin';
 // - SOLID_SERVER_COMPONENTS points the generated entries at the
 //   server-components page and flips `serverFunctions: { components: true }`
 //   (frames mode) — the one-line enablement under test.
+// - EXTRA_CLIENT_INPUT=1 (extra-input mode) lists src/ExtraInput.tsx — a
+//   module App.tsx also lazily imports — as a further client build input,
+//   the shape filesystem-routing's `buildInputs` produces for every route
+//   module (#353). Vite merges the plugin's injected entry into this array.
 const jsxCompiler =
   process.env.SOLID_JSX_COMPILER === 'babel' ? ('babel' as const) : ('native' as const);
 const serverComponents = !!process.env.SOLID_SERVER_COMPONENTS;
@@ -105,6 +109,13 @@ export default defineConfig({
               },
             },
           ],
+        },
+      }
+    : {}),
+  ...(process.env.EXTRA_CLIENT_INPUT
+    ? {
+        environments: {
+          client: { build: { rollupOptions: { input: ['src/ExtraInput.tsx'] } } },
         },
       }
     : {}),

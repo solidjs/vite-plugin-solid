@@ -118,11 +118,16 @@
 //   - a non-root Vite `base` (base mode, SOLID_BASE=/app/) holds end to end:
 //     dev pages/assets/endpoint and preview pages/statics/endpoint all serve
 //     base-prefixed, the built handler receives base-restored URLs from the
-//     preview adapter (#300), and dev lazy asset URLs carry the base (#298).
+//     preview adapter (#300), and dev lazy asset URLs carry the base (#298),
+//   - extra configured client inputs (extra-input mode, EXTRA_CLIENT_INPUT=1,
+//     the filesystem-routing `buildInputs` shape) don't displace the client
+//     entry: the built handler boots the real entry chunk and links the entry
+//     graph's stylesheet even though the extra input is an `isEntry` record
+//     sorting ahead of it (#353).
 //
 // Requires the plugin built (pnpm build at the repo root) and Google Chrome.
 // Usage: node test/run.mjs
-// [dev|prod|document|css-filter|entries|endpoint|configure|no-middleware|middleware|preview|render-mode|base|builder-order|builder-prepare|babel-hmr|frames]
+// [dev|prod|document|css-filter|entries|endpoint|configure|no-middleware|middleware|preview|render-mode|base|builder-order|builder-prepare|extra-input|babel-hmr|frames]
 // (default: all)
 
 import { spawn, execSync } from 'node:child_process';
@@ -2084,6 +2089,119 @@ async function runBuilderOrderMode() {
         process.kill(-server.pid, 'SIGTERM');
       } catch {}
     }
+    // Leave dist in the standard state for anyone poking at it.
+    try {
+      execSync('pnpm run build', { cwd: exampleDir, stdio: 'pipe' });
+    } catch {}
+  }
+}
+
+// Extra configured client inputs (#353): EXTRA_CLIENT_INPUT=1 lists
+// src/ExtraInput.tsx — a module App.tsx also lazily imports — as a further
+// client build input, the shape filesystem-routing's `buildInputs` produces
+// for every route module. Since #347 such inputs keep `isEntry` (they are
+// genuine entries), so the manifest carries several flagged records and the
+// extra one's key (`src/…`) sorts ahead of the plugin's `virtual:` entry. The
+// built handler used to take the first `isEntry` record as the client entry:
+// the page booted the route chunk and linked the route's CSS while the real
+// entry's global stylesheet never made it into <head>. The manifest module
+// now names its entry (`_entry`, serialized first) and the handler reads it.
+async function runExtraInputMode() {
+  const mode = 'extra-input';
+  console.log(`\n=== ${mode.toUpperCase()} ===`);
+  const env = { ...process.env, EXTRA_CLIENT_INPUT: '1' };
+  const entryKey = 'virtual:solid-ssr-entry-client.tsx';
+  const extraKey = 'src/ExtraInput.tsx';
+
+  try {
+    rmSync(path.join(exampleDir, 'dist'), { recursive: true, force: true });
+    console.log('  building…');
+    execSync('pnpm run build', { cwd: exampleDir, stdio: 'pipe', env });
+    const clientManifest = JSON.parse(
+      readFileSync(path.join(exampleDir, 'dist/client/.vite/manifest.json'), 'utf-8'),
+    );
+    const entry = clientManifest[entryKey];
+    const extra = clientManifest[extraKey];
+    record(
+      mode,
+      'build',
+      'both configured inputs are manifest entries (extra one lazily imported too)',
+      !!entry?.isEntry &&
+        !!extra?.isEntry &&
+        !!entry?.css?.length &&
+        !!extra?.css?.length &&
+        (entry.dynamicImports ?? []).includes(extraKey),
+      `keys: ${Object.keys(clientManifest).join(', ')}`,
+    );
+    record(
+      mode,
+      'build',
+      'extra input sorts ahead of the client entry in manifest.json',
+      Object.keys(clientManifest).indexOf(extraKey) < Object.keys(clientManifest).indexOf(entryKey),
+    );
+    const serverBundle = readFileSync(path.join(exampleDir, 'dist/server/server.js'), 'utf-8');
+    record(
+      mode,
+      'build',
+      'baked manifest names the client entry (_entry) and keeps the extra input flagged',
+      serverBundle.includes(`"_entry": ${JSON.stringify(entryKey)}`) &&
+        (serverBundle.match(/"isEntry":\s*true/g) ?? []).length >= 2,
+    );
+
+    const handler = await import(
+      pathToFileURL(path.join(exampleDir, 'dist/server/server.js')).href + `?extra=${Date.now()}`
+    );
+    const html = await (await handler.handleRequest(new Request('http://localhost/'))).text();
+    const scriptSrc = html.match(/<script type="module" src="([^"]+)" async><\/script>/)?.[1];
+    const stylesheets = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)">/g)].map(
+      (m) => m[1],
+    );
+    record(mode, 'prod', 'app server-rendered', html.includes('SSR Start Mode'));
+    record(
+      mode,
+      'prod',
+      'client entry script is the real entry chunk',
+      !!entry?.file && scriptSrc === `/${entry.file}`,
+      `script: ${scriptSrc}, entry: ${entry?.file}, extra: ${extra?.file}`,
+    );
+    record(
+      mode,
+      'prod',
+      "entry graph's stylesheet linked in <head>",
+      !!entry?.css?.[0] && stylesheets.includes(`/${entry.css[0]}`),
+      `stylesheets: ${stylesheets.join(', ')}`,
+    );
+    record(
+      mode,
+      'prod',
+      'extra input chunk is neither the boot script nor a linked stylesheet on /',
+      !!extra?.file &&
+        scriptSrc !== `/${extra.file}` &&
+        !stylesheets.includes(`/${extra.css?.[0]}`) &&
+        !html.includes(extra.file),
+      `script: ${scriptSrc}, stylesheets: ${stylesheets.join(', ')}`,
+    );
+    // The extra input is still a working lazy target: rendering its route
+    // registers its own CSS alongside the entry's.
+    const extraHtml = await (
+      await handler.handleRequest(new Request('http://localhost/extra-input'))
+    ).text();
+    const extraStylesheets = [...extraHtml.matchAll(/<link rel="stylesheet" href="([^"]+)">/g)].map(
+      (m) => m[1],
+    );
+    record(
+      mode,
+      'prod',
+      'lazy route to the extra input renders with both stylesheets and the real entry script',
+      extraHtml.includes('EXTRA-INPUT-PAGE') &&
+        extraStylesheets.includes(`/${entry?.css?.[0]}`) &&
+        extraStylesheets.includes(`/${extra?.css?.[0]}`) &&
+        extraHtml.includes(`<script type="module" src="/${entry?.file}" async></script>`),
+      `stylesheets: ${extraStylesheets.join(', ')}`,
+    );
+  } catch (e) {
+    record(mode, 'run', 'mode completed', false, String(e));
+  } finally {
     // Leave dist in the standard state for anyone poking at it.
     try {
       execSync('pnpm run build', { cwd: exampleDir, stdio: 'pipe' });
@@ -4288,6 +4406,7 @@ const ALL_MODES = [
   'base',
   'builder-order',
   'builder-prepare',
+  'extra-input',
   'frames',
   'babel-hmr',
   'external',
@@ -4311,6 +4430,7 @@ for (const mode of modes) {
   else if (mode === 'base') await runBaseMode();
   else if (mode === 'builder-order') await runBuilderOrderMode();
   else if (mode === 'builder-prepare') await runBuilderPrepareMode();
+  else if (mode === 'extra-input') await runExtraInputMode();
   else if (mode === 'frames') await runFramesMode();
   else if (mode === 'babel-hmr') await runBabelHmrMode();
   else if (mode === 'external') await runExternalMode();

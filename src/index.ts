@@ -716,6 +716,80 @@ function normalizeEmittedLazyEntries(
   }
 }
 
+/**
+ * The manifest key of THE client entry — the chunk whose `<script
+ * type="module">` boots the page and whose static import graph carries the
+ * global CSS. `isEntry` cannot answer this: every configured build input is
+ * a genuine entry (#347 keeps them flagged), and plugins routinely add more
+ * inputs than the application entry (filesystem-routing's `buildInputs`
+ * lists every route module, and route keys sort ahead of the plugin's own
+ * `virtual:` entry). So the identity comes from configuration instead: the
+ * entry start mode injected itself, or — outside start mode — the single
+ * configured input when there is exactly one (including Vite's default
+ * `index.html`). Several inputs and no start entry: no answer (null), and
+ * consumers keep their first-`isEntry` scan.
+ *
+ * Matched by key or `src`, the same two spellings `isConfiguredEntry` uses.
+ */
+function resolveClientEntryKey(
+  manifest: Record<string, any>,
+  startClientEntryId: string | null,
+  clientBuild: any,
+  root: string,
+): string | null {
+  let entryId: string | null = startClientEntryId;
+  if (!entryId) {
+    const input = configuredBuildInput(clientBuild);
+    const raw =
+      input == null
+        ? ['index.html']
+        : typeof input === 'string'
+          ? [input]
+          : Array.isArray(input)
+            ? input
+            : Object.values(input as Record<string, unknown>);
+    if (raw.length !== 1 || typeof raw[0] !== 'string') return null;
+    entryId = raw[0];
+  }
+  const { manifestKeys } = resolveConfiguredEntries(entryId, root);
+  for (const key in manifest) {
+    const record = manifest[key];
+    if (!record || typeof record !== 'object' || !record.file) continue;
+    if (manifestKeys.has(key) || (typeof record.src === 'string' && manifestKeys.has(record.src))) {
+      return key;
+    }
+  }
+  return null;
+}
+
+/**
+ * Serializes the plugin's manifest module with the client entry made
+ * explicit: `_entry` names its key (the generated handler reads it before
+ * falling back to scanning for `isEntry`), and its record is moved to the
+ * front. The ordering matters for consumers that still identify the entry
+ * by the first `isEntry` record — `@solidjs/web`'s `registerEntryAssets`,
+ * which links the entry graph's stylesheets and modulepreloads into
+ * `<head>`, and hand-rolled server entries — so they and `_entry` agree on
+ * the same chunk. Other configured inputs keep `isEntry`; they are genuine
+ * entries, just not the one the document boots.
+ */
+function stampClientEntry(
+  manifest: Record<string, any>,
+  entryKey: string | null,
+  base: string,
+): Record<string, any> {
+  const ordered: Record<string, any> = {};
+  if (entryKey && manifest[entryKey]) {
+    ordered[entryKey] = manifest[entryKey];
+  }
+  for (const key in manifest) {
+    if (key !== entryKey) ordered[key] = manifest[key];
+  }
+  ordered._base = base;
+  if (entryKey && manifest[entryKey]) ordered._entry = entryKey;
+  return ordered;
+}
+
 export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   if (typeof options.ssr === 'object') {
     throw new Error(
@@ -788,6 +862,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
   // two-invocation build (`vite build --ssr`) still knows the client's
   // entries when it bakes the client manifest in.
   let clientBuildConfig: any = null;
+  // The client entry start mode injects into the client build's input
+  // (reported by startServe): the one input that IS the application entry,
+  // as opposed to further inputs other plugins add (e.g. filesystem-routing's
+  // `buildInputs`, which lists every route module). Null outside start mode.
+  let startClientEntryId: string | null = null;
   let solidPkgsConfig: Awaited<ReturnType<typeof crawlFrameworkPkgs>>;
   const tsrxCss = new Map<string, string>();
 
@@ -1334,8 +1413,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
             warn: (message) => this.warn(message),
             repairDynamicEntries: true,
           });
-          manifest._base = base;
-          return `export default ${JSON.stringify(manifest)};`;
+          return `export default ${JSON.stringify(
+            stampClientEntry(
+              manifest,
+              resolveClientEntryKey(manifest, startClientEntryId, clientBuildConfig, projectRoot),
+              base,
+            ),
+          )};`;
         }
         // SSR build before the client build produced a manifest: bake in the
         // dev-shaped fallback (registry miss degrades to js-only resolution).
@@ -1714,6 +1798,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
           // Normalize to forward slashes to match Vite's transform ids.
           documentModuleId = documentPath ? documentPath.split(path.sep).join('/') : null;
         },
+        onClientEntryResolved(entryId) {
+          startClientEntryId = entryId;
+        },
       }),
     );
   }
@@ -1831,4 +1918,12 @@ export type ViteManifest = Record<
   }
 > & {
   _base?: string;
+  /**
+   * Manifest key of the client entry the document boots (the plugin's
+   * injected start-mode entry, or the single configured input). Absent when
+   * the plugin cannot tell the application entry apart from other configured
+   * inputs; its record is also serialized first so first-`isEntry` scans
+   * agree with it.
+   */
+  _entry?: string;
 };

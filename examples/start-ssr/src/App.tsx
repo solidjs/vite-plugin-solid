@@ -32,6 +32,10 @@ const OnlyClient = clientOnly(() => import('./ClientOnlyWidget'));
 //   /@fs/ URL, not "/../…" (#298).
 const LazyQuery = lazy(() => import('./QueryLazy.tsx?variant=a'));
 const LazyOutside = lazy(() => import('../../start-ssr-external/LazyOutside'));
+// Also a configured client build input in extra-input mode (#353): a lazily
+// imported module that is a genuine entry too, like a filesystem router's
+// `buildInputs` route modules.
+const LazyExtraInput = lazy(() => import('./ExtraInput'));
 
 function LazyAssetsSection() {
   return (
@@ -108,6 +112,14 @@ export default function App() {
   if (pathname === '/nested-lazy') return <NestedLazySection />;
   // Lazy asset-key surfaces: query-suffixed and root-external modules (#298/#299).
   if (pathname === '/lazy-assets') return <LazyAssetsSection />;
+  // The extra configured input, reached as a lazy route (extra-input mode).
+  if (pathname === '/extra-input') {
+    return (
+      <Loading fallback={<p>extra…</p>}>
+        <LazyExtraInput />
+      </Loading>
+    );
+  }
 
   const [count, setCount] = createSignal(0);
   const [message, setMessage] = createSignal('');

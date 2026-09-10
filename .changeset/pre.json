@@ -57,6 +57,7 @@
     "http-bridge-h2-tls-abort",
     "id-hash-second-segment",
     "inject-deployment-secret",
+    "jest-dom-v7-next",
     "lazy-entry-eliminated-importers",
     "lazy-entry-rolldown-reclassify",
     "lazy-load-native-compiler",

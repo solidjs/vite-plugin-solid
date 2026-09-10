@@ -447,6 +447,27 @@ function getExtension(filename: string): string {
 // consumes the runtime and must resolve it through Vite in dev.
 const SOLID_RUNTIME_PKGS = ['solid-js', '@solidjs/web'];
 
+// Tooling that declares solid-js as a peer but never runs inside the SSR
+// module runner. Kept out of the crawl entirely: classifying them as
+// semi-framework would also crawl THEIR dependencies, which vitefu deep-
+// includes in the client optimizer (`@solidjs/vite-plugin > @babel/core`
+// pre-bundled for the browser — ~2.6 MB of dead weight per cold start).
+// Mirrors vite-plugin-svelte's isCommonDepWithoutSvelteField list.
+const NON_RUNTIME_SOLID_PKGS = ['@solidjs/vite-plugin', 'vite', 'vitest', 'eslint-plugin-solid'];
+const NON_RUNTIME_SOLID_PREFIXES = [
+  'vite-plugin-',
+  'eslint-plugin-',
+  'prettier-plugin-',
+  '@types/',
+];
+function isNonRuntimeSolidPkg(name: string): boolean {
+  const bare = name.slice(name.lastIndexOf('/') + 1);
+  return (
+    NON_RUNTIME_SOLID_PKGS.includes(name) ||
+    NON_RUNTIME_SOLID_PREFIXES.some((p) => (p.startsWith('@') ? name : bare).startsWith(p))
+  );
+}
+
 function containsSolidField(fields: Record<string, any>) {
   const keys = Object.keys(fields);
   for (let i = 0; i < keys.length; i++) {
@@ -1039,6 +1060,11 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
         isFrameworkPkgByJson(pkgJson) {
           return containsSolidField(pkgJson.exports || {});
         },
+        // `false` = neither framework nor semi-framework, and don't crawl
+        // its deps; `undefined` = unknown, fall through to the json checks.
+        isFrameworkPkgByName(name) {
+          return isNonRuntimeSolidPkg(name) ? false : undefined;
+        },
         // Under `vite dev` the runtime must not be split in two. Inlined
         // modules resolve `solid-js` through Vite with `development` (its dev
         // server build); an externalized package's own imports are resolved by
@@ -1051,7 +1077,9 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
         // Semi-framework is the right class: `ssr.noExternal` without
         // `optimizeDeps.exclude`, since these hold no raw Solid components.
         isSemiFrameworkPkgByJson(pkgJson) {
-          if (!replaceDev) return false;
+          // Same gate as the core inlining in configEnvironment: dev serve
+          // only, never vitest (it manages inlining via test.server.deps).
+          if (!replaceDev || isTestMode) return false;
           return SOLID_RUNTIME_PKGS.some(
             (name) => pkgJson.dependencies?.[name] || pkgJson.peerDependencies?.[name],
           );
@@ -1242,13 +1270,21 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       // Only set resolve.external if noExternal is not true (to avoid conflicts with plugins like Cloudflare)
       if (name === 'ssr' && solidPkgsConfig) {
         if (config.resolve.noExternal !== true) {
-          config.resolve.noExternal = [
+          const noExternal = [
             ...(Array.isArray(config.resolve.noExternal) ? config.resolve.noExternal : []),
             ...solidPkgsConfig.ssr.noExternal,
           ];
+          config.resolve.noExternal = noExternal;
+          // vitefu externalizes the non-framework deps of every framework
+          // package in dev, and Vite gives `external` precedence over
+          // `noExternal`. A framework package that lists solid-js or
+          // @solidjs/web under `dependencies` (not peer — e.g.
+          // @tanstack/solid-router 2.0.0-rc.7 → @solidjs/web) would therefore
+          // re-externalize a core inlined above and split the runtime again.
+          // Nothing inlined may appear in `external`.
           config.resolve.external = [
             ...(Array.isArray(config.resolve.external) ? config.resolve.external : []),
-            ...solidPkgsConfig.ssr.external,
+            ...solidPkgsConfig.ssr.external.filter((dep) => !noExternal.includes(dep)),
           ];
         }
       }

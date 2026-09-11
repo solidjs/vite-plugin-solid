@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.0-next.43
+
+### Patch Changes
+
+- 4fb1af3: Honor the host's `resolve.noExternal` patterns when adding vitefu's externals to the SSR environment. The plugin already refused to re-externalize anything `noExternal` inlines, but it compared literal names only, while Vite treats string entries as picomatch patterns and RegExp entries as tests (`createFilter(undefined, noExternal, { resolve: false })`). Since 3.0.0-next.41 the crawl also reaches the packages that consume the Solid runtime, and their non-Solid dependencies land in `ssr.external` — so a host that inlines its packages by pattern (TanStack Start's `@tanstack/start**`, whose `@tanstack/start-server-core` resolves its `#tanstack-*` imports only when Vite processes it) saw them re-externalized, and `vite dev` failed with `ERR_PACKAGE_IMPORT_NOT_DEFINED: Package import specifier "#tanstack-router-entry" is not defined`. The externals are now filtered with the same matcher Vite uses, and a single string or RegExp `noExternal` value is kept instead of being dropped.
+- b173c94: New `observe` option: resolve Solid's observe builds for production observability. `observe: true` adds the `observe` export condition to every environment — client and server, inlined and externalized (`resolve.externalConditions`), inlining the core runtime and its consumers for server builds the way the dev posture already does so one build is loaded end to end — and turns on the compiler's `componentNames` option, so component owner labels (`<Home>`) survive minification in diagnostics and attribution paths. `componentNames` is also enabled under the dev posture, where `lazy()` and HMR wrappers otherwise hide the tag name. Requires `@solidjs/compiler` / `@solidjs/babel-plugin` ≥ 2.0.0-rc.8 (the release that adds the option).
+
 ## 3.0.0-next.42
 
 ### Patch Changes

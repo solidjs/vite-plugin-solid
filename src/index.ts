@@ -1270,8 +1270,13 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
       // Only set resolve.external if noExternal is not true (to avoid conflicts with plugins like Cloudflare)
       if (name === 'ssr' && solidPkgsConfig) {
         if (config.resolve.noExternal !== true) {
+          const hostNoExternal = config.resolve.noExternal;
           const noExternal = [
-            ...(Array.isArray(config.resolve.noExternal) ? config.resolve.noExternal : []),
+            ...(Array.isArray(hostNoExternal)
+              ? hostNoExternal
+              : hostNoExternal
+                ? [hostNoExternal]
+                : []),
             ...solidPkgsConfig.ssr.noExternal,
           ];
           config.resolve.noExternal = noExternal;
@@ -1282,9 +1287,25 @@ export default function solidPlugin(options: Partial<Options> = {}): Plugin[] {
           // @tanstack/solid-router 2.0.0-rc.7 → @solidjs/web) would therefore
           // re-externalize a core inlined above and split the runtime again.
           // Nothing inlined may appear in `external`.
+          //
+          // "Inlined" means whatever `noExternal` claims, judged the way Vite
+          // judges it (`createFilter(undefined, noExternal, { resolve:
+          // false })` in its `createIsConfiguredAsExternal`): string entries
+          // are picomatch patterns, RegExp entries test the id. A literal
+          // `includes` check only caught exact names, so a host that inlines
+          // its packages by pattern — TanStack Start's `@tanstack/start**`,
+          // whose start-server-core resolves `#tanstack-*` imports only when
+          // Vite processes it — saw them re-externalized once the
+          // semi-framework crawl reached them through its Solid adapter
+          // (their non-Solid dependencies land in vitefu's `ssr.external`),
+          // and `vite dev` failed with ERR_PACKAGE_IMPORT_NOT_DEFINED.
+          const keepsExternal =
+            noExternal.length > 0
+              ? createFilter(undefined, noExternal, { resolve: false })
+              : () => true;
           config.resolve.external = [
             ...(Array.isArray(config.resolve.external) ? config.resolve.external : []),
-            ...solidPkgsConfig.ssr.external.filter((dep) => !noExternal.includes(dep)),
+            ...solidPkgsConfig.ssr.external.filter((dep) => keepsExternal(dep)),
           ];
         }
       }
